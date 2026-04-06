@@ -5,15 +5,15 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 const links = [
-  { href: "/", label: "Vozidla" },
-  { href: "/vlaky", label: "Vlakové soupravy" },
-  { href: "/katalog", label: "Katalog" },
+  { href: "/", label: "Katalog" },
+  { href: "/soupravy", label: "Soupravy" },
+  { href: "/vozidla", label: "Vozidla" },
   { href: "/dcc", label: "DCC" },
 ];
 
 const addButtons: Record<string, { href: string; label: string }> = {
-  "/": { href: "/vozidla/novy", label: "+ Přidat vozidlo" },
-  "/vlaky": { href: "/vlaky/novy", label: "+ Přidat vlak" },
+  "/vozidla": { href: "/vozidla/novy", label: "+ Přidat vozidlo" },
+  "/soupravy": { href: "/soupravy/novy", label: "+ Přidat vlak" },
 };
 
 const catalogFilters = [
@@ -45,7 +45,7 @@ function NavInner() {
     path === "/" ? pathname === "/" : pathname === path
   )?.[1];
 
-  const isKatalog = pathname === "/katalog";
+  const isKatalog = pathname === "/";
   const currentTyp = searchParams.get("typ") || "";
   const currentOp = searchParams.get("op") || "";
   const showColors = searchParams.get("barvy") === "1";
@@ -60,7 +60,7 @@ function NavInner() {
       }
     }
     const qs = params.toString();
-    return `/katalog${qs ? `?${qs}` : ""}`;
+    return `/${qs ? `?${qs}` : ""}`;
   }
 
   return (
@@ -70,7 +70,7 @@ function NavInner() {
           {links.map((link) => {
             const isActive =
               link.href === "/"
-                ? pathname === "/" || pathname.startsWith("/vozidla")
+                ? pathname === "/"
                 : pathname.startsWith(link.href);
             return (
               <Link

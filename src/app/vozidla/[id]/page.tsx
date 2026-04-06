@@ -123,7 +123,7 @@ export default async function VehicleDetailPage({
                 {appearances.map((a) => (
                   <li key={a.trainId}>
                     <Link
-                      href={`/vlaky/${a.trainId}`}
+                      href={`/soupravy/${a.trainId}`}
                       className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50"
                     >
                       {a.trainCategory && (

@@ -59,7 +59,7 @@ export default async function TrainsPage() {
             return (
               <Link
                 key={t.id}
-                href={`/vlaky/${t.id}`}
+                href={`/soupravy/${t.id}`}
                 className="group block py-3 hover:bg-blue-50 transition-colors"
               >
                 <div className="mb-1 flex items-baseline gap-2">

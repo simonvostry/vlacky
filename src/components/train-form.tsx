@@ -46,7 +46,7 @@ export function TrainForm({ train }: { train?: Train }) {
 
     if (res.ok) {
       const saved = await res.json();
-      router.push(`/vlaky/${saved.id}`);
+      router.push(`/soupravy/${saved.id}`);
       router.refresh();
     } else {
       setSaving(false);
@@ -56,7 +56,7 @@ export function TrainForm({ train }: { train?: Train }) {
   async function handleDelete() {
     if (!isEdit || !confirm("Opravdu smazat tento vlak?")) return;
     await fetch(`/api/vlaky/${train!.id}`, { method: "DELETE" });
-    router.push("/vlaky");
+    router.push("/soupravy");
     router.refresh();
   }
 

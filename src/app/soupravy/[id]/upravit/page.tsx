@@ -26,7 +26,7 @@ export default async function EditTrainPage({
   return (
     <div className="mx-auto max-w-2xl">
       <Link
-        href={`/vlaky/${train.id}`}
+        href={`/soupravy/${train.id}`}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         &larr; Zpět

@@ -80,7 +80,7 @@ export default async function TrainDetailPage({
   return (
     <div className="mx-auto max-w-7xl">
       <Link
-        href="/vlaky"
+        href="/soupravy"
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         &larr; Zpět na vlaky
@@ -111,7 +111,7 @@ export default async function TrainDetailPage({
         )}
         <div className="mt-3">
           <Link
-            href={`/vlaky/${train.id}/upravit`}
+            href={`/soupravy/${train.id}/upravit`}
             className="inline-block rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
           >
             Upravit vlak
