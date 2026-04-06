@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 const links = [
-  { href: "/", label: "Katalog" },
+  { href: "/katalog", label: "Katalog" },
   { href: "/soupravy", label: "Soupravy" },
   { href: "/vozidla", label: "Vozidla" },
   { href: "/dcc", label: "DCC" },
@@ -45,7 +45,7 @@ function NavInner() {
     path === "/" ? pathname === "/" : pathname === path
   )?.[1];
 
-  const isKatalog = pathname === "/";
+  const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
   const currentOp = searchParams.get("op") || "";
   const showColors = searchParams.get("barvy") === "1";
@@ -60,7 +60,7 @@ function NavInner() {
       }
     }
     const qs = params.toString();
-    return `/${qs ? `?${qs}` : ""}`;
+    return `/katalog${qs ? `?${qs}` : ""}`;
   }
 
   return (
@@ -69,9 +69,7 @@ function NavInner() {
         <div className="flex gap-6">
           {links.map((link) => {
             const isActive =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
+              pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
