@@ -7,13 +7,15 @@ import { Suspense } from "react";
 const links = [
   { href: "/katalog", label: "Katalog" },
   { href: "/soupravy", label: "Soupravy" },
-  { href: "/vozidla", label: "Vozidla" },
+  { href: "/lokomotivy", label: "Lokomotivy" },
+  { href: "/vozy", label: "Vozy" },
   { href: "/dcc", label: "DCC" },
 ];
 
 const addButtons: Record<string, { href: string; label: string }> = {
-  "/vozidla": { href: "/vozidla/novy", label: "+ Přidat vozidlo" },
-  "/soupravy": { href: "/soupravy/novy", label: "+ Přidat vlak" },
+  "/lokomotivy": { href: "/lokomotivy/novy", label: "+ Přidat lokomotivu" },
+  "/vozy": { href: "/vozy/novy", label: "+ Přidat vůz" },
+  "/soupravy": { href: "/soupravy/novy", label: "+ Přidat soupravu" },
 };
 
 const catalogFilters = [

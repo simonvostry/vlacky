@@ -111,7 +111,7 @@ export function TrainVehicleManager({
                 <td className="px-4 py-2 text-gray-400">{tv.position}</td>
                 <td className="px-4 py-2 font-medium">
                   <Link
-                    href={`/vozidla/${tv.vehicleId}`}
+                    href={`/${tv.vehicleType === "loco" ? "lokomotivy" : "vozy"}/${tv.vehicleId}`}
                     className="hover:text-blue-600"
                   >
                     {tv.operator && (

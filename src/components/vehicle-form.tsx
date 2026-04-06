@@ -59,7 +59,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
     if (res.ok) {
       const saved = await res.json();
-      router.push(`/vozidla/${saved.id}`);
+      const section = saved.type === "loco" ? "lokomotivy" : "vozy";
+      router.push(`/${section}/${saved.id}`);
       router.refresh();
     } else {
       setSaving(false);
@@ -69,7 +70,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   async function handleDelete() {
     if (!isEdit || !confirm("Opravdu smazat toto vozidlo?")) return;
     await fetch(`/api/vozidla/${vehicle!.id}`, { method: "DELETE" });
-    router.push("/");
+    const section = form.type === "loco" ? "lokomotivy" : "vozy";
+    router.push(`/${section}`);
     router.refresh();
   }
 
