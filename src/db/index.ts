@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config({ path: ".env.local" });
+
 import * as schema from "./schema";
 
 // Use Turso (libSQL) when env vars are set, otherwise fall back to local SQLite

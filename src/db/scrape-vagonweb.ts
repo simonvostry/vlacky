@@ -301,7 +301,7 @@ async function main() {
   }
 
   // Clear existing catalog for ČD
-  db.delete(vehicleCatalog).run();
+  await db.delete(vehicleCatalog).run();
   console.log("Cleared existing catalog entries.\n");
 
   let totalInserted = 0;
@@ -313,7 +313,7 @@ async function main() {
     console.log(`  Parsed ${rows.length} entries`);
 
     for (const row of rows) {
-      db.insert(vehicleCatalog).values(row).run();
+      await db.insert(vehicleCatalog).values(row).run();
     }
     totalInserted += rows.length;
     console.log(`  Inserted ${rows.length} entries\n`);
@@ -323,14 +323,14 @@ async function main() {
 
   // Download images
   console.log("Downloading vehicle images...");
-  const allEntries = db.select().from(vehicleCatalog).all();
+  const allEntries = await db.select().from(vehicleCatalog).all();
   let imagesFound = 0;
   let imagesNotFound = 0;
 
   for (const entry of allEntries) {
     const result = await tryDownloadImage(entry.designation, entry.code);
     if (result) {
-      db.update(vehicleCatalog)
+      await db.update(vehicleCatalog)
         .set({
           imagePath: result.path,
           imageWidth: result.width,

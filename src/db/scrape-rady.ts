@@ -166,7 +166,7 @@ async function main() {
 
   // Now check which images we DON'T have yet
   const existingImages = new Set<string>();
-  const existingCatalogImages = db.select().from(catalogImages).all() as any[];
+  const existingCatalogImages = await db.select().from(catalogImages).all() as any[];
   for (const ci of existingCatalogImages) {
     existingImages.add(path.basename(ci.imagePath).toLowerCase());
   }
@@ -194,7 +194,7 @@ async function main() {
       ? `${entry.designation} ${entry.code}`
       : entry.designation;
 
-    let catalogEntry = db
+    let catalogEntry = await db
       .select()
       .from(vehicleCatalog)
       .where(
@@ -209,7 +209,7 @@ async function main() {
 
     // Also try matching with null code
     if (!catalogEntry && !entry.code) {
-      catalogEntry = db
+      catalogEntry = await db
         .select()
         .from(vehicleCatalog)
         .where(eq(vehicleCatalog.fullDesignation, fullDesig))
@@ -218,7 +218,7 @@ async function main() {
 
     if (!catalogEntry) {
       // Try matching just by full designation
-      catalogEntry = db
+      catalogEntry = await db
         .select()
         .from(vehicleCatalog)
         .where(eq(vehicleCatalog.fullDesignation, fullDesig))
@@ -227,7 +227,7 @@ async function main() {
 
     if (!catalogEntry) {
       // Create a new catalog entry
-      catalogEntry = db
+      catalogEntry = await db
         .insert(vehicleCatalog)
         .values({
           designation: entry.designation,
@@ -250,7 +250,7 @@ async function main() {
 
     // Add to catalog_images
     const label = entry.variant || null;
-    db.insert(catalogImages)
+    await db.insert(catalogImages)
       .values({
         catalogId: catalogEntry.id,
         imagePath: result.localPath,
@@ -271,19 +271,19 @@ async function main() {
   // Update primary images for new catalog entries
   if (newCatalogEntries > 0) {
     const families = selectedRuns.map(r => r.wagonFamily);
-    const newEntries = (db
+    const newEntries = (await db
       .select()
       .from(vehicleCatalog)
       .all() as any[])
       .filter((e: any) => families.includes(e.wagonFamily));
     for (const entry of newEntries) {
-      const img = db
+      const img = await db
         .select()
         .from(catalogImages)
         .where(eq(catalogImages.catalogId, entry.id))
         .get();
       if (img && !entry.imagePath) {
-        db.update(vehicleCatalog)
+        await db.update(vehicleCatalog)
           .set({
             imagePath: img.imagePath,
             imageWidth: img.imageWidth,

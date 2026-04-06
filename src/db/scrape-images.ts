@@ -154,11 +154,11 @@ async function main() {
   }
 
   // Clear existing catalog images
-  db.delete(catalogImages).run();
+  await db.delete(catalogImages).run();
   console.log("Cleared existing catalog images.\n");
 
   // Load all catalog entries for matching
-  const catalog = db.select().from(vehicleCatalog).all() as any[];
+  const catalog = await db.select().from(vehicleCatalog).all() as any[];
   console.log(`Catalog has ${catalog.length} entries.\n`);
 
   let totalImages = 0;
@@ -206,7 +206,7 @@ async function main() {
   async function processImage(img: ImageEntry, catalogId: number) {
     const result = await downloadImage(img.srcUrl);
     if (result) {
-      db.insert(catalogImages)
+      await db.insert(catalogImages)
         .values({
           catalogId,
           imagePath: result.localPath,
@@ -231,7 +231,7 @@ async function main() {
   // Update the vehicleCatalog.imagePath to point to the first (newest) variant
   console.log("\nUpdating catalog primary images...");
   for (const entry of catalog) {
-    const images = db
+    const images = await db
       .select()
       .from(catalogImages)
       .where(eq(catalogImages.catalogId, entry.id))
@@ -241,7 +241,7 @@ async function main() {
     if (images.length > 0) {
       // Use the last image (newest livery) as the primary
       const primary = images[images.length - 1];
-      db.update(vehicleCatalog)
+      await db.update(vehicleCatalog)
         .set({
           imagePath: primary.imagePath,
           imageWidth: primary.imageWidth,
