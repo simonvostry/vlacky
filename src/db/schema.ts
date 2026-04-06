@@ -54,3 +54,45 @@ export const decoderFunctions = sqliteTable("decoder_functions", {
   label: text("label").notNull(), // "Světla", "Interiér"
   description: text("description"),
 });
+
+export const vehicleCatalog = sqliteTable("vehicle_catalog", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  designation: text("designation").notNull(), // "Bdmpee" (letters only)
+  code: text("code"), // "233" (from <sup>)
+  fullDesignation: text("full_designation").notNull(), // "Bdmpee 233"
+  operator: text("operator").notNull(), // "ČD"
+  wagonFamily: text("wagon_family").notNull(), // "CD_Y" | "CD_Z"
+  type: text("type").notNull(), // "wagon" | "loco"
+  classType: text("class_type"), // "1" | "2" | "12" | "restaurant" | "sleeping" | "luggage"
+  uicNumber: text("uic_number"), // "50 54 22-44"
+  inventoryRange: text("inventory_range"), // "001 ... 320"
+  yearBuilt: text("year_built"), // "1989 - 1990"
+  manufacturer: text("manufacturer"),
+  yearReconstructed: text("year_reconstructed"),
+  reconstructor: text("reconstructor"),
+  unitsBuilt: text("units_built"),
+  unitsInService: text("units_in_service"),
+  yearRetired: text("year_retired"),
+  maxSpeed: text("max_speed"), // "160 km/h"
+  vehicleCode: text("vehicle_code"),
+  imagePath: text("image_path"),
+  imageWidth: integer("image_width"),
+  imageHeight: integer("image_height"),
+  sourceUrl: text("source_url"),
+  scrapedAt: text("scraped_at")
+    .notNull()
+    .$defaultFn(() => new Date().toISOString()),
+});
+
+export const catalogImages = sqliteTable("catalog_images", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  catalogId: integer("catalog_id")
+    .notNull()
+    .references(() => vehicleCatalog.id, { onDelete: "cascade" }),
+  imagePath: text("image_path").notNull(), // "/img/catalog/a150-a.gif"
+  imageWidth: integer("image_width"),
+  imageHeight: integer("image_height"),
+  sourceUrl: text("source_url"), // original vagonWEB URL
+  label: text("label"), // "(od 1997)", "(1993)", etc.
+  sortOrder: integer("sort_order").notNull(), // display order
+});

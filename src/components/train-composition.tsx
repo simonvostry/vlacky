@@ -1,9 +1,5 @@
 import { ClassBadge } from "./class-badge";
-
-const operatorLogos: Record<string, string> = {
-  "ČD": "/img/logo-cd.svg",
-  "ÖBB": "/img/logo-obb.svg",
-};
+import { OperatorLogo } from "./operator-logo";
 
 type Vehicle = {
   id: number;
@@ -88,16 +84,7 @@ export function TrainComposition({ vehicles }: Props) {
                 className="shrink-0 pt-1 flex items-center justify-center gap-1 whitespace-nowrap overflow-hidden"
                 style={{ width: w }}
               >
-                {tv.vehicle.operator && operatorLogos[tv.vehicle.operator] ? (
-                  <img
-                    src={operatorLogos[tv.vehicle.operator]}
-                    alt={tv.vehicle.operator}
-                    className="shrink-0"
-                    style={{ height: 14, width: "auto" }}
-                  />
-                ) : (
-                  <span className="text-[13px] leading-none text-gray-400">{tv.vehicle.operator}</span>
-                )}
+                <OperatorLogo operator={tv.vehicle.operator} />
                 {tv.vehicle.classType && (
                   <ClassBadge classType={tv.vehicle.classType} size="xs" short />
                 )}

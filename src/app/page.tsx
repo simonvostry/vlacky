@@ -1,13 +1,9 @@
 import { db, schema } from "@/db";
 import { ClassBadge } from "@/components/class-badge";
+import { OperatorLogo } from "@/components/operator-logo";
 import Link from "next/link";
 
 const SCALE = 0.75;
-
-const operatorLogos: Record<string, string> = {
-  "ČD": "/img/logo-cd.svg",
-  "ÖBB": "/img/logo-obb.svg",
-};
 
 export const dynamic = "force-dynamic";
 
@@ -57,16 +53,7 @@ export default function VehiclesPage() {
                 </div>
               )}
               <div className="flex items-center justify-center gap-1 whitespace-nowrap">
-                {v.operator && operatorLogos[v.operator] ? (
-                  <img
-                    src={operatorLogos[v.operator]}
-                    alt={v.operator}
-                    className="shrink-0"
-                    style={{ height: 12, width: "auto" }}
-                  />
-                ) : (
-                  <span className="text-[11px] text-gray-400">{v.operator}</span>
-                )}
+                <OperatorLogo operator={v.operator} height={12} />
                 <span className="text-[12px] font-bold">{v.designation}</span>
                 {v.classType && (
                   <ClassBadge classType={v.classType} size="xs" short />

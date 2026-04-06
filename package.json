@@ -8,12 +8,15 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "db:scrape": "tsx src/db/scrape-vagonweb.ts",
+    "db:scrape-images": "tsx src/db/scrape-images.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.2",
+    "node-html-parser": "^7.1.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
