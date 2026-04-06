@@ -4,9 +4,15 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default function DccPage() {
+export default async function DccPage() {
   // Vehicles with DCC addresses
-  const vehiclesWithDcc = db
+  const vehiclesWithDcc: {
+    id: number;
+    designation: string;
+    operator: string | null;
+    type: string;
+    dccAddress: number | null;
+  }[] = await db
     .select()
     .from(schema.vehicles)
     .where(isNotNull(schema.vehicles.dccAddress))
@@ -14,7 +20,7 @@ export default function DccPage() {
     .all();
 
   // Check for address conflicts
-  const addressMap = new Map<number, typeof vehiclesWithDcc>();
+  const addressMap = new Map<number, (typeof vehiclesWithDcc)>();
   for (const v of vehiclesWithDcc) {
     if (v.dccAddress === null) continue;
     const existing = addressMap.get(v.dccAddress) || [];
@@ -26,7 +32,13 @@ export default function DccPage() {
   );
 
   // All lighting decoder addresses from train_vehicles
-  const lightingAddresses = db
+  const lightingAddresses: {
+    lightingDecoderAddress: number | null;
+    vehicleDesignation: string;
+    vehicleOperator: string | null;
+    trainNumber: string | null;
+    trainName: string | null;
+  }[] = await db
     .select({
       lightingDecoderAddress: schema.trainVehicles.lightingDecoderAddress,
       vehicleDesignation: schema.vehicles.designation,
@@ -61,7 +73,7 @@ export default function DccPage() {
               <li key={address}>
                 Adresa <span className="font-mono font-bold">{address}</span>:{" "}
                 {vehicles
-                  .map((v) => `${v.operator} ${v.designation}`)
+                  .map((v: { operator: string | null; designation: string }) => `${v.operator} ${v.designation}`)
                   .join(", ")}
               </li>
             ))}

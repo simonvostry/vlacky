@@ -3,6 +3,8 @@ const operatorLogos: Record<string, string> = {
   "ÖBB": "/img/logo-obb.svg",
   "ČSD": "/img/logo-csd.svg",
   "ČSD/ČD": "/img/logo-csd.svg",
+  "DB": "/img/logo-db.svg",
+  "RJ": "/img/logo-rj.svg",
 };
 
 type Props = {

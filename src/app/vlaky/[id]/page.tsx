@@ -16,7 +16,7 @@ export default async function TrainDetailPage({
   const trainId = parseInt(id, 10);
   if (isNaN(trainId)) notFound();
 
-  const train = db
+  const train = await db
     .select()
     .from(schema.trains)
     .where(eq(schema.trains.id, trainId))
@@ -24,7 +24,7 @@ export default async function TrainDetailPage({
 
   if (!train) notFound();
 
-  const trainVehicles = db
+  const trainVehicles = await db
     .select({
       tvId: schema.trainVehicles.id,
       position: schema.trainVehicles.position,
@@ -49,10 +49,10 @@ export default async function TrainDetailPage({
     )
     .where(eq(schema.trainVehicles.trainId, trainId))
     .orderBy(schema.trainVehicles.position)
-    .all();
+    .all() as any[];
 
   // All vehicles for the manager dropdown
-  const allVehicles = db
+  const allVehicles = await db
     .select({
       id: schema.vehicles.id,
       designation: schema.vehicles.designation,
@@ -61,7 +61,7 @@ export default async function TrainDetailPage({
     })
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
-    .all();
+    .all() as any[];
 
   // Flat list for manager
   const managerRows = trainVehicles.map((tv) => ({

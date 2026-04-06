@@ -5,15 +5,15 @@ import { TrainComposition } from "@/components/train-composition";
 
 export const dynamic = "force-dynamic";
 
-export default function TrainsPage() {
-  const allTrains = db
+export default async function TrainsPage() {
+  const allTrains = await db
     .select()
     .from(schema.trains)
     .orderBy(schema.trains.category, schema.trains.number)
-    .all();
+    .all() as any[];
 
   // Load all train vehicles with their vehicle data, grouped by train
-  const allTrainVehicles = db
+  const allTrainVehicles = await db
     .select({
       trainId: schema.trainVehicles.trainId,
       position: schema.trainVehicles.position,
@@ -37,7 +37,7 @@ export default function TrainsPage() {
       eq(schema.trainVehicles.vehicleId, schema.vehicles.id)
     )
     .orderBy(schema.trainVehicles.position)
-    .all();
+    .all() as any[];
 
   const vehiclesByTrain = new Map<number, typeof allTrainVehicles>();
   for (const tv of allTrainVehicles) {

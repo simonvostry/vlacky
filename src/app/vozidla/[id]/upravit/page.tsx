@@ -15,7 +15,7 @@ export default async function EditVehiclePage({
   const vehicleId = parseInt(id, 10);
   if (isNaN(vehicleId)) notFound();
 
-  const vehicle = db
+  const vehicle = await db
     .select()
     .from(schema.vehicles)
     .where(eq(schema.vehicles.id, vehicleId))

@@ -16,7 +16,7 @@ export default async function VehicleDetailPage({
   const vehicleId = parseInt(id, 10);
   if (isNaN(vehicleId)) notFound();
 
-  const vehicle = db
+  const vehicle = await db
     .select()
     .from(schema.vehicles)
     .where(eq(schema.vehicles.id, vehicleId))
@@ -25,15 +25,15 @@ export default async function VehicleDetailPage({
   if (!vehicle) notFound();
 
   // Decoder functions
-  const functions = db
+  const functions = await db
     .select()
     .from(schema.decoderFunctions)
     .where(eq(schema.decoderFunctions.vehicleId, vehicleId))
     .orderBy(schema.decoderFunctions.functionNumber)
-    .all();
+    .all() as any[];
 
   // Trains this vehicle appears in
-  const appearances = db
+  const appearances = await db
     .select({
       trainId: schema.trains.id,
       trainNumber: schema.trains.number,
@@ -44,7 +44,7 @@ export default async function VehicleDetailPage({
     .from(schema.trainVehicles)
     .innerJoin(schema.trains, eq(schema.trainVehicles.trainId, schema.trains.id))
     .where(eq(schema.trainVehicles.vehicleId, vehicleId))
-    .all();
+    .all() as any[];
 
   return (
     <div className="mx-auto max-w-7xl">

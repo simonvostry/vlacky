@@ -12,25 +12,31 @@ const WIDE_THRESHOLD = 350;
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ typ?: string; barvy?: string }>;
+  searchParams: Promise<{ typ?: string; barvy?: string; op?: string }>;
 }) {
-  const { typ, barvy } = await searchParams;
+  const { typ, barvy, op } = await searchParams;
   const showColors = barvy === "1";
 
-  let query = db
+  const allEntries = await db
     .select()
-    .from(schema.vehicleCatalog);
-
-  const allEntries = query
+    .from(schema.vehicleCatalog)
     .orderBy(
       schema.vehicleCatalog.wagonFamily,
       schema.vehicleCatalog.designation
     )
-    .all();
+    .all() as any[];
 
-  const entries = typ
-    ? allEntries.filter((e) => e.type === typ)
-    : allEntries;
+  const entries = allEntries.filter((e) => {
+    if (typ && e.type !== typ) return false;
+    if (op) {
+      if (op === "ČSD") {
+        if (e.operator !== "ČSD" && e.operator !== "ČSD/ČD") return false;
+      } else {
+        if (e.operator !== op) return false;
+      }
+    }
+    return true;
+  });
 
   // Load catalog images grouped by catalogId (only when showing colors)
   const imagesByCatalog = new Map<number, typeof allCatalogImages>();
@@ -46,11 +52,11 @@ export default async function CatalogPage({
   }[] = [];
 
   if (showColors) {
-    allCatalogImages = db
+    allCatalogImages = await db
       .select()
       .from(schema.catalogImages)
       .orderBy(schema.catalogImages.catalogId, schema.catalogImages.sortOrder)
-      .all();
+      .all() as any[];
 
     for (const img of allCatalogImages) {
       const existing = imagesByCatalog.get(img.catalogId) || [];
@@ -78,7 +84,7 @@ export default async function CatalogPage({
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
-                className={`group rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50 ${isWide ? "col-span-2" : ""}`}
+                className={`group flex flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50 ${isWide ? "col-span-2" : ""}`}
               >
                 {/* Header: operator + designation + badges */}
                 <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]">

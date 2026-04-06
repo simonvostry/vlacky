@@ -12,6 +12,7 @@ const PAGES = [
   { url: "https://www.vagonweb.cz/popisy/popisy.php?k=CD_Z&z=s&p=v", family: "CD_Z" },
   { url: "https://www.vagonweb.cz/popisy/popisy.php?k=CSD_4n_II", family: "CSD_4n_II" },
   { url: "https://www.vagonweb.cz/popisy/popisy.php?k=RJ&z=s&p=v", family: "RJ" },
+  { url: "https://www.vagonweb.cz/popisy/popisy.php?k=OeBB_1&z=s&p=v", family: "OeBB_1" },
 ];
 
 const IMG_DIR = path.join(process.cwd(), "public", "img", "catalog");
@@ -157,7 +158,7 @@ async function main() {
   console.log("Cleared existing catalog images.\n");
 
   // Load all catalog entries for matching
-  const catalog = db.select().from(vehicleCatalog).all();
+  const catalog = db.select().from(vehicleCatalog).all() as any[];
   console.log(`Catalog has ${catalog.length} entries.\n`);
 
   let totalImages = 0;
@@ -235,7 +236,7 @@ async function main() {
       .from(catalogImages)
       .where(eq(catalogImages.catalogId, entry.id))
       .orderBy(catalogImages.sortOrder)
-      .all();
+      .all() as any[];
 
     if (images.length > 0) {
       // Use the last image (newest livery) as the primary

@@ -13,6 +13,7 @@
     "db:scrape-images": "tsx src/db/scrape-images.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.2",
     "better-sqlite3": "^12.8.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.2",

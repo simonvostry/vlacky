@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const vehicle = db
+  const vehicle = await db
     .select()
     .from(schema.vehicles)
     .where(eq(schema.vehicles.id, parseInt(id, 10)))
@@ -22,7 +22,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const vehicle = db
+  const vehicle = await db
     .update(schema.vehicles)
     .set({
       designation: body.designation,
@@ -49,7 +49,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  db.delete(schema.vehicles)
+  await db.delete(schema.vehicles)
     .where(eq(schema.vehicles.id, parseInt(id, 10)))
     .run();
   return NextResponse.json({ ok: true });

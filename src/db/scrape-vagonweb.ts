@@ -29,6 +29,11 @@ const PAGES = [
     operator: "RJ",
     wagonFamily: "RJ",
   },
+  {
+    url: "https://www.vagonweb.cz/popisy/popisy.php?k=OeBB_1&z=p&p=v",
+    operator: "ÖBB",
+    wagonFamily: "OeBB_1",
+  },
 ];
 
 const IMG_DIR = path.join(process.cwd(), "public", "img", "catalog");

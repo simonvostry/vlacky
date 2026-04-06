@@ -12,13 +12,13 @@ export async function POST(
   const body = await request.json();
 
   // Get max position
-  const max = db
+  const max = await db
     .select({ maxPos: sql<number>`coalesce(max(${schema.trainVehicles.position}), 0)` })
     .from(schema.trainVehicles)
     .where(eq(schema.trainVehicles.trainId, trainId))
     .get();
 
-  const tv = db
+  const tv = await db
     .insert(schema.trainVehicles)
     .values({
       trainId,
@@ -45,7 +45,7 @@ export async function PUT(
 
   // Move vehicle: { trainVehicleId, direction: "up" | "down" }
   if (body.action === "move") {
-    const tv = db
+    const tv = await db
       .select()
       .from(schema.trainVehicles)
       .where(eq(schema.trainVehicles.id, body.trainVehicleId))
@@ -59,7 +59,7 @@ export async function PUT(
     if (newPos < 1) return NextResponse.json({ error: "Already first" }, { status: 400 });
 
     // Find the vehicle at the target position
-    const other = db
+    const other = await db
       .select()
       .from(schema.trainVehicles)
       .where(
@@ -73,11 +73,11 @@ export async function PUT(
     if (!other) return NextResponse.json({ error: "No swap target" }, { status: 400 });
 
     // Swap positions
-    db.update(schema.trainVehicles)
+    await db.update(schema.trainVehicles)
       .set({ position: newPos })
       .where(eq(schema.trainVehicles.id, tv.id))
       .run();
-    db.update(schema.trainVehicles)
+    await db.update(schema.trainVehicles)
       .set({ position: tv.position })
       .where(eq(schema.trainVehicles.id, other.id))
       .run();
@@ -87,7 +87,7 @@ export async function PUT(
 
   // Update train vehicle properties
   if (body.action === "update") {
-    const tv = db
+    const tv = await db
       .update(schema.trainVehicles)
       .set({
         dccAddressOverride: body.dccAddressOverride ?? null,
@@ -112,7 +112,7 @@ export async function DELETE(
   const trainId = parseInt(id, 10);
   const body = await request.json();
 
-  const tv = db
+  const tv = await db
     .select()
     .from(schema.trainVehicles)
     .where(eq(schema.trainVehicles.id, body.trainVehicleId))
@@ -120,12 +120,12 @@ export async function DELETE(
 
   if (!tv) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  db.delete(schema.trainVehicles)
+  await db.delete(schema.trainVehicles)
     .where(eq(schema.trainVehicles.id, body.trainVehicleId))
     .run();
 
   // Reorder remaining vehicles
-  db.update(schema.trainVehicles)
+  await db.update(schema.trainVehicles)
     .set({ position: sql`${schema.trainVehicles.position} - 1` })
     .where(
       and(

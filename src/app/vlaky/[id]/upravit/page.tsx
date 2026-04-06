@@ -15,7 +15,7 @@ export default async function EditTrainPage({
   const trainId = parseInt(id, 10);
   if (isNaN(trainId)) notFound();
 
-  const train = db
+  const train = await db
     .select()
     .from(schema.trains)
     .where(eq(schema.trains.id, trainId))

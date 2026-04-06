@@ -7,12 +7,12 @@ const SCALE = 0.75;
 
 export const dynamic = "force-dynamic";
 
-export default function VehiclesPage() {
-  const allVehicles = db
+export default async function VehiclesPage() {
+  const allVehicles = await db
     .select()
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
-    .all();
+    .all() as any[];
 
   return (
     <div>

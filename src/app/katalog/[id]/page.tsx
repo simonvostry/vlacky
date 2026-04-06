@@ -15,7 +15,7 @@ export default async function CatalogDetailPage({
   const entryId = parseInt(id, 10);
   if (isNaN(entryId)) notFound();
 
-  const entry = db
+  const entry = await db
     .select()
     .from(schema.vehicleCatalog)
     .where(eq(schema.vehicleCatalog.id, entryId))
@@ -24,7 +24,14 @@ export default async function CatalogDetailPage({
   if (!entry) notFound();
 
   // Get all livery variants
-  const images = db
+  const images: {
+    id: number;
+    imagePath: string;
+    imageWidth: number | null;
+    imageHeight: number | null;
+    label: string | null;
+    sortOrder: number;
+  }[] = await db
     .select()
     .from(schema.catalogImages)
     .where(eq(schema.catalogImages.catalogId, entryId))

@@ -2,7 +2,7 @@ import { db, schema } from "@/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const vehicles = db
+  const vehicles = await db
     .select()
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
@@ -12,7 +12,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const vehicle = db
+  const vehicle = await db
     .insert(schema.vehicles)
     .values({
       designation: body.designation,

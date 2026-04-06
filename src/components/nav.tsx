@@ -22,6 +22,13 @@ const catalogFilters = [
   { value: "wagon", label: "Vozy" },
 ];
 
+const operatorFilters = [
+  { value: "ČD", logo: "/img/logo-cd.svg", label: "ČD" },
+  { value: "ČSD", logo: "/img/logo-csd.svg", label: "ČSD" },
+  { value: "ÖBB", logo: "/img/logo-obb.svg", label: "ÖBB" },
+  { value: "RJ", logo: "/img/logo-rj.svg", label: "RJ" },
+];
+
 export function Nav() {
   return (
     <Suspense>
@@ -40,25 +47,17 @@ function NavInner() {
 
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
+  const currentOp = searchParams.get("op") || "";
   const showColors = searchParams.get("barvy") === "1";
 
-  function filterHref(typ: string) {
+  function catalogHref(overrides: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
-    if (typ) {
-      params.set("typ", typ);
-    } else {
-      params.delete("typ");
-    }
-    const qs = params.toString();
-    return `/katalog${qs ? `?${qs}` : ""}`;
-  }
-
-  function colorsHref() {
-    const params = new URLSearchParams(searchParams.toString());
-    if (showColors) {
-      params.delete("barvy");
-    } else {
-      params.set("barvy", "1");
+    for (const [k, v] of Object.entries(overrides)) {
+      if (v) {
+        params.set(k, v);
+      } else {
+        params.delete(k);
+      }
     }
     const qs = params.toString();
     return `/katalog${qs ? `?${qs}` : ""}`;
@@ -95,7 +94,7 @@ function NavInner() {
                 {catalogFilters.map((f) => (
                   <Link
                     key={f.value}
-                    href={filterHref(f.value)}
+                    href={catalogHref({ typ: f.value || null })}
                     className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                       currentTyp === f.value
                         ? "bg-gray-900 text-white"
@@ -106,15 +105,58 @@ function NavInner() {
                   </Link>
                 ))}
               </div>
+              <div className="flex gap-1 border-l border-gray-200 pl-3">
+                <Link
+                  href={catalogHref({ op: null })}
+                  className={`rounded-full px-2 py-1 text-xs font-medium transition-colors ${
+                    !currentOp
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  Vše
+                </Link>
+                {operatorFilters.map((f) => (
+                  <Link
+                    key={f.value}
+                    href={catalogHref({ op: currentOp === f.value ? null : f.value })}
+                    className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors ${
+                      currentOp === f.value
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}
+                  >
+                    {f.logo ? (
+                      <img
+                        src={f.logo}
+                        alt={f.label}
+                        className="shrink-0"
+                        style={{ height: 12, width: "auto", filter: currentOp === f.value ? "brightness(10)" : "none" }}
+                      />
+                    ) : (
+                      f.label
+                    )}
+                  </Link>
+                ))}
+              </div>
               <Link
-                href={colorsHref()}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  showColors
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                }`}
+                href={catalogHref({ barvy: showColors ? null : "1" })}
+                className="flex items-center gap-1.5 border-l border-gray-200 pl-3 text-xs text-gray-500 hover:text-gray-700"
               >
-                Barvy
+                <span
+                  className={`inline-flex h-3.5 w-3.5 items-center justify-center rounded border ${
+                    showColors
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {showColors && (
+                    <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 6l3 3 5-5" />
+                    </svg>
+                  )}
+                </span>
+                Barevné varianty
               </Link>
             </>
           )}

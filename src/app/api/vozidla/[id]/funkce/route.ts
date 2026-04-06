@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const functions = db
+  const functions = await db
     .select()
     .from(schema.decoderFunctions)
     .where(eq(schema.decoderFunctions.vehicleId, parseInt(id, 10)))
@@ -22,7 +22,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const fn = db
+  const fn = await db
     .insert(schema.decoderFunctions)
     .values({
       vehicleId: parseInt(id, 10),
@@ -41,7 +41,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   const body = await request.json();
-  db.delete(schema.decoderFunctions)
+  await db.delete(schema.decoderFunctions)
     .where(eq(schema.decoderFunctions.id, body.functionId))
     .run();
   return NextResponse.json({ ok: true });

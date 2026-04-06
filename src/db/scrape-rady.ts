@@ -166,7 +166,7 @@ async function main() {
 
   // Now check which images we DON'T have yet
   const existingImages = new Set<string>();
-  const existingCatalogImages = db.select().from(catalogImages).all();
+  const existingCatalogImages = db.select().from(catalogImages).all() as any[];
   for (const ci of existingCatalogImages) {
     existingImages.add(path.basename(ci.imagePath).toLowerCase());
   }
@@ -271,11 +271,11 @@ async function main() {
   // Update primary images for new catalog entries
   if (newCatalogEntries > 0) {
     const families = selectedRuns.map(r => r.wagonFamily);
-    const newEntries = db
+    const newEntries = (db
       .select()
       .from(vehicleCatalog)
-      .all()
-      .filter(e => families.includes(e.wagonFamily));
+      .all() as any[])
+      .filter((e: any) => families.includes(e.wagonFamily));
     for (const entry of newEntries) {
       const img = db
         .select()
