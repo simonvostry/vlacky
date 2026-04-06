@@ -1,11 +1,10 @@
 import { db, schema } from "@/db";
-import { eq, isNotNull } from "drizzle-orm";
+import { isNotNull } from "drizzle-orm";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function DccPage() {
-  // Vehicles with DCC addresses
   const vehiclesWithDcc: {
     id: number;
     designation: string;
@@ -17,7 +16,7 @@ export default async function DccPage() {
     .from(schema.vehicles)
     .where(isNotNull(schema.vehicles.dccAddress))
     .orderBy(schema.vehicles.dccAddress)
-    .all();
+    .all() as any[];
 
   // Check for address conflicts
   const addressMap = new Map<number, (typeof vehiclesWithDcc)>();
@@ -31,35 +30,8 @@ export default async function DccPage() {
     ([, vehicles]) => vehicles.length > 1
   );
 
-  // All lighting decoder addresses from train_vehicles
-  const lightingAddresses: {
-    lightingDecoderAddress: number | null;
-    vehicleDesignation: string;
-    vehicleOperator: string | null;
-    trainNumber: string | null;
-    trainName: string | null;
-  }[] = await db
-    .select({
-      lightingDecoderAddress: schema.trainVehicles.lightingDecoderAddress,
-      vehicleDesignation: schema.vehicles.designation,
-      vehicleOperator: schema.vehicles.operator,
-      trainNumber: schema.trains.number,
-      trainName: schema.trains.name,
-    })
-    .from(schema.trainVehicles)
-    .innerJoin(
-      schema.vehicles,
-      eq(schema.trainVehicles.vehicleId, schema.vehicles.id)
-    )
-    .innerJoin(
-      schema.trains,
-      eq(schema.trainVehicles.trainId, schema.trains.id)
-    )
-    .where(isNotNull(schema.trainVehicles.lightingDecoderAddress))
-    .all();
-
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-2xl font-bold">DCC adresy</h1>
 
       {/* Conflicts warning */}
@@ -73,7 +45,7 @@ export default async function DccPage() {
               <li key={address}>
                 Adresa <span className="font-mono font-bold">{address}</span>:{" "}
                 {vehicles
-                  .map((v: { operator: string | null; designation: string }) => `${v.operator} ${v.designation}`)
+                  .map((v) => `${v.operator} ${v.designation}`)
                   .join(", ")}
               </li>
             ))}
@@ -84,7 +56,7 @@ export default async function DccPage() {
       {/* Vehicle DCC addresses */}
       <div className="rounded-lg border border-gray-200">
         <h2 className="border-b border-gray-200 px-4 py-3 font-semibold">
-          Lokomotivy a vozidla s DCC
+          Přehled DCC adres
         </h2>
         {vehiclesWithDcc.length === 0 ? (
           <p className="px-4 py-8 text-center text-gray-400">
@@ -111,7 +83,7 @@ export default async function DccPage() {
                   </td>
                   <td className="px-4 py-2">
                     <Link
-                      href={`/vozidla/${v.id}`}
+                      href={`/${v.type === "loco" ? "lokomotivy" : "vozy"}/${v.id}`}
                       className="font-medium hover:text-blue-600"
                     >
                       {v.designation}
@@ -135,42 +107,6 @@ export default async function DccPage() {
           </table>
         )}
       </div>
-
-      {/* Lighting decoder addresses */}
-      {lightingAddresses.length > 0 && (
-        <div className="mt-6 rounded-lg border border-gray-200">
-          <h2 className="border-b border-gray-200 px-4 py-3 font-semibold">
-            Osvětlovací dekodéry
-          </h2>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-left text-xs uppercase text-gray-400">
-                <th className="px-4 py-2">Adresa</th>
-                <th className="px-4 py-2">Vozidlo</th>
-                <th className="px-4 py-2">Vlak</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lightingAddresses.map((la, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-gray-50 hover:bg-gray-50"
-                >
-                  <td className="px-4 py-2 font-mono font-bold">
-                    {la.lightingDecoderAddress}
-                  </td>
-                  <td className="px-4 py-2">
-                    {la.vehicleOperator} {la.vehicleDesignation}
-                  </td>
-                  <td className="px-4 py-2 text-gray-500">
-                    {la.trainNumber} {la.trainName}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }

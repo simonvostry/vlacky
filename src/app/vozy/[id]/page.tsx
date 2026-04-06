@@ -2,7 +2,6 @@ import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { ClassBadge } from "@/components/class-badge";
-import { DecoderFunctions } from "@/components/decoder-functions";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +24,7 @@ export default async function VehicleDetailPage({
   if (!vehicle) notFound();
 
   // Decoder functions
-  const functions = await db
     .select()
-    .from(schema.decoderFunctions)
-    .where(eq(schema.decoderFunctions.vehicleId, vehicleId))
-    .orderBy(schema.decoderFunctions.functionNumber)
     .all() as any[];
 
   // Trains this vehicle appears in
@@ -108,10 +103,6 @@ export default async function VehicleDetailPage({
             </div>
           </div>
 
-          {/* Decoder functions */}
-          <div className="mt-6">
-            <DecoderFunctions vehicleId={vehicleId} functions={functions} />
-          </div>
 
           {/* Train appearances */}
           {appearances.length > 0 && (
