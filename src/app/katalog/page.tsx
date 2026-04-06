@@ -134,7 +134,7 @@ export default async function CatalogPage({
                             width={img.imageWidth || 264}
                             height={img.imageHeight || 41}
                             className="block shrink-0"
-                            style={{ width: w, height: h, minWidth: w }}
+                            style={{ width: w, height: h, minWidth: w, maxWidth: "none" }}
                           />
                           <span className="text-[8px] leading-none text-gray-300 whitespace-nowrap self-center">
                             {img.label || ""}
@@ -155,6 +155,7 @@ export default async function CatalogPage({
                         width: scaledW,
                         height: Math.round((e.imageHeight || 41) * SCALE),
                         minWidth: scaledW,
+                        maxWidth: "none",
                       }}
                     />
                   </div>
