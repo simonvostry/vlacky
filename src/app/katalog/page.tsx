@@ -76,22 +76,17 @@ export default async function CatalogPage({
           Katalog je prázdný. Spusťte <code>npm run db:scrape</code>.
         </p>
       ) : (
-        <div
-          className="grid gap-2"
-          style={{
-            gridTemplateColumns: `repeat(auto-fill, minmax(${showColors ? "220px" : "200px"}, 1fr))`,
-          }}
-        >
+        <div className="flex flex-wrap gap-2">
           {entries.map((e) => {
             const images = imagesByCatalog.get(e.id) || [];
-            const isWide = (e.imageWidth || 0) > WIDE_THRESHOLD;
             const scaledW = Math.round((e.imageWidth || 264) * SCALE);
+            const tileWidth = scaledW + 24;
             return (
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
-                className={`group flex flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50 ${isWide ? "col-span-2" : ""}`}
-                style={{ minWidth: scaledW + 16 }}
+                className="group flex flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50"
+                style={{ width: tileWidth, minWidth: tileWidth }}
               >
                 {/* Header: operator + designation + badges */}
                 <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]">
