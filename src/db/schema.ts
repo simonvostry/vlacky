@@ -11,6 +11,8 @@ export const vehicles = sqliteTable("vehicles", {
   imageHeight: integer("image_height"), // px
   manufacturer: text("manufacturer"), // "Roco", "ACME"
   catalogNumber: text("catalog_number"), // "73219"
+  catalogId: integer("catalog_id").references(() => vehicleCatalog.id),
+  catalogImageId: integer("catalog_image_id").references(() => catalogImages.id),
   dccAddress: integer("dcc_address"),
   notes: text("notes"),
   createdAt: text("created_at")

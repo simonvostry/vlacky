@@ -68,27 +68,47 @@ export default async function CatalogDetailPage({
       <div className="rounded-lg border border-gray-200 p-6">
         {images.length > 0 && (
           <div className="mb-6 space-y-3">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="flex items-end gap-3 rounded-lg bg-gray-50 p-4"
-              >
-                <img
-                  src={img.imagePath}
-                  alt={`${entry.fullDesignation} ${img.label || ""}`}
-                  width={img.imageWidth || 264}
-                  height={img.imageHeight || 41}
-                  className="block"
-                  style={{
-                    width: img.imageWidth || 264,
-                    height: img.imageHeight || 41,
-                  }}
-                />
-                {img.label && (
-                  <span className="text-xs text-gray-400">{img.label}</span>
-                )}
-              </div>
-            ))}
+            {images.map((img) => {
+              const section = entry.type === "loco" ? "lokomotivy" : "vozy";
+              const addParams = new URLSearchParams({
+                catalogId: String(entry.id),
+                catalogImageId: String(img.id),
+                designation: entry.fullDesignation,
+                operator: entry.operator,
+                type: entry.type,
+                classType: entry.classType || "",
+                imagePath: img.imagePath,
+                imageWidth: String(img.imageWidth || ""),
+                imageHeight: String(img.imageHeight || ""),
+              });
+              return (
+                <div
+                  key={img.id}
+                  className="flex items-center gap-3 rounded-lg bg-gray-50 p-4"
+                >
+                  <img
+                    src={img.imagePath}
+                    alt={`${entry.fullDesignation} ${img.label || ""}`}
+                    width={img.imageWidth || 264}
+                    height={img.imageHeight || 41}
+                    className="block"
+                    style={{
+                      width: img.imageWidth || 264,
+                      height: img.imageHeight || 41,
+                    }}
+                  />
+                  {img.label && (
+                    <span className="text-xs text-gray-400">{img.label}</span>
+                  )}
+                  <Link
+                    href={`/${section}/novy?${addParams.toString()}`}
+                    className="ml-auto shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                  >
+                    + Přidat
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
 

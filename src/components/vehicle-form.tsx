@@ -16,6 +16,8 @@ type Vehicle = {
   catalogNumber: string;
   dccAddress: number | null;
   notes: string;
+  catalogId?: number | null;
+  catalogImageId?: number | null;
 };
 
 const defaults: Vehicle = {
@@ -54,6 +56,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         dccAddress: form.dccAddress || null,
         imageWidth: form.imageWidth || null,
         imageHeight: form.imageHeight || null,
+        catalogId: form.catalogId || null,
+        catalogImageId: form.catalogImageId || null,
       }),
     });
 

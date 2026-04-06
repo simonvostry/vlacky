@@ -24,6 +24,8 @@ export async function POST(request: Request) {
       imageHeight: body.imageHeight || null,
       manufacturer: body.manufacturer || null,
       catalogNumber: body.catalogNumber || null,
+      catalogId: body.catalogId || null,
+      catalogImageId: body.catalogImageId || null,
       dccAddress: body.dccAddress || null,
       notes: body.notes || null,
     })

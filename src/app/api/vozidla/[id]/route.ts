@@ -34,6 +34,8 @@ export async function PUT(
       imageHeight: body.imageHeight || null,
       manufacturer: body.manufacturer || null,
       catalogNumber: body.catalogNumber || null,
+      catalogId: body.catalogId || null,
+      catalogImageId: body.catalogImageId || null,
       dccAddress: body.dccAddress || null,
       notes: body.notes || null,
     })
