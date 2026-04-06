@@ -3,10 +3,21 @@
 ## Účel
 
 Česká aplikace pro správu sbírky modelových vlaků a kolejiště. Umožňuje:
-- Evidovat vlastní lokomotivy a vozy (s DCC adresami a funkcemi dekodérů)
+- Procházet katalog vozidel stažený z vagonWEB.cz (ČD, ČSD, ÖBB, RJ) s barevnými variantami
+- Evidovat vlastní lokomotivy a vozy (s DCC adresami)
 - Skládat vlakové soupravy s vizuálním zobrazením řazení
-- Procházet katalog vozidel stažený z vagonWEB.cz (ČD, ČSD, ÖBB, RJ)
+- Přidávat vozidla z katalogu do vlastní sbírky jedním kliknutím
 - Spravovat DCC adresy a detekovat konflikty
+
+## Nasazení
+
+| | |
+|---|---|
+| **Aplikace** | https://vlacky.vercel.app |
+| **Hosting** | Vercel (osobní účet, auto-deploy z GitHubu) |
+| **GitHub** | https://github.com/simonvostry/vlacky |
+| **Databáze** | Turso (libSQL) — `libsql://vlacky-xsima78.aws-eu-west-1.turso.io` |
+| **Lokální fallback** | SQLite soubor `data/vlacky.db` (když chybí TURSO_* env vars) |
 
 ## Technologický stack
 
@@ -15,8 +26,8 @@
 | Framework | Next.js 16 (App Router) |
 | Jazyk | TypeScript |
 | Styling | Tailwind CSS v4 |
-| Databáze | SQLite (better-sqlite3) |
-| ORM | Drizzle ORM |
+| Databáze | Turso (libSQL) v produkci, SQLite (better-sqlite3) lokálně |
+| ORM | Drizzle ORM (podporuje oba drivery) |
 | Scraping | node-html-parser + fetch |
 | Runtime skripty | tsx |
 
@@ -124,17 +135,23 @@ vlacky/
 
 | URL | Popis |
 |-----|-------|
-| `/` | Knihovna vlastních vozidel (mřížka s obrázky) |
-| `/vozidla/[id]` | Detail vozidla (obrázek, parametry, dekodér, zařazení ve vlacích) |
-| `/vozidla/[id]/upravit` | Úprava vozidla |
-| `/vozidla/novy` | Přidání nového vozidla |
-| `/vlaky` | Seznam souprav s vizuálním řazením |
-| `/vlaky/[id]` | Detail soupravy (vizuální řazení + správa vozidel) |
-| `/vlaky/[id]/upravit` | Úprava soupravy |
-| `/vlaky/novy` | Nová souprava |
-| `/katalog` | Procházení katalogu vagonWEB (s filtry) |
-| `/katalog/[id]` | Detail typu vozidla (všechny varianty, dekodér označení) |
+| `/` | Přesměrování na `/katalog` |
+| `/katalog` | Katalog vozidel — hlavní stránka s filtry (typ, dopravce, barvy) |
+| `/katalog/[id]` | Detail typu — všechny barevné varianty, specifikace, dekodér označení, tlačítko "Přidat" |
+| `/soupravy` | Seznam vlakových souprav s vizuálním řazením |
+| `/soupravy/[id]` | Detail soupravy — vizuální řazení + správa vozidel |
+| `/soupravy/[id]/upravit` | Úprava soupravy |
+| `/soupravy/novy` | Nová souprava |
+| `/lokomotivy` | Knihovna vlastních lokomotiv |
+| `/lokomotivy/[id]` | Detail lokomotivy (DCC adresa, zařazení ve vlacích) |
+| `/lokomotivy/[id]/upravit` | Úprava lokomotivy |
+| `/lokomotivy/novy` | Nová lokomotiva (s předvyplněním z katalogu) |
+| `/vozy` | Knihovna vlastních vozů |
+| `/vozy/[id]` | Detail vozu |
+| `/vozy/[id]/upravit` | Úprava vozu |
+| `/vozy/novy` | Nový vůz (s předvyplněním z katalogu) |
 | `/dcc` | Přehled DCC adres a detekce konfliktů |
+| `/vozidla` | Přesměrování na `/lokomotivy` (zpětná kompatibilita) |
 
 ### API endpointy
 
@@ -142,7 +159,6 @@ vlacky/
 |--------|-----|-------|
 | GET/POST | `/api/vozidla` | Seznam / vytvoření vozidla |
 | GET/PUT/DELETE | `/api/vozidla/[id]` | CRUD vozidla |
-| GET/POST/DELETE | `/api/vozidla/[id]/funkce` | Funkce dekodéru |
 | GET/POST | `/api/vlaky` | Seznam / vytvoření vlaku |
 | GET/PUT/DELETE | `/api/vlaky/[id]` | CRUD vlaku |
 | POST/PUT/DELETE | `/api/vlaky/[id]/vozidla` | Správa řazení (přidat, přesunout, odebrat) |
