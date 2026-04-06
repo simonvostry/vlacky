@@ -85,11 +85,13 @@ export default async function CatalogPage({
           {entries.map((e) => {
             const images = imagesByCatalog.get(e.id) || [];
             const isWide = (e.imageWidth || 0) > WIDE_THRESHOLD;
+            const scaledW = Math.round((e.imageWidth || 264) * SCALE);
             return (
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
-                className={`group flex flex-col justify-center overflow-hidden rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50 ${isWide ? "col-span-2" : ""}`}
+                className={`group flex flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50 ${isWide ? "col-span-2" : ""}`}
+                style={{ minWidth: scaledW + 16 }}
               >
                 {/* Header: operator + designation + badges */}
                 <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]">
@@ -136,8 +138,8 @@ export default async function CatalogPage({
                             alt={`${e.fullDesignation} ${img.label || ""}`}
                             width={img.imageWidth || 264}
                             height={img.imageHeight || 41}
-                            className="block"
-                            style={{ width: w, height: h }}
+                            className="block shrink-0"
+                            style={{ width: w, height: h, minWidth: w }}
                           />
                           <span className="text-[8px] leading-none text-gray-300 whitespace-nowrap self-center">
                             {img.label || ""}
@@ -153,10 +155,11 @@ export default async function CatalogPage({
                       alt={e.fullDesignation}
                       width={e.imageWidth || 264}
                       height={e.imageHeight || 41}
-                      className="block"
+                      className="block shrink-0"
                       style={{
-                        width: Math.round((e.imageWidth || 264) * SCALE),
+                        width: scaledW,
                         height: Math.round((e.imageHeight || 41) * SCALE),
+                        minWidth: scaledW,
                       }}
                     />
                   </div>
