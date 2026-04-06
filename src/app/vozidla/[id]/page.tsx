@@ -23,10 +23,6 @@ export default async function VehicleDetailPage({
 
   if (!vehicle) notFound();
 
-  // Decoder functions
-    .select()
-    .all() as any[];
-
   // Trains this vehicle appears in
   const appearances = await db
     .select({
