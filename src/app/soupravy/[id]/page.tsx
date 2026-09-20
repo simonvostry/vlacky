@@ -1,3 +1,6 @@
+import { EditAction } from "@/components/ui-actions";
+import { getDecoders } from "@/lib/decoder-storage";
+import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -12,6 +15,7 @@ export default async function TrainDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireUser();
   const { id } = await params;
   const trainId = parseInt(id, 10);
   if (isNaN(trainId)) notFound();
@@ -29,10 +33,9 @@ export default async function TrainDetailPage({
       tvId: schema.trainVehicles.id,
       position: schema.trainVehicles.position,
       notes: schema.trainVehicles.notes,
-      dccAddressOverride: schema.trainVehicles.dccAddressOverride,
-      lightingDecoderAddress: schema.trainVehicles.lightingDecoderAddress,
       vehicle: {
         id: schema.vehicles.id,
+        dccAddress: schema.vehicles.dccAddress,
         designation: schema.vehicles.designation,
         operator: schema.vehicles.operator,
         type: schema.vehicles.type,
@@ -49,7 +52,7 @@ export default async function TrainDetailPage({
     )
     .where(eq(schema.trainVehicles.trainId, trainId))
     .orderBy(schema.trainVehicles.position)
-    .all() as any[];
+    .all();
 
   // All vehicles for the manager dropdown
   const allVehicles = await db
@@ -61,7 +64,9 @@ export default async function TrainDetailPage({
     })
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
-    .all() as any[];
+    .all();
+
+  const decoders = await getDecoders();
 
   // Flat list for manager
   const managerRows = trainVehicles.map((tv) => ({
@@ -72,8 +77,7 @@ export default async function TrainDetailPage({
     operator: tv.vehicle.operator,
     vehicleType: tv.vehicle.type,
     classType: tv.vehicle.classType,
-    dccAddressOverride: tv.dccAddressOverride,
-    lightingDecoderAddress: tv.lightingDecoderAddress,
+    dccAddresses: [...new Set([tv.vehicle.dccAddress, ...decoders.filter(d => d.vehicleId === tv.vehicle.id).map(d => d.address ?? tv.vehicle.dccAddress)].filter(a => a !== null))].join(", "),
     notes: tv.notes,
   }));
 
@@ -81,7 +85,7 @@ export default async function TrainDetailPage({
     <div className="mx-auto max-w-7xl">
       <Link
         href="/soupravy"
-        className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
+        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět na vlaky
       </Link>
@@ -89,37 +93,32 @@ export default async function TrainDetailPage({
       <div className="mb-8">
         <div className="flex items-center gap-3">
           {train.category && (
-            <span className="rounded bg-gray-100 px-2 py-1 text-sm font-bold text-gray-700">
+            <span className="rounded bg-muted px-2 py-1 text-sm font-bold text-foreground">
               {train.category}
             </span>
           )}
           <h1 className="text-2xl font-bold">{train.number}</h1>
           {train.name && (
-            <span className="text-xl italic text-gray-500">{train.name}</span>
+            <span className="text-xl italic text-secondary">{train.name}</span>
           )}
         </div>
         {train.route && (
-          <p className="mt-2 text-gray-600">{train.route}</p>
+          <p className="mt-2 text-secondary">{train.route}</p>
         )}
         {train.era && (
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-secondary">
             Jízdní řád {train.era}
           </p>
         )}
         {train.notes && (
-          <p className="mt-2 text-sm text-gray-500">{train.notes}</p>
+          <p className="mt-2 text-sm text-secondary">{train.notes}</p>
         )}
         <div className="mt-3">
-          <Link
-            href={`/soupravy/${train.id}/upravit`}
-            className="inline-block rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-          >
-            Upravit vlak
-          </Link>
+          <EditAction href={`/soupravy/${train.id}/upravit`} label="Upravit soupravu" />
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-divider bg-surface p-6">
         <h2 className="mb-4 text-lg font-semibold">Řazení soupravy</h2>
         <TrainComposition vehicles={trainVehicles} />
       </div>

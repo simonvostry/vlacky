@@ -5,9 +5,9 @@ async function seed() {
   console.log("Seeding database...");
 
   // Clear existing data
-  db.delete(trainVehicles).run();
-  db.delete(trains).run();
-  db.delete(vehicles).run();
+  await db.delete(trainVehicles).run();
+  await db.delete(trains).run();
+  await db.delete(vehicles).run();
 
   // Insert vehicles (physical models)
   const vehicleData = [
@@ -83,13 +83,16 @@ async function seed() {
     },
   ];
 
-  const insertedVehicles = vehicleData.map((v) =>
-    db.insert(vehicles).values(v).returning().get()
-  );
+  const insertedVehicles: (typeof vehicles.$inferSelect)[] = [];
+  for (const vehicle of vehicleData) {
+    insertedVehicles.push(
+      await db.insert(vehicles).values(vehicle).returning().get()
+    );
+  }
   console.log(`Inserted ${insertedVehicles.length} vehicles`);
 
   // Insert train
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "70",
@@ -105,8 +108,8 @@ async function seed() {
 
   // Insert train vehicles in order
   const wagonNumbers = ["—", "373", "371", "370", "369", "368", "367"];
-  insertedVehicles.forEach((v, i) => {
-    db.insert(trainVehicles)
+  for (const [i, v] of insertedVehicles.entries()) {
+    await db.insert(trainVehicles)
       .values({
         trainId: train.id,
         vehicleId: v.id,
@@ -114,7 +117,7 @@ async function seed() {
         notes: wagonNumbers[i] !== "—" ? `Číslo vozu: ${wagonNumbers[i]}` : undefined,
       })
       .run();
-  });
+  }
   console.log(`Inserted ${insertedVehicles.length} train vehicles`);
 
   console.log("Seed complete!");

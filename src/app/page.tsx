@@ -1,5 +1,7 @@
+import { requireUser } from "@/lib/auth-guards";
 import { redirect } from "next/navigation";
 
-export default function Home() {
-  redirect("/katalog");
+export default async function Home() {
+  await requireUser();
+  redirect("/soupravy");
 }

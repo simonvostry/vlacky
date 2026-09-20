@@ -78,13 +78,16 @@ async function importRJ1014() {
     },
   ];
 
-  const insertedVehicles = vehicleData.map((v) =>
-    db.insert(vehicles).values(v).returning().get()
-  );
+  const insertedVehicles: (typeof vehicles.$inferSelect)[] = [];
+  for (const vehicle of vehicleData) {
+    insertedVehicles.push(
+      await db.insert(vehicles).values(vehicle).returning().get()
+    );
+  }
   console.log(`Inserted ${insertedVehicles.length} vehicles`);
 
   // Insert train
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "1014",
@@ -99,16 +102,15 @@ async function importRJ1014() {
   console.log(`Inserted train: RJ ${train.number} ${train.name}`);
 
   // Insert train vehicles in order
-  insertedVehicles.forEach((v, i) => {
-    db.insert(trainVehicles)
+  for (const [i, v] of insertedVehicles.entries()) {
+    await db.insert(trainVehicles)
       .values({
         trainId: train.id,
         vehicleId: v.id,
         position: i + 1,
-        notes: i === 0 ? undefined : `Pozice ${i}`,
       })
       .run();
-  });
+  }
   console.log(`Inserted ${insertedVehicles.length} train vehicles`);
 
   console.log("Import complete!");

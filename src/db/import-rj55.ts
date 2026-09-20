@@ -87,12 +87,15 @@ async function importRJ55() {
     },
   ];
 
-  const insertedVehicles = vehicleData.map((v) =>
-    db.insert(vehicles).values(v).returning().get()
-  );
+  const insertedVehicles: (typeof vehicles.$inferSelect)[] = [];
+  for (const vehicle of vehicleData) {
+    insertedVehicles.push(
+      await db.insert(vehicles).values(vehicle).returning().get()
+    );
+  }
   console.log(`Inserted ${insertedVehicles.length} vehicles`);
 
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "55",
@@ -107,8 +110,8 @@ async function importRJ55() {
   console.log(`Inserted train: RJ ${train.number} ${train.name}`);
 
   const wagonNumbers = ["—", "21", "22", "23", "24", "25", "26", "27"];
-  insertedVehicles.forEach((v, i) => {
-    db.insert(trainVehicles)
+  for (const [i, v] of insertedVehicles.entries()) {
+    await db.insert(trainVehicles)
       .values({
         trainId: train.id,
         vehicleId: v.id,
@@ -116,7 +119,7 @@ async function importRJ55() {
         notes: wagonNumbers[i] !== "—" ? `Číslo vozu: ${wagonNumbers[i]}` : undefined,
       })
       .run();
-  });
+  }
   console.log(`Inserted ${insertedVehicles.length} train vehicles`);
 
   console.log("Import complete!");

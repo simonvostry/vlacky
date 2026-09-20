@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth-guards";
 import { VehicleForm } from "@/components/vehicle-form";
 
 export default async function NewLocoPage({
@@ -5,6 +6,7 @@ export default async function NewLocoPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
+  await requireUser();
   const params = await searchParams;
 
   const prefill = params.catalogId

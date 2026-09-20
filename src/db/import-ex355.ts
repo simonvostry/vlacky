@@ -57,12 +57,15 @@ async function importEx355() {
     },
   ];
 
-  const insertedVehicles = vehicleData.map((v) =>
-    db.insert(vehicles).values(v).returning().get()
-  );
+  const insertedVehicles: (typeof vehicles.$inferSelect)[] = [];
+  for (const vehicle of vehicleData) {
+    insertedVehicles.push(
+      await db.insert(vehicles).values(vehicle).returning().get()
+    );
+  }
   console.log(`Inserted ${insertedVehicles.length} vehicles`);
 
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "355",
@@ -77,8 +80,8 @@ async function importEx355() {
   console.log(`Inserted train: Ex ${train.number} ${train.name}`);
 
   const wagonNumbers = ["—", "258", "259", "260", "262"];
-  insertedVehicles.forEach((v, i) => {
-    db.insert(trainVehicles)
+  for (const [i, v] of insertedVehicles.entries()) {
+    await db.insert(trainVehicles)
       .values({
         trainId: train.id,
         vehicleId: v.id,
@@ -86,7 +89,7 @@ async function importEx355() {
         notes: wagonNumbers[i] !== "—" ? `Číslo vozu: ${wagonNumbers[i]}` : undefined,
       })
       .run();
-  });
+  }
   console.log(`Inserted ${insertedVehicles.length} train vehicles`);
 
   console.log("Import complete!");

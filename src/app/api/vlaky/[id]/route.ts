@@ -1,3 +1,4 @@
+import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -6,6 +7,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   const train = await db
     .select()
@@ -20,6 +23,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   const body = await request.json();
   const train = await db
@@ -43,6 +48,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   await db.delete(schema.trains)
     .where(eq(schema.trains.id, parseInt(id, 10)))

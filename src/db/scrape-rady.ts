@@ -166,7 +166,7 @@ async function main() {
 
   // Now check which images we DON'T have yet
   const existingImages = new Set<string>();
-  const existingCatalogImages = await db.select().from(catalogImages).all() as any[];
+  const existingCatalogImages = await db.select().from(catalogImages).all();
   for (const ci of existingCatalogImages) {
     existingImages.add(path.basename(ci.imagePath).toLowerCase());
   }
@@ -274,8 +274,8 @@ async function main() {
     const newEntries = (await db
       .select()
       .from(vehicleCatalog)
-      .all() as any[])
-      .filter((e: any) => families.includes(e.wagonFamily));
+      .all())
+      .filter((e) => families.includes(e.wagonFamily));
     for (const entry of newEntries) {
       const img = await db
         .select()

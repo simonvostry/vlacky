@@ -14,10 +14,17 @@ export const vehicles = sqliteTable("vehicles", {
   catalogId: integer("catalog_id").references(() => vehicleCatalog.id),
   catalogImageId: integer("catalog_image_id").references(() => catalogImages.id),
   dccAddress: integer("dcc_address"),
+  isTemplate: integer("is_template", { mode: "boolean" }).notNull().default(false),
   notes: text("notes"),
   createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
+});
+
+export const vehicleSpeedProfiles = sqliteTable("vehicle_speed_profiles", {
+  vehicleId: integer("vehicle_id").primaryKey().references(() => vehicles.id, { onDelete: "cascade" }),
+  profile: text("profile", { mode: "json" }).$type<import("@/lib/speed-profile").SpeedProfile>().notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export const trains = sqliteTable("trains", {
@@ -47,12 +54,29 @@ export const trainVehicles = sqliteTable("train_vehicles", {
   notes: text("notes"),
 });
 
+export const vehicleDecoders = sqliteTable("vehicle_decoders", {
+  id: text("id").primaryKey(),
+  vehicleId: integer("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  manufacturer: text("manufacturer").notNull().default(""),
+  model: text("model").notNull().default(""),
+  address: integer("address"), // null inherits the vehicle's default DCC address
+  soundProject: text("sound_project").notNull().default(""),
+  manualUrl: text("manual_url").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  cvs: text("cvs", { mode: "json" }).$type<import("@/lib/decoder-config").CvRecord[]>().notNull().default([]),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 export const decoderFunctions = sqliteTable("decoder_functions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   vehicleId: integer("vehicle_id")
     .notNull()
     .references(() => vehicles.id, { onDelete: "cascade" }),
-  functionNumber: integer("function_number").notNull(), // 0–28
+  decoderId: text("decoder_id").references(() => vehicleDecoders.id, { onDelete: "cascade" }),
+  category: text("category").notNull().default("other"),
+  behavior: text("behavior").notNull().default("toggle"),
+  functionNumber: integer("function_number").notNull(), // app supports F0–F128
   label: text("label").notNull(), // "Světla", "Interiér"
   description: text("description"),
 });

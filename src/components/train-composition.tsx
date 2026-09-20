@@ -1,3 +1,4 @@
+import Image from "@/components/vehicle-image";
 import { ClassBadge } from "./class-badge";
 import { OperatorLogo } from "./operator-logo";
 
@@ -15,22 +16,21 @@ type Vehicle = {
 type TrainVehicle = {
   position: number;
   notes: string | null;
-  dccAddressOverride: number | null;
-  lightingDecoderAddress: number | null;
   vehicle: Vehicle;
 };
 
 type Props = {
   vehicles: TrainVehicle[];
+  showDescriptions?: boolean;
 };
 
 // Display at 75% native size — compromise between sharpness and readability
 const SCALE = 0.75;
 
-export function TrainComposition({ vehicles }: Props) {
+export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
   if (vehicles.length === 0) {
     return (
-      <p className="py-8 text-center text-gray-400">
+      <p className="py-8 text-center text-secondary">
         Žádná vozidla v soupravě
       </p>
     );
@@ -49,7 +49,7 @@ export function TrainComposition({ vehicles }: Props) {
             return (
               <div key={tv.position} className="shrink-0" style={{ width: w }}>
                 {tv.vehicle.imagePath ? (
-                  <img
+                  <Image unoptimized
                     src={tv.vehicle.imagePath}
                     alt={`${tv.vehicle.operator} ${tv.vehicle.designation}`}
                     width={nw}
@@ -59,7 +59,7 @@ export function TrainComposition({ vehicles }: Props) {
                   />
                 ) : (
                   <div
-                    className="flex items-end justify-center bg-gray-200 text-[8px] text-gray-500"
+                    className="flex items-end justify-center bg-selected text-[8px] text-secondary"
                     style={{ width: w, height: h }}
                   >
                     {tv.vehicle.designation}
@@ -71,7 +71,7 @@ export function TrainComposition({ vehicles }: Props) {
         </div>
 
         {/* Rail line */}
-        <div className="h-px bg-gray-400" />
+        <div className="h-px bg-control" />
 
         {/* Vehicle details */}
         <div className="flex" style={{ gap: 0 }}>
@@ -88,9 +88,9 @@ export function TrainComposition({ vehicles }: Props) {
                 {tv.vehicle.classType && (
                   <ClassBadge classType={tv.vehicle.classType} size="xs" short />
                 )}
-                <span className="text-[13px] leading-none font-bold text-gray-800">{tv.vehicle.designation}</span>
-                {tv.notes && (
-                  <span className="text-[13px] leading-none text-gray-400">
+                <span className="text-[13px] leading-none font-bold text-foreground">{tv.vehicle.designation}</span>
+                {tv.notes && (showDescriptions || /^Číslo vozu:/.test(tv.notes)) && (
+                  <span className="text-[13px] leading-none text-secondary">
                     {tv.notes.replace(/^Číslo vozu:\s*/, "")}
                   </span>
                 )}

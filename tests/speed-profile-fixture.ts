@@ -1,0 +1,1 @@
+export const fixture = { schemaVersion: 1, measuredOn: '2026-09-19', measurementMode: 'single-direction', primaryDirection: 'forward', speedSteps: 28, scaleRatio: 160, unit: 'km/h', speedBasis: 'prototype-equivalent', source: null, notes: '', points: [{ step: 1, forwardKmh: 2.0552878, reverseKmh: 2.1289992 }, { step: 28, forwardKmh: 132.73235, reverseKmh: 132.73235 }] };

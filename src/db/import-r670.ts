@@ -4,7 +4,7 @@ import { vehicles, trains, trainVehicles } from "./schema";
 async function importR670() {
   console.log("Importing R 670 Labe (5.2./6.2.2026, Bohušovice–Děčín)...");
 
-  const vehicle = db
+  const vehicle = await db
     .insert(vehicles)
     .values({
       designation: "642",
@@ -20,7 +20,7 @@ async function importR670() {
     .get();
   console.log(`Inserted vehicle: ${vehicle.designation}`);
 
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "670",
@@ -34,7 +34,7 @@ async function importR670() {
     .get();
   console.log(`Inserted train: R ${train.number} ${train.name}`);
 
-  db.insert(trainVehicles)
+  await db.insert(trainVehicles)
     .values({
       trainId: train.id,
       vehicleId: vehicle.id,

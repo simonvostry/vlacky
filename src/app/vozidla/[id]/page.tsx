@@ -1,3 +1,7 @@
+import { EditAction } from "@/components/ui-actions";
+import { VehicleDecoders } from "@/components/vehicle-decoders";
+import { requireUser } from "@/lib/auth-guards";
+import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -11,6 +15,7 @@ export default async function VehicleDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireUser();
   const { id } = await params;
   const vehicleId = parseInt(id, 10);
   if (isNaN(vehicleId)) notFound();
@@ -35,32 +40,32 @@ export default async function VehicleDetailPage({
     .from(schema.trainVehicles)
     .innerJoin(schema.trains, eq(schema.trainVehicles.trainId, schema.trains.id))
     .where(eq(schema.trainVehicles.vehicleId, vehicleId))
-    .all() as any[];
+    .all();
 
   return (
     <div className="mx-auto max-w-7xl">
       <Link
         href="/"
-        className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
+        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět na vozidla
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
         {/* Main info */}
-        <div>
-          <div className="rounded-lg border border-gray-200 p-6">
+        <div className="min-w-0">
+          <div className="rounded-lg border border-divider p-6">
             {vehicle.imagePath && (
-              <div className="mb-6 flex justify-center rounded-lg bg-gray-50 p-6">
-                <img
+              <div className="mb-6 overflow-x-auto rounded-lg bg-subtle p-6">
+                <Image unoptimized
                   src={vehicle.imagePath}
                   alt={vehicle.designation}
-                  width={vehicle.imageWidth || 264}
-                  height={vehicle.imageHeight || 41}
-                  className="block"
+                  width={(vehicle.imageWidth || 264) * 2}
+                  height={(vehicle.imageHeight || 41) * 2}
+                  className="mx-auto block"
                   style={{
-                    width: vehicle.imageWidth || 264,
-                    height: vehicle.imageHeight || 41,
+                    width: (vehicle.imageWidth || 264) * 2,
+                    height: (vehicle.imageHeight || 41) * 2,
                   }}
                 />
               </div>
@@ -69,14 +74,14 @@ export default async function VehicleDetailPage({
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{vehicle.designation}</h1>
-                <p className="text-gray-500">{vehicle.operator}</p>
+                <p className="text-secondary">{vehicle.operator}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
                   className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${
                     vehicle.type === "loco"
-                      ? "bg-gray-800 text-white"
-                      : "bg-gray-100 text-gray-600"
+                      ? "bg-primary text-white"
+                      : "bg-muted text-secondary"
                   }`}
                 >
                   {vehicle.type === "loco" ? "Lokomotiva" : "Vůz"}
@@ -85,46 +90,45 @@ export default async function VehicleDetailPage({
               </div>
             </div>
 
+            {vehicle.isTemplate && <p className="mt-3 text-xs font-medium text-warning">Ukázka / předloha · vynecháno z běžné synchronizace</p>}
+
             {vehicle.notes && (
-              <p className="mt-4 text-sm text-gray-600">{vehicle.notes}</p>
+              <p className="mt-4 text-sm text-secondary">{vehicle.notes}</p>
             )}
 
             <div className="mt-4">
-              <Link
-                href={`/vozidla/${vehicle.id}/upravit`}
-                className="inline-block rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-              >
-                Upravit
-              </Link>
+              <EditAction href={`/vozidla/${vehicle.id}/upravit`} label="Upravit vozidlo" />
             </div>
           </div>
 
 
+          <VehicleDecoders key={vehicleId} vehicleId={vehicleId} dccAddress={vehicle.dccAddress} />
+
           {/* Train appearances */}
           {appearances.length > 0 && (
-            <div className="mt-6 rounded-lg border border-gray-200">
-              <h2 className="border-b border-gray-200 px-4 py-3 font-semibold">
+            <div className="mt-6 rounded-lg border border-divider">
+              <h2 className="border-b border-divider px-4 py-3 font-semibold">
                 Zařazení ve vlacích
               </h2>
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-divider">
                 {appearances.map((a) => (
                   <li key={a.trainId}>
                     <Link
                       href={`/soupravy/${a.trainId}`}
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50"
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-subtle"
                     >
                       {a.trainCategory && (
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-bold text-gray-700">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-bold text-foreground">
                           {a.trainCategory}
                         </span>
                       )}
                       <span className="font-medium">{a.trainNumber}</span>
                       {a.trainName && (
-                        <span className="italic text-gray-500">
+                        <span className="italic text-secondary">
                           {a.trainName}
                         </span>
                       )}
-                      <span className="ml-auto text-xs text-gray-400">
+                      <span className="ml-auto text-xs text-secondary">
                         Pozice {a.position}
                       </span>
                     </Link>
@@ -137,33 +141,33 @@ export default async function VehicleDetailPage({
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-lg border border-gray-200 p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase text-gray-400">
+          <div className="rounded-lg border border-divider p-4">
+            <h3 className="mb-3 text-sm font-semibold uppercase text-secondary">
               Parametry
             </h3>
             <dl className="space-y-2 text-sm">
               {vehicle.dccAddress && (
                 <>
-                  <dt className="text-gray-400">DCC adresa</dt>
+                  <dt className="text-secondary">DCC adresa</dt>
                   <dd className="font-mono font-bold">{vehicle.dccAddress}</dd>
                 </>
               )}
               {vehicle.manufacturer && (
                 <>
-                  <dt className="text-gray-400">Výrobce</dt>
+                  <dt className="text-secondary">Výrobce</dt>
                   <dd>{vehicle.manufacturer}</dd>
                 </>
               )}
               {vehicle.catalogNumber && (
                 <>
-                  <dt className="text-gray-400">Katalogové číslo</dt>
+                  <dt className="text-secondary">Katalogové číslo</dt>
                   <dd className="font-mono">{vehicle.catalogNumber}</dd>
                 </>
               )}
               {!vehicle.dccAddress &&
                 !vehicle.manufacturer &&
                 !vehicle.catalogNumber && (
-                  <dd className="text-gray-400">Zatím nevyplněno</dd>
+                  <dd className="text-secondary">Zatím nevyplněno</dd>
                 )}
             </dl>
           </div>

@@ -1,7 +1,11 @@
+import { parseDccAddress } from "@/lib/decoder-config";
+import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const vehicles = await db
     .select()
     .from(schema.vehicles)
@@ -11,7 +15,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const body = await request.json();
+  if (body.isTemplate !== undefined && typeof body.isTemplate !== "boolean") return NextResponse.json({ error: "isTemplate must be boolean" }, { status: 400 });
+  try { parseDccAddress(body.dccAddress ?? null); }
+  catch { return NextResponse.json({ error: "DCC adresa musí být celé číslo 1–10239." }, { status: 400 }); }
   const vehicle = await db
     .insert(schema.vehicles)
     .values({
@@ -27,6 +36,7 @@ export async function POST(request: Request) {
       catalogId: body.catalogId || null,
       catalogImageId: body.catalogImageId || null,
       dccAddress: body.dccAddress || null,
+      isTemplate: body.isTemplate,
       notes: body.notes || null,
     })
     .returning()

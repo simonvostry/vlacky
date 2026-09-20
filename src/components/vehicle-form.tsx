@@ -5,6 +5,7 @@ import { useState } from "react";
 
 type Vehicle = {
   id?: number;
+  isTemplate?: boolean;
   designation: string;
   operator: string;
   type: string;
@@ -22,6 +23,7 @@ type Vehicle = {
 
 const defaults: Vehicle = {
   designation: "",
+  isTemplate: false,
   operator: "",
   type: "wagon",
   classType: "",
@@ -92,7 +94,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             required
             value={form.designation}
             onChange={(e) => set("designation", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="Amz 61, 362..."
           />
         </div>
@@ -101,7 +103,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <input
             value={form.operator}
             onChange={(e) => set("operator", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="ČD, ÖBB..."
           />
         </div>
@@ -113,7 +115,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <select
             value={form.type}
             onChange={(e) => set("type", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           >
             <option value="loco">Lokomotiva</option>
             <option value="wagon">Vůz</option>
@@ -124,7 +126,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <select
             value={form.classType}
             onChange={(e) => set("classType", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           >
             <option value="">—</option>
             <option value="1">1. třída</option>
@@ -141,7 +143,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         <input
           value={form.imagePath}
           onChange={(e) => set("imagePath", e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           placeholder="/img/nazev.gif"
         />
       </div>
@@ -157,7 +159,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             onChange={(e) =>
               set("imageWidth", e.target.value ? parseInt(e.target.value) : null)
             }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           />
         </div>
         <div>
@@ -173,7 +175,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 e.target.value ? parseInt(e.target.value) : null
               )
             }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           />
         </div>
       </div>
@@ -184,7 +186,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <input
             value={form.manufacturer}
             onChange={(e) => set("manufacturer", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="Roco, ACME..."
           />
         </div>
@@ -195,14 +197,17 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <input
             value={form.catalogNumber}
             onChange={(e) => set("catalogNumber", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="73219"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">DCC adresa</label>
+          <label className="mb-1 block text-sm font-medium">Výchozí DCC adresa</label>
           <input
             type="number"
+            min={1}
+            max={10239}
+            step={1}
             value={form.dccAddress ?? ""}
             onChange={(e) =>
               set(
@@ -210,11 +215,16 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 e.target.value ? parseInt(e.target.value) : null
               )
             }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="3"
           />
         </div>
       </div>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={form.isTemplate ?? false} onChange={e => set("isTemplate", e.target.checked)} />
+        Ukázka / předloha (vynechat z běžné synchronizace)
+      </label>
 
       <div>
         <label className="mb-1 block text-sm font-medium">Poznámky</label>
@@ -222,7 +232,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           value={form.notes}
           onChange={(e) => set("notes", e.target.value)}
           rows={3}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
         />
       </div>
 
@@ -230,14 +240,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="ui-button ui-button-primary"
         >
           {saving ? "Ukládám..." : isEdit ? "Uložit změny" : "Vytvořit vozidlo"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+          className="ui-button ui-button-quiet"
         >
           Zrušit
         </button>
@@ -245,7 +255,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <button
             type="button"
             onClick={handleDelete}
-            className="ml-auto rounded-md px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            className="ui-button ui-button-danger ml-auto"
           >
             Smazat
           </button>

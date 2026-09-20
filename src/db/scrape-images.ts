@@ -158,7 +158,7 @@ async function main() {
   console.log("Cleared existing catalog images.\n");
 
   // Load all catalog entries for matching
-  const catalog = await db.select().from(vehicleCatalog).all() as any[];
+  const catalog = await db.select().from(vehicleCatalog).all();
   console.log(`Catalog has ${catalog.length} entries.\n`);
 
   let totalImages = 0;
@@ -236,7 +236,7 @@ async function main() {
       .from(catalogImages)
       .where(eq(catalogImages.catalogId, entry.id))
       .orderBy(catalogImages.sortOrder)
-      .all() as any[];
+      .all();
 
     if (images.length > 0) {
       // Use the last image (newest livery) as the primary

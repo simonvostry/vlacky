@@ -1,1 +1,111 @@
 @import "tailwindcss";
+
+/* Hluboká modř / Noční galerie. Roles, not individual pages, own colors. */
+:root {
+  color-scheme: light;
+  --canvas: #ffffff; --surface: #ffffff; --subtle: #f6f8fb;
+  --muted: #edf1f5; --selected: #e5ebf2;
+  --foreground: #233247; --secondary: #59697d;
+  --divider: #dfe5ec; --control-border: #8b9caf;
+  --primary: #12477f; --primary-hover: #0c3868;
+  --accent: #12477f; --accent-soft: #edf4fc; --focus: #3278c6;
+  --chart: #246bb5; --chart-reverse: #a44817;
+  --danger: #b42335; --danger-soft: #fff0f1;
+  --success: #236a45; --success-soft: #edf8f1;
+  --warning: #85500e; --warning-soft: #fff7e6;
+  --image-stage: #f6f8fb;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #101b2d; --surface: #17263c; --subtle: #1a2c44;
+  --muted: #21334a; --selected: #2a3a50;
+  --foreground: #edf3fb; --secondary: #a6b8d0;
+  --divider: #314761; --control-border: #6a839e;
+  --primary: #285b9f; --primary-hover: #326db5;
+  --accent: #99bef1; --accent-soft: #203956; --focus: #99bef1;
+  --chart: #99bef1; --chart-reverse: #f6b078;
+  --danger: #ffa1ad; --danger-soft: #42283a;
+  --success: #9fdfb8; --success-soft: #1c3c35;
+  --warning: #f4cd85; --warning-soft: #3c342c;
+  --image-stage: #21334a;
+}
+@theme inline {
+  --color-canvas: var(--canvas); --color-surface: var(--surface);
+  --color-subtle: var(--subtle); --color-muted: var(--muted); --color-selected: var(--selected);
+  --color-foreground: var(--foreground); --color-secondary: var(--secondary);
+  --color-divider: var(--divider); --color-control: var(--control-border);
+  --color-primary: var(--primary); --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent); --color-accent-soft: var(--accent-soft); --color-focus: var(--focus);
+  --color-danger: var(--danger); --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success); --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning); --color-warning-soft: var(--warning-soft);
+}
+@layer base {
+  body { background: var(--canvas); color: var(--foreground); font-size: 14px; line-height: 1.5; }
+  button, a, input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }
+  button:not(:disabled), summary { cursor: pointer; }
+  :is(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 3px;
+  }
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
+    background: var(--surface); color: var(--foreground); border: 1px solid var(--control-border);
+    border-radius: 6px; min-height: 40px; padding: 8px 12px; font-size: 14px; line-height: 20px;
+  }
+  input::placeholder, textarea::placeholder { color: var(--secondary); opacity: 1; }
+  input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--accent); }
+  input[type="file"]::file-selector-button {
+    padding: 8px 12px; border: 1px solid var(--divider); border-radius: 6px;
+    background: var(--muted); color: var(--foreground); margin-right: 12px;
+  }
+  table { font-variant-numeric: tabular-nums; }
+  th { font-weight: 600; }
+  ::selection { background: var(--accent); color: var(--canvas); }
+}
+@layer components {
+  .ui-button, .ui-icon-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 36px; padding: 7px 12px; border: 1px solid transparent; border-radius: 6px;
+    font-size: 14px; line-height: 20px; font-weight: 500; text-decoration: none;
+    transition: background-color 120ms, color 120ms, border-color 120ms;
+  }
+  .ui-button-primary { background: var(--primary); color: #fff; }
+  .ui-button-primary:hover:not(:disabled) { background: var(--primary-hover); }
+  .ui-button-secondary { background: var(--surface); color: var(--accent); border-color: var(--divider); }
+  .ui-button-secondary:hover:not(:disabled) { background: var(--accent-soft); }
+  .ui-button-quiet { color: var(--secondary); }
+  .ui-button-quiet:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+  .ui-button-danger { color: var(--danger); }
+  .ui-button-danger:hover:not(:disabled) { background: var(--danger-soft); }
+  .ui-icon-button { position: relative; flex-shrink: 0; width: 36px; height: 36px; padding: 8px; color: var(--accent); }
+  .ui-icon-button:hover:not(:disabled) { background: var(--accent-soft); }
+  .ui-edit { border-color: var(--divider); }
+  .ui-button:disabled, .ui-icon-button:disabled { opacity: .55; cursor: not-allowed; }
+  .ui-tooltip {
+    pointer-events: none; position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 60;
+    padding: 5px 8px; white-space: nowrap; border-radius: 4px; opacity: 0;
+    font-size: 12px; line-height: 18px; font-weight: 400;
+    background: var(--foreground); color: var(--canvas);
+  }
+  .ui-edit:hover .ui-tooltip, .ui-edit:focus-visible .ui-tooltip { opacity: 1; }
+  .theme-sun { display: none; }
+  [data-theme="dark"] .theme-sun { display: block; }
+  [data-theme="dark"] .theme-moon { display: none; }
+  .app-nav { background: var(--canvas); }
+  .nav-link { display: inline-flex; align-items: center; min-height: 56px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 500; color: var(--secondary); }
+  .nav-link:hover { color: var(--accent); }
+  .nav-link[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
+  .config-section { margin-top: 0; border: 0; border-radius: 0; }
+  .config-section > :is(header, div:first-child) { padding: 0 0 16px; min-height: 53px; border-bottom: 1px solid var(--divider); }
+  .config-section h2 { font-size: 18px; font-weight: 600; }
+  .config-section > :is(form, div:not(:first-child)) { padding: 20px 0; }
+  .entity-header { border: 0; padding: 0 0 24px; border-bottom: 1px solid var(--divider); border-radius: 0; }
+  .entity-header h1 { font-size: 28px; line-height: 36px; font-weight: 600; }
+  .image-stage { background: var(--image-stage); }
+  /* Preserve source logo colors on a quiet light backing, never recolor train artwork. */
+  [data-theme="dark"] .operator-logo:not(.operator-logo-inverted) { background: #edf3fb; border-radius: 2px; box-shadow: 0 0 0 2px #edf3fb; }
+  @media (pointer: coarse) {
+    .ui-button, .ui-icon-button { min-height: 44px; }
+    .ui-icon-button { width: 44px; height: 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ui-button, .ui-icon-button { transition: none; } }
+}

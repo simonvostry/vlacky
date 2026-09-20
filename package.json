@@ -10,17 +10,32 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "db:scrape": "tsx src/db/scrape-vagonweb.ts",
-    "db:scrape-images": "tsx src/db/scrape-images.ts"
+    "db:scrape-images": "tsx src/db/scrape-images.ts",
+    "test:auth": "tsx --test tests/auth-policy.test.ts",
+    "test:auth-http": "tsx --test tests/auth-http.test.ts",
+    "db:migrate-decoders": "node scripts/migrate-decoders.mjs",
+    "test:decoders": "tsx --test tests/decoder-http.test.ts",
+    "db:migrate-integration": "node scripts/migrate-integration.mjs",
+    "test:integration": "tsx --test tests/integration-http.test.ts",
+    "db:migrate-speed-profiles": "node scripts/migrate-speed-profiles.mjs",
+    "test:speed-profiles": "tsx --test tests/speed-profile*.test.ts",
+    "test:theme": "tsx --test tests/theme.test.ts"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@libsql/client": "^0.17.2",
+    "@modelcontextprotocol/server": "2.0.0",
     "better-sqlite3": "^12.8.0",
     "dotenv": "^17.4.1",
     "drizzle-orm": "^0.45.2",
+    "mcp-handler": "2.1.1",
     "next": "16.2.2",
+    "next-auth": "5.0.0-beta.32",
     "node-html-parser": "^7.1.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "0.34.5",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

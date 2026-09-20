@@ -72,7 +72,7 @@ export function TrainForm({ train }: { train?: Train }) {
           <select
             value={form.category}
             onChange={(e) => set("category", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           >
             <option value="">—</option>
             {categories.map((c) => (
@@ -87,7 +87,7 @@ export function TrainForm({ train }: { train?: Train }) {
           <input
             value={form.number}
             onChange={(e) => set("number", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="70"
           />
         </div>
@@ -96,7 +96,7 @@ export function TrainForm({ train }: { train?: Train }) {
           <input
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
             placeholder="Antonín Dvořák"
           />
         </div>
@@ -107,7 +107,7 @@ export function TrainForm({ train }: { train?: Train }) {
         <input
           value={form.route}
           onChange={(e) => set("route", e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           placeholder="Wien – Břeclav – Praha"
         />
       </div>
@@ -117,7 +117,7 @@ export function TrainForm({ train }: { train?: Train }) {
         <input
           value={form.era}
           onChange={(e) => set("era", e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           placeholder="1998/1999"
         />
       </div>
@@ -128,7 +128,7 @@ export function TrainForm({ train }: { train?: Train }) {
           value={form.notes}
           onChange={(e) => set("notes", e.target.value)}
           rows={3}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
         />
       </div>
 
@@ -136,14 +136,14 @@ export function TrainForm({ train }: { train?: Train }) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="ui-button ui-button-primary"
         >
           {saving ? "Ukládám..." : isEdit ? "Uložit změny" : "Vytvořit vlak"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+          className="ui-button ui-button-quiet"
         >
           Zrušit
         </button>
@@ -151,7 +151,7 @@ export function TrainForm({ train }: { train?: Train }) {
           <button
             type="button"
             onClick={handleDelete}
-            className="ml-auto rounded-md px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            className="ui-button ui-button-danger ml-auto"
           >
             Smazat
           </button>

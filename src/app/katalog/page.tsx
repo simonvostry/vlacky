@@ -1,19 +1,20 @@
+import { requireUser } from "@/lib/auth-guards";
+import Image from "@/components/vehicle-image";
 import React from "react";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { OperatorLogo } from "@/components/operator-logo";
 
 export const dynamic = "force-dynamic";
 
 const SCALE = 0.75;
-const WIDE_THRESHOLD = 350;
 
 export default async function CatalogPage({
   searchParams,
 }: {
   searchParams: Promise<{ typ?: string; barvy?: string; op?: string }>;
 }) {
+  await requireUser();
   const { typ, barvy, op } = await searchParams;
   const showColors = barvy === "1";
 
@@ -24,7 +25,7 @@ export default async function CatalogPage({
       schema.vehicleCatalog.wagonFamily,
       schema.vehicleCatalog.designation
     )
-    .all() as any[];
+    .all();
 
   const entries = allEntries.filter((e) => {
     if (typ && e.type !== typ) return false;
@@ -56,7 +57,7 @@ export default async function CatalogPage({
       .select()
       .from(schema.catalogImages)
       .orderBy(schema.catalogImages.catalogId, schema.catalogImages.sortOrder)
-      .all() as any[];
+      .all();
 
     for (const img of allCatalogImages) {
       const existing = imagesByCatalog.get(img.catalogId) || [];
@@ -67,12 +68,12 @@ export default async function CatalogPage({
 
   return (
     <div>
-      <div className="mb-4 text-sm text-gray-400">
+      <div className="mb-4 text-sm text-secondary">
         {entries.length} typů vozidel
       </div>
 
       {entries.length === 0 ? (
-        <p className="py-12 text-center text-gray-400">
+        <p className="py-12 text-center text-secondary">
           Katalog je prázdný. Spusťte <code>npm run db:scrape</code>.
         </p>
       ) : (
@@ -85,7 +86,7 @@ export default async function CatalogPage({
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
-                className="group flex shrink-0 flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50"
+                className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
                 {/* Header: operator + designation + badges */}
@@ -108,7 +109,7 @@ export default async function CatalogPage({
                     <span className="rounded bg-indigo-600 px-1 py-0 text-[9px] font-bold text-white">L</span>
                   )}
                   {showColors && images.length > 1 && (
-                    <span className="text-[9px] text-gray-300">
+                    <span className="text-[9px] text-secondary">
                       {images.length}×
                     </span>
                   )}
@@ -128,7 +129,7 @@ export default async function CatalogPage({
                       return (
                         <React.Fragment key={img.id}>
                           <div />
-                          <img
+                          <Image unoptimized
                             src={img.imagePath}
                             alt={`${e.fullDesignation} ${img.label || ""}`}
                             width={img.imageWidth || 264}
@@ -136,7 +137,7 @@ export default async function CatalogPage({
                             className="block shrink-0"
                             style={{ width: w, height: h, minWidth: w, maxWidth: "none" }}
                           />
-                          <span className="text-[8px] leading-none text-gray-300 whitespace-nowrap self-center">
+                          <span className="text-[8px] leading-none text-secondary whitespace-nowrap self-center">
                             {img.label || ""}
                           </span>
                         </React.Fragment>
@@ -145,7 +146,7 @@ export default async function CatalogPage({
                   </div>
                 ) : e.imagePath ? (
                   <div className="flex h-10 items-end justify-center">
-                    <img
+                    <Image unoptimized
                       src={e.imagePath}
                       alt={e.fullDesignation}
                       width={e.imageWidth || 264}
@@ -160,14 +161,14 @@ export default async function CatalogPage({
                     />
                   </div>
                 ) : (
-                  <div className="flex h-8 items-end justify-center text-[10px] text-gray-300">
+                  <div className="flex h-8 items-end justify-center text-[10px] text-secondary">
                     bez obrázku
                   </div>
                 )}
 
                 {/* Footer: speed + count */}
                 {(e.maxSpeed || e.unitsInService) && (
-                  <div className="mt-1 text-center text-[10px] text-gray-400">
+                  <div className="mt-1 text-center text-[10px] text-secondary">
                     {e.maxSpeed && <span>{e.maxSpeed}</span>}
                     {e.maxSpeed && e.unitsInService && <span> · </span>}
                     {e.unitsInService && (

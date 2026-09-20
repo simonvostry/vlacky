@@ -1,22 +1,23 @@
+import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
-import { isNotNull } from "drizzle-orm";
+import { getDecoders } from "@/lib/decoder-storage";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function DccPage() {
-  const vehiclesWithDcc: {
-    id: number;
-    designation: string;
-    operator: string | null;
-    type: string;
-    dccAddress: number | null;
-  }[] = await db
-    .select()
-    .from(schema.vehicles)
-    .where(isNotNull(schema.vehicles.dccAddress))
-    .orderBy(schema.vehicles.dccAddress)
-    .all() as any[];
+  await requireUser();
+  const [vehicles, decoders] = await Promise.all([
+    db.select().from(schema.vehicles).all(), getDecoders(),
+  ]);
+  const vehiclesWithDcc = vehicles.flatMap(v => {
+    const installed = decoders.filter(d => d.vehicleId === v.id);
+    const addresses = new Set([v.dccAddress, ...installed.map(d => d.address ?? v.dccAddress)]);
+    return [...addresses].filter((a): a is number => a !== null).map(address => ({
+      ...v, dccAddress: address,
+      decoderNames: installed.filter(d => (d.address ?? v.dccAddress) === address).map(d => d.name).join(", "),
+    }));
+  }).sort((a, b) => a.dccAddress - b.dccAddress);
 
   // Check for address conflicts
   const addressMap = new Map<number, (typeof vehiclesWithDcc)>();
@@ -36,11 +37,12 @@ export default async function DccPage() {
 
       {/* Conflicts warning */}
       {conflicts.length > 0 && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-          <h2 className="font-semibold text-red-800">
-            Konflikty adres ({conflicts.length})
+        <div className="mb-6 rounded-lg border border-red-200 bg-danger-soft p-4">
+          <h2 className="font-semibold text-danger">
+            Sdílené adresy ({conflicts.length})
           </h2>
-          <ul className="mt-2 space-y-1 text-sm text-red-700">
+          <p className="mt-1 text-xs text-danger">Sdílená adresa může být záměrná, například u osvětlení vozů. Ověřte ji před jízdou.</p>
+          <ul className="mt-2 space-y-1 text-sm text-danger">
             {conflicts.map(([address, vehicles]) => (
               <li key={address}>
                 Adresa <span className="font-mono font-bold">{address}</span>:{" "}
@@ -54,18 +56,18 @@ export default async function DccPage() {
       )}
 
       {/* Vehicle DCC addresses */}
-      <div className="rounded-lg border border-gray-200">
-        <h2 className="border-b border-gray-200 px-4 py-3 font-semibold">
+      <div className="rounded-lg border border-divider">
+        <h2 className="border-b border-divider px-4 py-3 font-semibold">
           Přehled DCC adres
         </h2>
         {vehiclesWithDcc.length === 0 ? (
-          <p className="px-4 py-8 text-center text-gray-400">
+          <p className="px-4 py-8 text-center text-secondary">
             Žádná vozidla nemají přiřazenou DCC adresu
           </p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs uppercase text-gray-400">
+              <tr className="border-b border-divider text-left text-xs uppercase text-secondary">
                 <th className="px-4 py-2">Adresa</th>
                 <th className="px-4 py-2">Označení</th>
                 <th className="px-4 py-2">Dopravce</th>
@@ -75,8 +77,8 @@ export default async function DccPage() {
             <tbody>
               {vehiclesWithDcc.map((v) => (
                 <tr
-                  key={v.id}
-                  className="border-b border-gray-50 hover:bg-gray-50"
+                  key={`${v.id}:${v.dccAddress}`}
+                  className="border-b border-divider hover:bg-subtle"
                 >
                   <td className="px-4 py-2 font-mono font-bold">
                     {v.dccAddress}
@@ -84,18 +86,19 @@ export default async function DccPage() {
                   <td className="px-4 py-2">
                     <Link
                       href={`/${v.type === "loco" ? "lokomotivy" : "vozy"}/${v.id}`}
-                      className="font-medium hover:text-blue-600"
+                      className="font-medium hover:text-accent"
                     >
                       {v.designation}
                     </Link>
+                    {v.decoderNames && <p className="text-xs text-secondary">{v.decoderNames}</p>}
                   </td>
-                  <td className="px-4 py-2 text-gray-500">{v.operator}</td>
+                  <td className="px-4 py-2 text-secondary">{v.operator}</td>
                   <td className="px-4 py-2">
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
                         v.type === "loco"
-                          ? "bg-gray-800 text-white"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-primary text-white"
+                          : "bg-muted text-secondary"
                       }`}
                     >
                       {v.type === "loco" ? "Lok" : "Vůz"}

@@ -87,12 +87,15 @@ async function importR452() {
     },
   ];
 
-  const insertedVehicles = vehicleData.map((v) =>
-    db.insert(vehicles).values(v).returning().get()
-  );
+  const insertedVehicles: (typeof vehicles.$inferSelect)[] = [];
+  for (const vehicle of vehicleData) {
+    insertedVehicles.push(
+      await db.insert(vehicles).values(vehicle).returning().get()
+    );
+  }
   console.log(`Inserted ${insertedVehicles.length} vehicles`);
 
-  const train = db
+  const train = await db
     .insert(trains)
     .values({
       number: "452",
@@ -107,8 +110,8 @@ async function importR452() {
   console.log(`Inserted train: R ${train.number}`);
 
   const wagonNumbers = ["—", "11", "12", "13", "14", "3", "4", "5"];
-  insertedVehicles.forEach((v, i) => {
-    db.insert(trainVehicles)
+  for (const [i, v] of insertedVehicles.entries()) {
+    await db.insert(trainVehicles)
       .values({
         trainId: train.id,
         vehicleId: v.id,
@@ -116,7 +119,7 @@ async function importR452() {
         notes: wagonNumbers[i] !== "—" ? `Číslo vozu: ${wagonNumbers[i]}` : undefined,
       })
       .run();
-  });
+  }
   console.log(`Inserted ${insertedVehicles.length} train vehicles`);
 
   console.log("Import complete!");

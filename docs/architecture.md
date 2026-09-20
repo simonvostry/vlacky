@@ -127,7 +127,8 @@ vlacky/
 - **train_vehicles** = spojovací tabulka: který vůz na jaké pozici v soupravě
 - **vehicleCatalog** = referenční katalog všech typů vozidel z vagonWEB.cz
 - **catalogImages** = více barevných variant (nátěrů) pro každý typ v katalogu
-- **decoder_functions** = mapování DCC funkcí F0–F28 na konkrétní vozidlo
+- **decoder_functions** = mapování funkcí na instalovaný dekodér (`decoderId`) a vozidlo; kategorie zvuk/světla/ostatní, přepínač/podržet, popis
+- **vehicle_decoders** = dekodéry instalované ve vozidle, vlastní nebo zděděná DCC adresa, výrobce/model, zvukový projekt, manuál, poznámky a CV záznamy včetně indexů CV31/CV32. Konfigurace se kopíruje mezi vozidly bez kopírování adresy.
 
 ## Stránky (URL)
 
@@ -175,7 +176,7 @@ vlacky/
 | `designation-decoder.tsx` | Dekodér UIC označení (význam písmen) |
 | `vehicle-form.tsx` | Formulář pro vozidlo |
 | `train-form.tsx` | Formulář pro vlak |
-| `decoder-functions.tsx` | Editor funkcí dekodéru F0–F28 |
+| `vehicle-decoders.tsx`, `decoder-editor.tsx` | Společný editor dekodérů, funkcí a CV pro lokomotivy i vozy |
 
 ## Scrapery a import dat
 
@@ -266,3 +267,25 @@ npx tsx src/db/import-*.ts          # Import konkrétní soupravy
 - Import souprav přímo z UI (vyhledání na vagonWEB, klik na import)
 - Další dopravci (ZSSK, PKPIC, MÁV-START...)
 - Deploy na Vercel (migrace SQLite → Turso)
+
+
+## DCC konfigurace vozidla (září 2026)
+
+DCC konfigurace patří fyzickému vozidlu, nikoli soupravě. Staré sloupce `train_vehicles.dcc_address_override` a `lighting_decoder_address` zůstávají pouze pro kompatibilitu; API je již nepřijímá. Výchozí adresa je v `vehicles.dcc_address`, samostatný dekodér může mít vlastní adresu. Soupravy zobrazují aktuální konfiguraci vozidel.
+
+Nové API `GET/PUT /api/vozidla/[id]/dekodery` vyžaduje přihlášení. PUT validuje celý dokument a atomicky ukládá adresu, dekodéry, funkce a CV. Editor podporuje až 12 dekodérů na vozidlo, F0–F128, CV1–CV1024 a hodnoty 0–255. Indexované CV rozlišuje dvojicí CV31/CV32. Manuály mohou být pouze HTTP(S) odkazy. Uložené hodnoty neprogramují hardware a nemění automaticky DCC adresu.
+
+Před nasazením spusťte `npm run db:migrate-decoders`. Migrace je aditivní, opakovatelná a zachovává původní funkce i adresy. `npm run test:decoders` po buildu ověřuje migraci, validaci, ukládání, rollback, oddělení vozidel, zobrazení a kaskádové mazání v dočasné databázi.
+
+## Current speed-profile storage
+
+`vehicle_speed_profiles` adds a one-to-one current profile for physical locomotives, stored as validated JSON with a concurrency token. It is independent of mutable decoder rows, retaining a captured decoder/settings snapshot inside the profile. No measurement history is kept. The section on `/lokomotivy/[id]` supports metadata and point editing, graph/table display, and application-format JSON import/export. See [integration and preservation contract](itrain-integration.md#current-speed-profile-backup-2026-09-20) for schema, API and synchronization boundaries.
+
+
+## Appearance and shared controls
+
+The application uses semantic Tailwind color roles backed by CSS variables in `src/app/globals.css`. Light Hluboká modř is the default; Noční galerie overrides the same roles under `html[data-theme="dark"]`. UI colors, native fields and charts follow these roles, while train/class/operator assets retain their identity colors.
+
+`src/lib/theme.ts` defines the storage key and a defensive pre-paint bootstrap. `ThemeToggle` uses a client external-store subscription, persists explicit choices to browser localStorage and handles cross-tab changes. No database or iTrain field is involved. Login also exposes the switch. The theme defaults to light when storage is missing/invalid/unavailable; it does not follow OS preference.
+
+`ui-actions.tsx` and shared `ui-button` classes define button dimensions and accessible icon-only editing. Primary/secondary/quiet/destructive variants are shared across editors. Labels remain for Save, Cancel and Add. `npm run test:theme` covers first-paint defaults and unavailable storage; real-browser checks cover switching and persistence.

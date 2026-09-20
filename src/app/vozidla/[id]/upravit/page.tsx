@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -11,6 +12,7 @@ export default async function EditVehiclePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireUser();
   const { id } = await params;
   const vehicleId = parseInt(id, 10);
   if (isNaN(vehicleId)) notFound();
@@ -27,7 +29,7 @@ export default async function EditVehiclePage({
     <div className="mx-auto max-w-2xl">
       <Link
         href={`/vozidla/${vehicle.id}`}
-        className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
+        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět
       </Link>
@@ -47,6 +49,7 @@ export default async function EditVehiclePage({
           manufacturer: vehicle.manufacturer || "",
           catalogNumber: vehicle.catalogNumber || "",
           dccAddress: vehicle.dccAddress,
+          isTemplate: vehicle.isTemplate,
           notes: vehicle.notes || "",
         }}
       />

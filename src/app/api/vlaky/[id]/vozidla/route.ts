@@ -1,5 +1,6 @@
+import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
-import { eq, and, gt, lt, sql } from "drizzle-orm";
+import { eq, and, gt, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // Add a vehicle to a train
@@ -7,9 +8,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   const trainId = parseInt(id, 10);
   const body = await request.json();
+
+  if (body.dccAddressOverride != null || body.lightingDecoderAddress != null) return NextResponse.json({ error: "DCC konfigurace patří vozidlu." }, { status: 400 });
 
   // Get max position
   const max = await db
@@ -24,8 +29,6 @@ export async function POST(
       trainId,
       vehicleId: body.vehicleId,
       position: (max?.maxPos || 0) + 1,
-      dccAddressOverride: body.dccAddressOverride || null,
-      lightingDecoderAddress: body.lightingDecoderAddress || null,
       notes: body.notes || null,
     })
     .returning()
@@ -39,9 +42,13 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   const trainId = parseInt(id, 10);
   const body = await request.json();
+
+  if (body.dccAddressOverride != null || body.lightingDecoderAddress != null) return NextResponse.json({ error: "DCC konfigurace patří vozidlu." }, { status: 400 });
 
   // Move vehicle: { trainVehicleId, direction: "up" | "down" }
   if (body.action === "move") {
@@ -90,8 +97,6 @@ export async function PUT(
     const tv = await db
       .update(schema.trainVehicles)
       .set({
-        dccAddressOverride: body.dccAddressOverride ?? null,
-        lightingDecoderAddress: body.lightingDecoderAddress ?? null,
         notes: body.notes ?? null,
       })
       .where(eq(schema.trainVehicles.id, body.trainVehicleId))
@@ -108,6 +113,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const { id } = await params;
   const trainId = parseInt(id, 10);
   const body = await request.json();

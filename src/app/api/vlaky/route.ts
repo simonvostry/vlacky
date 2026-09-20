@@ -1,7 +1,10 @@
+import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const trains = await db
     .select()
     .from(schema.trains)
@@ -11,6 +14,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const denied = await authorizeApiRequest();
+  if (denied) return denied;
   const body = await request.json();
   const train = await db
     .insert(schema.trains)

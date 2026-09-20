@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -11,6 +12,7 @@ export default async function EditTrainPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireUser();
   const { id } = await params;
   const trainId = parseInt(id, 10);
   if (isNaN(trainId)) notFound();
@@ -27,7 +29,7 @@ export default async function EditTrainPage({
     <div className="mx-auto max-w-2xl">
       <Link
         href={`/soupravy/${train.id}`}
-        className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
+        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět
       </Link>

@@ -1,3 +1,5 @@
+import { requireUser } from "@/lib/auth-guards";
+import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -11,6 +13,7 @@ export default async function CatalogDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireUser();
   const { id } = await params;
   const entryId = parseInt(id, 10);
   if (isNaN(entryId)) notFound();
@@ -60,12 +63,12 @@ export default async function CatalogDetailPage({
     <div className="mx-auto max-w-3xl">
       <Link
         href="/katalog"
-        className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
+        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět na katalog
       </Link>
 
-      <div className="rounded-lg border border-gray-200 p-6">
+      <div className="rounded-lg border border-divider p-6">
         {images.length > 0 && (
           <div className="mb-6 space-y-3">
             {images.map((img) => {
@@ -84,9 +87,9 @@ export default async function CatalogDetailPage({
               return (
                 <div
                   key={img.id}
-                  className="flex items-center gap-3 rounded-lg bg-gray-50 p-4"
+                  className="flex items-center gap-3 rounded-lg bg-subtle p-4"
                 >
-                  <img
+                  <Image unoptimized
                     src={img.imagePath}
                     alt={`${entry.fullDesignation} ${img.label || ""}`}
                     width={img.imageWidth || 264}
@@ -98,11 +101,11 @@ export default async function CatalogDetailPage({
                     }}
                   />
                   {img.label && (
-                    <span className="text-xs text-gray-400">{img.label}</span>
+                    <span className="text-xs text-secondary">{img.label}</span>
                   )}
                   <Link
                     href={`/${section}/novy?${addParams.toString()}`}
-                    className="ml-auto shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                    className="ui-button ui-button-primary"
                   >
                     + Přidat
                   </Link>
@@ -113,16 +116,16 @@ export default async function CatalogDetailPage({
         )}
 
         <h1 className="text-2xl font-bold">{entry.fullDesignation}</h1>
-        <p className="text-gray-500">{entry.operator}</p>
+        <p className="text-secondary">{entry.operator}</p>
 
-        <div className="mt-4 rounded-lg bg-gray-50 p-4">
-          <h3 className="mb-2 text-xs font-semibold uppercase text-gray-400">
+        <div className="mt-4 rounded-lg bg-subtle p-4">
+          <h3 className="mb-2 text-xs font-semibold uppercase text-secondary">
             Význam označení
           </h3>
           <DesignationDecoder designation={entry.designation} />
         </div>
 
-        <dl className="mt-6 divide-y divide-gray-100">
+        <dl className="mt-6 divide-y divide-divider">
           {fields.map(
             ([label, value]) =>
               value && (
@@ -130,7 +133,7 @@ export default async function CatalogDetailPage({
                   key={label}
                   className="flex justify-between py-2 text-sm"
                 >
-                  <dt className="text-gray-400">{label}</dt>
+                  <dt className="text-secondary">{label}</dt>
                   <dd className="font-medium">{value}</dd>
                 </div>
               )

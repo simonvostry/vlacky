@@ -1,3 +1,5 @@
+import { requireUser } from "@/lib/auth-guards";
+import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { OperatorLogo } from "@/components/operator-logo";
@@ -8,34 +10,35 @@ const SCALE = 0.75;
 export const dynamic = "force-dynamic";
 
 export default async function LokomotivyPage() {
+  await requireUser();
   const allVehicles = await db
     .select()
     .from(schema.vehicles)
     .where(eq(schema.vehicles.type, "loco"))
     .orderBy(schema.vehicles.designation)
-    .all() as any[];
+    .all();
 
   return (
     <div>
       {allVehicles.length === 0 ? (
-        <p className="py-12 text-center text-gray-400">
+        <p className="py-12 text-center text-secondary">
           Zatím žádné lokomotivy. Přidejte první!
         </p>
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
-          {allVehicles.map((v: any) => {
+          {allVehicles.map((v) => {
             const scaledW = Math.round((v.imageWidth || 169) * SCALE);
             const tileWidth = scaledW + 24;
             return (
               <Link
                 key={v.id}
                 href={`/lokomotivy/${v.id}`}
-                className="group flex shrink-0 flex-col justify-center rounded border border-gray-100 px-2 py-2 transition-colors hover:bg-blue-50"
+                className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
                 {v.imagePath && (
                   <div className="mb-1 flex items-end justify-center">
-                    <img
+                    <Image unoptimized
                       src={v.imagePath}
                       alt={v.designation}
                       width={v.imageWidth || 169}
@@ -54,7 +57,7 @@ export default async function LokomotivyPage() {
                   <span className="text-[12px] font-bold">{v.designation}</span>
                 </div>
                 {v.dccAddress && (
-                  <div className="text-center text-[10px] text-gray-400">
+                  <div className="text-center text-[10px] text-secondary">
                     DCC: {v.dccAddress}
                   </div>
                 )}

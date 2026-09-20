@@ -131,13 +131,13 @@ export function DesignationDecoder({ designation }: Props) {
           <span
             className={`shrink-0 rounded px-1.5 py-0.5 font-mono font-bold ${
               d.isMain
-                ? "bg-gray-800 text-white text-xs"
-                : "bg-gray-100 text-gray-600 text-[11px]"
+                ? "bg-primary text-white text-xs"
+                : "bg-muted text-secondary text-[11px]"
             }`}
           >
             {d.letter}
           </span>
-          <span className="text-gray-500">{d.meaning}</span>
+          <span className="text-secondary">{d.meaning}</span>
         </div>
       ))}
     </div>

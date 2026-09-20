@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ArrowUpIcon, ArrowDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -19,8 +20,7 @@ type TrainVehicleRow = {
   operator: string | null;
   vehicleType: string;
   classType: string | null;
-  dccAddressOverride: number | null;
-  lightingDecoderAddress: number | null;
+  dccAddresses: string;
   notes: string | null;
 };
 
@@ -84,20 +84,19 @@ export function TrainVehicleManager({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200">
-      <h2 className="border-b border-gray-200 px-4 py-3 font-semibold">
+    <div className="rounded-lg border border-divider">
+      <h2 className="border-b border-divider px-4 py-3 font-semibold">
         Seznam vozidel
       </h2>
 
       {trainVehicles.length > 0 && (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-left text-xs uppercase text-gray-400">
+            <tr className="border-b border-divider text-left text-xs uppercase text-secondary">
               <th className="px-4 py-2 w-10">#</th>
               <th className="px-4 py-2">Vozidlo</th>
               <th className="px-4 py-2">Třída</th>
               <th className="px-4 py-2">DCC</th>
-              <th className="px-4 py-2">Osvětlení</th>
               <th className="px-4 py-2">Poznámky</th>
               <th className="px-4 py-2 w-24">Řazení</th>
             </tr>
@@ -106,64 +105,61 @@ export function TrainVehicleManager({
             {trainVehicles.map((tv, i) => (
               <tr
                 key={tv.id}
-                className="border-b border-gray-50 hover:bg-gray-50"
+                className="border-b border-divider hover:bg-subtle"
               >
-                <td className="px-4 py-2 text-gray-400">{tv.position}</td>
+                <td className="px-4 py-2 text-secondary">{tv.position}</td>
                 <td className="px-4 py-2 font-medium">
                   <Link
                     href={`/${tv.vehicleType === "loco" ? "lokomotivy" : "vozy"}/${tv.vehicleId}`}
-                    className="hover:text-blue-600"
+                    className="hover:text-accent"
                   >
                     {tv.operator && (
-                      <span className="text-gray-400">{tv.operator} </span>
+                      <span className="text-secondary">{tv.operator} </span>
                     )}
                     {tv.designation}
                   </Link>
-                  <span className="ml-1 text-[10px] uppercase text-gray-300">
+                  <span className="ml-1 text-[10px] uppercase text-secondary">
                     {tv.vehicleType === "loco" ? "lok" : "vůz"}
                   </span>
                 </td>
-                <td className="px-4 py-2 text-gray-500">
+                <td className="px-4 py-2 text-secondary">
                   {tv.vehicleType === "loco" ? (
-                    <span className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] font-medium uppercase text-white">
+                    <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium uppercase text-white">
                       Lok
                     </span>
                   ) : (
                     classLabel(tv.classType) || "—"
                   )}
                 </td>
-                <td className="px-4 py-2 font-mono text-gray-500">
-                  {tv.dccAddressOverride || "—"}
+                <td className="px-4 py-2 font-mono text-secondary">
+                  {tv.dccAddresses || "—"}
                 </td>
-                <td className="px-4 py-2 font-mono text-gray-500">
-                  {tv.lightingDecoderAddress || "—"}
-                </td>
-                <td className="px-4 py-2 text-xs text-gray-400">{tv.notes}</td>
+                <td className="px-4 py-2 text-xs text-secondary">{tv.notes}</td>
                 <td className="px-4 py-2">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => moveVehicle(tv.id, "up")}
                       disabled={i === 0 || busy}
-                      className="rounded px-1.5 py-0.5 text-xs hover:bg-gray-200 disabled:opacity-30"
-                      title="Nahoru"
+                      className="ui-icon-button"
+                      title="Nahoru" aria-label="Posunout vůz nahoru"
                     >
-                      ↑
+                      <ArrowUpIcon className="size-4" aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => moveVehicle(tv.id, "down")}
                       disabled={i === trainVehicles.length - 1 || busy}
-                      className="rounded px-1.5 py-0.5 text-xs hover:bg-gray-200 disabled:opacity-30"
-                      title="Dolů"
+                      className="ui-icon-button"
+                      title="Dolů" aria-label="Posunout vůz dolů"
                     >
-                      ↓
+                      <ArrowDownIcon className="size-4" aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => removeVehicle(tv.id)}
                       disabled={busy}
-                      className="ml-1 rounded px-1.5 py-0.5 text-xs text-red-500 hover:bg-red-50 disabled:opacity-30"
-                      title="Odebrat"
+                      className="ui-icon-button text-danger"
+                      title="Odebrat" aria-label="Odebrat vůz ze soupravy"
                     >
-                      ×
+                      <XMarkIcon className="size-4" aria-hidden="true" />
                     </button>
                   </div>
                 </td>
@@ -173,11 +169,11 @@ export function TrainVehicleManager({
         </table>
       )}
 
-      <div className="flex items-center gap-2 border-t border-gray-100 px-4 py-3">
+      <div className="flex items-center gap-2 border-t border-divider px-4 py-3">
         <select
           value={addVehicleId}
           onChange={(e) => setAddVehicleId(e.target.value)}
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="flex-1 rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
         >
           <option value="">Vyberte vozidlo...</option>
           {allVehicles.map((v) => (
@@ -190,7 +186,7 @@ export function TrainVehicleManager({
         <button
           onClick={addVehicle}
           disabled={!addVehicleId || busy}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="ui-button ui-button-primary"
         >
           Přidat
         </button>
