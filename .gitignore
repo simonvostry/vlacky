@@ -44,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private research, image masters, review captures and collection backups
+/output/
+/data/backups/

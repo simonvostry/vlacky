@@ -1,5 +1,7 @@
 # Google login
 
+[Documentation index](../README.md#documentation)
+
 Vlacky uses Auth.js (`next-auth` v5) with Google OpenID Connect and one exact
 email address in an allowlist. This works on Vercel Hobby. It needs no additional
 database tables or paid authentication service.
@@ -36,10 +38,9 @@ OAuth client with these authorized redirect URIs:
 https://vlacky.vercel.app/api/auth/callback/google
 https://vlacky.vostry.org/api/auth/callback/google
 http://localhost:3000/api/auth/callback/google
-http://127.0.0.1:3000/api/auth/callback/google
 ```
 
-The custom-domain callback was saved in Google on 2026-09-13. HTTPS and a real Google login on the custom domain were verified successfully the same day after issuing its Vercel certificate.
+The custom-domain callback, HTTPS and Google login were last verified on 2026-09-13. Treat provider configuration as external state to recheck when troubleshooting.
 
 The app requests only the default `openid email profile` identity scopes. It
 does not request Gmail mailbox access. The allowlist is enforced by the app even
@@ -79,15 +80,14 @@ routes and API methods, protected images, invalid/expired sessions, a valid
 encrypted session, safe redirects and rejection of a forged OAuth callback.
 It does not write to Turso or the local collection.
 
-After setting all four environment variables, deploy with `vercel --prod` and
+After setting all four environment variables, deploy using the personal scope in
+[operations](operations.md#hosting-and-deployment) and
 check in a signed-out browser that pages redirect and APIs return 401. Complete
-one real Google login on `https://vlacky.vercel.app`, check collection pages and
+one real Google login on `https://vlacky.vostry.org`, check collection pages and
 images, then sign out. Local tests cannot substitute for this real OAuth check.
 
-Verified on 2026-09-05: production Google sign-in/sign-out, authenticated catalog
-images, anonymous page/image redirects and API 401s, plus real Google sign-in in
-local development at `http://localhost:3000`. The Google audience remains in
-Testing mode with the owner as its only test user.
+The last recorded Google audience configuration was Testing mode with the owner
+as its test user. Recheck the provider console before changing audience/client settings.
 
 References: [Auth.js installation](https://authjs.dev/getting-started/installation),
 [Google provider](https://authjs.dev/getting-started/providers/google),

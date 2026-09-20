@@ -1,12 +1,15 @@
 # Vlacky → iTrain integration
 
+[Documentation index](../README.md#documentation)
+
 Vlacky is the source of vehicle identities, decoder/function definitions, reference images and saved train compositions. Vlacky also stores the latest speed-profile backup per physical locomotive. iTrain remains the measurement and operational system; its applied speed profiles, stopping/braking calibration, detector offsets, layout definitions and live operating state are preserved during collection synchronization.
 
 The hosted MCP server is **read-only**. It neither edits iTrain files nor programs hardware. Its contract is supplied in server initialization instructions, `get_sync_contract`, and every complete vehicle/train export. A future local iTrain updater must implement the preservation rules with tests; MCP instructions alone cannot constrain unrelated scripts or arbitrary XML edits.
 
 ## Connection
 
-MCP URL: `https://vlacky.vercel.app/api/mcp`
+Last configured MCP URL: `https://vlacky.vercel.app/api/mcp`. The website uses the
+custom domain; integration URL migration is tracked in [operations](operations.md#hosting-and-deployment).
 
 Transport: stateless Streamable HTTP, including compatibility with 2025-era MCP clients. No local MCP process, Redis, or persistent server session is needed.
 
@@ -62,22 +65,23 @@ CV records are **not executable programming instructions** and must not be mappe
 
 ## Maintenance and verification
 
-Before deploying the schema change, run `npm run db:migrate-integration`. It adds `vehicles.is_template` without removing existing fields and marks only the known V160 example. Local tests use `INTEGRATION_MIGRATION_URL=file:/absolute/path.db`.
+For an existing database without the integration schema, run `npm run db:migrate-integration`. It adds `vehicles.is_template` without removing existing fields and marks only the known V160 example. Local tests use `INTEGRATION_MIGRATION_URL=file:/absolute/path.db`.
 
 After `npm run build`, run `npm run test:integration`, `npm run test:decoders`, `npm run test:auth`, and `npm run test:auth-http`. Integration tests use disposable SQLite and a separate server, checking real MCP initialization/tools, token scope, ordered snapshots, sample exclusion, image bytes/checksums, traversal rejection, read-only behavior and the preservation contract. They do not test an iTrain XML updater because none is installed by this project yet.
 
 Sources: [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp), [Vercel MCP deployment](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel), [iTrain 6 manual](https://berros.eu/download/6-0/iTrain%206%20Handbuch.pdf).
 
-## Current speed-profile backup (2026-09-20)
+## Current speed-profile backup
 
 Snapshot schema 1.1 adds `vehicles[].referenceOnly.speedProfile`; sync contract version 2 explicitly treats it as backup data, outside `allowedSourceFields`. The seven MCP tools remain read-only. A missing profile never means delete or reset calibration. Restoring a backup to iTrain is a separately authorized operation requiring a tested adapter; this release implements no iTrain writer or automatic importer.
 
 `vehicle_speed_profiles` stores exactly one JSON profile per `vehicles.id`. New saves replace it atomically, without measurement history or decoder foreign keys. Decoder edits cannot delete a profile's captured configuration. Profile data includes a nullable calendar measurement date, measurement mode, primary direction, step mode, scale, prototype-equivalent km/h, both directional values (missing values stay null), notes and source/context snapshots. Original source XML/decimal evidence remains separate from subsequently edited current points.
 
-The locomotive detail has a graph, exact values, metadata/value editing and JSON import/export. Equal directions use one curve/column. Single-direction measurements also default to the primary curve; differing stored values can be revealed without overwriting them. “Použít hlavní směr pro oba směry” is an explicit edit of both columns. Imported JSON is previewed in the form and saved only on submit. It must use this application's validated profile format; `.tcdz` files are not accepted directly yet.
+The locomotive detail has a graph, metadata/value editing and JSON import/export. Readouts, graph axis labels and table cells show one Czech decimal place; advanced point editing, stored data and JSON retain full precision. Equal directions use one curve/column. Single-direction measurements also default to the primary curve; differing stored values can be revealed without overwriting them. “Použít hlavní směr pro oba směry” is an explicit edit of both columns. Imported JSON is previewed in the form and saved only on submit. It must use this application's validated profile format; `.tcdz` files are not accepted directly yet.
 
 Authenticated `GET/PUT /api/vozidla/[id]/rychlostni-profil` serves locomotives only. PUT takes `{profile, expectedUpdatedAt}`; pass null for the initial save or the token returned by GET for replacement. A stale token returns 409 without changing the current measurement. Ordinary Google-session authorization is required; the MCP bearer cannot write. Future automatic iTrain ingestion needs separately scoped authentication and explicit identity matching, not wider permissions for the existing token.
 
-Run `npm run db:migrate-speed-profiles` before deploying this release. For disposable databases set `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db`. The additive migration is idempotent. The first-import maintenance helper `npx tsx scripts/import-speed-profile.ts VEHICLE_ID PROFILE_JSON` requires an embedded matching source ID and refuses to replace differing existing data. Run `npm run test:speed-profiles` after building.
+For an existing database without profile storage, run `npm run db:migrate-speed-profiles` before deploying dependent code. For disposable databases set `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db`. The additive migration is idempotent. The first-import maintenance helper `npx tsx scripts/import-speed-profile.ts VEHICLE_ID PROFILE_JSON` requires an embedded matching source ID and refuses to replace differing existing data. Run `npm run test:speed-profiles` after building.
 
-Brejlovec vehicle 36 is recorded as measured on **2026-09-19**, with a single-direction measurement confirmed by the owner. All 56 original saved values are preserved, including the small step-1 reverse difference. Source context contains settings captured from the saved project, not a claim that all were recorded at measurement time.
+Collection-specific measurement provenance and unresolved facts are recorded in
+[decisions](decisions.md#brejlovec-vehicle-36), not in the integration schema.

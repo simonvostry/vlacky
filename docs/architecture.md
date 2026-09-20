@@ -1,291 +1,106 @@
-# Vlacky — Architektura aplikace
+# Architecture
 
-## Účel
+[Documentation index](../README.md#documentation)
 
-Česká aplikace pro správu sbírky modelových vlaků a kolejiště. Umožňuje:
-- Procházet katalog vozidel stažený z vagonWEB.cz (ČD, ČSD, ÖBB, RJ) s barevnými variantami
-- Evidovat vlastní lokomotivy a vozy (s DCC adresami)
-- Skládat vlakové soupravy s vizuálním zobrazením řazení
-- Přidávat vozidla z katalogu do vlastní sbírky jedním kliknutím
-- Spravovat DCC adresy a detekovat konflikty
+Vlacky separates reference catalog data from physical models and saved train
+compositions. It documents decoder settings and backs up current speed measurements;
+it does not control hardware or write iTrain projects.
 
-## Nasazení
+## Runtime and source ownership
 
-| | |
-|---|---|
-| **Aplikace** | https://vlacky.vercel.app |
-| **Hosting** | Vercel (osobní účet, auto-deploy z GitHubu) |
-| **GitHub** | https://github.com/simonvostry/vlacky |
-| **Databáze** | Turso (libSQL) — `libsql://vlacky-xsima78.aws-eu-west-1.turso.io` |
-| **Lokální fallback** | SQLite soubor `data/vlacky.db` (když chybí TURSO_* env vars) |
+Next.js App Router serves React pages and API handlers. Drizzle uses libSQL/Turso
+when both `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are present; otherwise the app
+uses `data/vlacky.db` through better-sqlite3. All callers await database operations.
+`src/db/index.ts` also supplies atomic read/write helpers for either driver.
 
-## Technologický stack
+| Location | Responsibility |
+| --- | --- |
+| `src/app/` | Pages, route handlers, global styles and app icons |
+| `src/components/` | Shared navigation, forms, train images and configuration editors |
+| `src/db/schema.ts` | Drizzle schema; authoritative field definitions |
+| `src/db/` | Connections, catalog scrapers and historical train import scripts |
+| `src/lib/` | Validation, storage helpers, authentication policy, integration and theme state |
+| `scripts/` | Additive migrations and image preparation/verification |
+| `tests/` | Policy, theme, API, migration and integration tests |
+| `public/img/` | Source/catalog images, owned variants, UI derivatives and operator logos |
+| `output/`, `data/backups/` | Ignored local working artifacts and private backups |
 
-| Vrstva | Technologie |
-|--------|-------------|
-| Framework | Next.js 16 (App Router) |
-| Jazyk | TypeScript |
-| Styling | Tailwind CSS v4 |
-| Databáze | Turso (libSQL) v produkci, SQLite (better-sqlite3) lokálně |
-| ORM | Drizzle ORM (podporuje oba drivery) |
-| Scraping | node-html-parser + fetch |
-| Runtime skripty | tsx |
+Authentication uses Auth.js with Google and an exact verified-email allowlist.
+Every protected page/API checks authorization before data access. Dedicated
+integration endpoints require their own bearer token. See [authentication](authentication.md)
+and [integration](itrain-integration.md) for the separate boundaries.
 
-## Struktura projektu
+## Data model
 
-```
-vlacky/
-├── data/
-│   └── vlacky.db                    # SQLite databáze (gitignored)
-├── public/
-│   └── img/
-│       ├── catalog/                 # ~900 stažených obrázků z vagonWEB
-│       ├── logo-cd.svg              # Logo ČD
-│       ├── logo-csd.svg             # Logo ČSD
-│       ├── logo-obb.svg             # Logo ÖBB
-│       ├── logo-db.svg              # Logo DB
-│       ├── logo-rj.svg             # Logo RegioJet
-│       └── *.gif                    # Obrázky z ručních importů
-├── reference/
-│   └── ec70.html                    # Původní prototyp
-├── src/
-│   ├── app/                         # Next.js stránky a API
-│   ├── components/                  # React komponenty
-│   └── db/                          # Schema, připojení, scrapery
-├── drizzle.config.ts
-├── package.json
-└── CLAUDE.md
-```
+Eight active tables are defined in [the schema](../src/db/schema.ts).
 
-## Datový model
+| Table | Purpose and relationships |
+| --- | --- |
+| `vehicles` | Owned physical models; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
+| `vehicle_catalog` | Reference vehicle types and prototype specifications |
+| `catalog_images` | Ordered livery variants belonging to a catalog type |
+| `trains` | Named compositions with category, number, route, era and notes |
+| `train_vehicles` | Ordered vehicle membership and notes; the same vehicle may belong to several saved compositions |
+| `vehicle_decoders` | Installed decoders belonging to a physical vehicle; nullable own address inherits the vehicle default |
+| `decoder_functions` | Functions linked to vehicle and installed decoder; category, behavior and description |
+| `vehicle_speed_profiles` | One current JSON profile per locomotive with an optimistic-concurrency token |
 
-### 6 tabulek v SQLite
+Legacy `train_vehicles.dcc_address_override` and `lighting_decoder_address` columns
+remain for compatibility; the app no longer reads/writes train-specific DCC settings.
+Do not reuse them for new functionality.
 
-```
-┌──────────────────┐     ┌──────────────────┐
-│     vehicles      │     │      trains       │
-│ (vlastní modely)  │     │    (soupravy)     │
-├──────────────────┤     ├──────────────────┤
-│ id               │     │ id               │
-│ designation      │     │ number           │
-│ operator         │     │ name             │
-│ type (loco/wagon)│     │ category (EC/R/Os)│
-│ classType        │     │ route            │
-│ imagePath        │     │ era              │
-│ manufacturer     │     │ notes            │
-│ catalogNumber    │     └────────┬─────────┘
-│ dccAddress       │              │
-│ notes            │              │
-└────────┬─────────┘              │
-         │                        │
-         │    ┌───────────────────┘
-         │    │
-    ┌────┴────┴────────┐
-    │  train_vehicles   │
-    │ (pozice v soupr.) │
-    ├──────────────────┤
-    │ trainId (FK)     │
-    │ vehicleId (FK)   │
-    │ position         │
-    │ dccAddressOverride│
-    │ lightingDecAddr  │
-    │ notes            │
-    └──────────────────┘
+`VehicleDecoders` and `DecoderEditor` share the locomotive/wagon editor. A decoder
+includes manufacturer/model, sound project, manual URL, notes, functions and ordered
+CV records with optional CV31/CV32 indexes. Copying a decoder makes an independent
+configuration without copying its address. The DCC overview resolves inherited
+addresses and flags addresses shared between vehicles. These records do not program
+hardware. Validation and atomic persistence live in `decoder-config.ts` and
+`decoder-storage.ts`.
 
-┌──────────────────┐     ┌──────────────────┐
-│decoder_functions │     │ vehicle_catalog  │
-│ (funkce F0–F28)  │     │ (z vagonWEB.cz)  │
-├──────────────────┤     ├──────────────────┤
-│ vehicleId (FK)   │     │ designation      │
-│ functionNumber   │     │ code             │
-│ label            │     │ fullDesignation  │
-│ description      │     │ operator         │
-│                  │     │ wagonFamily      │
-│                  │     │ type, classType  │
-│                  │     │ uicNumber        │
-│                  │     │ yearBuilt        │
-│                  │     │ manufacturer     │
-│                  │     │ maxSpeed         │
-│                  │     │ imagePath        │
-│                  │     └────────┬─────────┘
-│                  │              │
-│                  │     ┌───────┴──────────┐
-│                  │     │  catalog_images   │
-│                  │     │ (barevné varianty)│
-│                  │     ├──────────────────┤
-│                  │     │ catalogId (FK)   │
-│                  │     │ imagePath        │
-│                  │     │ label (epocha)   │
-│                  │     │ sortOrder        │
-└──────────────────┘     └──────────────────┘
-```
+`SpeedProfileEditor` supports metadata, graph/table display, advanced point editing
+and validated application-format JSON import/export. Profiles retain both directions,
+source/context evidence, measurement date and full precision. No revision history is
+kept; decoder edits do not erase the captured profile context. Stale writes return 409.
+See [the speed-profile contract](itrain-integration.md#current-speed-profile-backup).
 
-### Klíčové vztahy
+## Routes
 
-- **vehicles** = fyzické modely, které vlastním (s DCC adresami)
-- **trains** = pojmenované soupravy
-- **train_vehicles** = spojovací tabulka: který vůz na jaké pozici v soupravě
-- **vehicleCatalog** = referenční katalog všech typů vozidel z vagonWEB.cz
-- **catalogImages** = více barevných variant (nátěrů) pro každý typ v katalogu
-- **decoder_functions** = mapování funkcí na instalovaný dekodér (`decoderId`) a vozidlo; kategorie zvuk/světla/ostatní, přepínač/podržet, popis
-- **vehicle_decoders** = dekodéry instalované ve vozidle, vlastní nebo zděděná DCC adresa, výrobce/model, zvukový projekt, manuál, poznámky a CV záznamy včetně indexů CV31/CV32. Konfigurace se kopíruje mezi vozidly bez kopírování adresy.
+| UI route | Purpose |
+| --- | --- |
+| `/` | Redirect to `/soupravy` |
+| `/prihlaseni` | Public Google login |
+| `/soupravy` | Composition list; `?souprava=ID` opens in-flow details, below the selected row on mobile |
+| `/soupravy/[id]` | Composition detail and vehicle ordering |
+| `/lokomotivy`, `/vozy` | Owned locomotive/wagon libraries |
+| `/lokomotivy/[id]`, `/vozy/[id]` | Vehicle identity, DCC configuration and train appearances; locomotives also have speed profiles |
+| `/katalog`, `/katalog/[id]` | Reference catalog, filters and livery variants; Přidat pre-fills an owned-vehicle form |
+| `/dcc` | Address overview and conflicts |
+| `/vozidla` | Legacy redirect to `/lokomotivy`; older detail/edit routes remain compatible |
 
-## Stránky (URL)
+Trains, locomotives and wagons have `/novy` and `/[id]/upravit` forms. Catalog filters
+are composable URL parameters: `typ`, `op`, `barvy`. ČSD filtering also includes
+catalog entries labeled ČSD/ČD.
 
-### UI stránky
+| API | Methods / purpose |
+| --- | --- |
+| `/api/vozidla`, `/api/vlaky` | GET/POST collection list/create |
+| `/api/vozidla/[id]`, `/api/vlaky/[id]` | GET/PUT/DELETE item CRUD |
+| `/api/vlaky/[id]/vozidla` | POST/PUT/DELETE composition membership/order |
+| `/api/vozidla/[id]/dekodery` | GET/PUT validated atomic decoder configuration |
+| `/api/vozidla/[id]/rychlostni-profil` | GET/PUT current locomotive profile with `expectedUpdatedAt` |
+| `/api/auth/[...nextauth]` | Auth.js handlers |
+| `/api/mcp` | GET/POST read-only MCP tools |
+| `/api/integrations/v1/snapshot` | GET collection snapshot |
+| `/api/integrations/v1/images/[id]` | GET native original/PNG vehicle image |
 
-| URL | Popis |
-|-----|-------|
-| `/` | Přesměrování na `/katalog` |
-| `/katalog` | Katalog vozidel — hlavní stránka s filtry (typ, dopravce, barvy) |
-| `/katalog/[id]` | Detail typu — všechny barevné varianty, specifikace, dekodér označení, tlačítko "Přidat" |
-| `/soupravy` | Seznam vlakových souprav s vizuálním řazením |
-| `/soupravy/[id]` | Detail soupravy — vizuální řazení + správa vozidel |
-| `/soupravy/[id]/upravit` | Úprava soupravy |
-| `/soupravy/novy` | Nová souprava |
-| `/lokomotivy` | Knihovna vlastních lokomotiv |
-| `/lokomotivy/[id]` | Detail lokomotivy (DCC adresa, zařazení ve vlacích) |
-| `/lokomotivy/[id]/upravit` | Úprava lokomotivy |
-| `/lokomotivy/novy` | Nová lokomotiva (s předvyplněním z katalogu) |
-| `/vozy` | Knihovna vlastních vozů |
-| `/vozy/[id]` | Detail vozu |
-| `/vozy/[id]/upravit` | Úprava vozu |
-| `/vozy/novy` | Nový vůz (s předvyplněním z katalogu) |
-| `/dcc` | Přehled DCC adres a detekce konfliktů |
-| `/vozidla` | Přesměrování na `/lokomotivy` (zpětná kompatibilita) |
+## Catalog sources
 
-### API endpointy
+Scrapers parse vagonWEB HTML, not a JSON API. `scrape-vagonweb.ts` reads popisy pages
+for ČD, ČSD/ČD, RJ and ÖBB; `scrape-images.ts` reads their grouped livery views;
+`scrape-rady.ts` reads ČD/ČSD yearly fleet pages. Catalog counts are mutable and
+are not architecture constants. `designation-decoder.tsx` explains UIC letter codes.
 
-| Metoda | URL | Popis |
-|--------|-----|-------|
-| GET/POST | `/api/vozidla` | Seznam / vytvoření vozidla |
-| GET/PUT/DELETE | `/api/vozidla/[id]` | CRUD vozidla |
-| GET/POST | `/api/vlaky` | Seznam / vytvoření vlaku |
-| GET/PUT/DELETE | `/api/vlaky/[id]` | CRUD vlaku |
-| POST/PUT/DELETE | `/api/vlaky/[id]/vozidla` | Správa řazení (přidat, přesunout, odebrat) |
-
-## Komponenty
-
-| Komponenta | Účel |
-|------------|------|
-| `nav.tsx` | Horní lišta s navigací, filtry katalogu, tlačítky |
-| `train-composition.tsx` | Vizuální řazení soupravy (obrázky vozů na koleji) |
-| `train-vehicle-manager.tsx` | Správa řazení (přidávání, řazení ↑↓, odebírání) |
-| `class-badge.tsx` | Odznak třídy (1, 2, R, L) s barvou |
-| `operator-logo.tsx` | Logo dopravce (ČD, ÖBB, ČSD, DB, RJ) |
-| `designation-decoder.tsx` | Dekodér UIC označení (význam písmen) |
-| `vehicle-form.tsx` | Formulář pro vozidlo |
-| `train-form.tsx` | Formulář pro vlak |
-| `vehicle-decoders.tsx`, `decoder-editor.tsx` | Společný editor dekodérů, funkcí a CV pro lokomotivy i vozy |
-
-## Scrapery a import dat
-
-### Hlavní scrapery (src/db/)
-
-| Skript | Příkaz | Zdroj | Výstup |
-|--------|--------|-------|--------|
-| `scrape-vagonweb.ts` | `npm run db:scrape` | Popisy stránky (tabulkový pohled) | vehicleCatalog tabulka |
-| `scrape-images.ts` | `npm run db:scrape-images` | Popisy stránky (skupinový pohled) | catalogImages + stažené GIFy |
-| `scrape-rady.ts` | `npx tsx src/db/scrape-rady.ts` | Řady stránky (1957–2026) | Další katalogové záznamy + obrázky |
-
-### Zdroje dat z vagonWEB.cz
-
-| Stránka | Parametr | Operátor | Obsah |
-|---------|----------|----------|-------|
-| `popisy.php?k=CD_Y` | `z=p&p=v` | ČD | UIC-Y vozy (84 záznamů) |
-| `popisy.php?k=CD_Z` | `z=p&p=v` | ČD | UIC-Z vozy (84 záznamů) |
-| `popisy.php?k=CSD_4n_II` | `z=p&p=v` | ČSD/ČD | Starší vozy (68 záznamů) |
-| `popisy.php?k=RJ` | `z=p&p=v` | RJ | RegioJet vozy (40 záznamů) |
-| `popisy.php?k=OeBB_1` | `z=p&p=v` | ÖBB | Rakouské vozy (63 záznamů) |
-| `rady.php?z=ČD` | rok 1994–2026 | ČD | Lokomotivy + vozy s obrázky |
-| `rady.php?z=ČSD` | rok 1957–1993 | ČSD | Historický vozový park |
-
-### Import konkrétních vlakových souprav
-
-| Skript | Vlak | Rok |
-|--------|------|-----|
-| `seed.ts` | EC 70 Antonín Dvořák | 1998/1999 |
-| `import-rj1014.ts` | RJ 1014 RegioJet | 2026 |
-| `import-rj55.ts` | RJ 55 Vindobona | 2026 |
-| `import-ex355.ts` | Ex 355 Západní expres | 2021 |
-| `import-r452.ts` | R 452 | 2007 |
-| `import-r670.ts` | R 670 Labe | 2026 |
-| `import-os9065.ts` | Os 9065 | 2026 |
-| `import-sp1641.ts` | Sp 1641 Ondráš | 2002 |
-
-## Aktuální statistiky
-
-| Metrika | Hodnota |
-|---------|---------|
-| Záznamy v katalogu | ~521 |
-| Barevné varianty | ~1 609 |
-| Obrázky na disku | ~900 |
-| Importované soupravy | 8 |
-| Vlastní vozidla | ~53 |
-| Loga dopravců | 6 (ČD, ČSD, ÖBB, DB, RJ + odkaz ČSD/ČD) |
-
-## Vizuální zobrazení souprav
-
-Soupravy se zobrazují jako horizontální řada obrázků vozidel:
-- Obrázky ve scale 0.75× (kompromis mezi ostrostí na retina a čitelností)
-- Lokomotivy ~127×44px, vozy ~198×31px na obrazovce
-- Pod každým vozidlem: logo dopravce, třída, označení, číslo vozu
-- Kolej (šedá čára 1px) pod obrázky
-
-## Katalog — filtry
-
-Filtry v horní liště (URL parametry):
-- **Typ**: `?typ=loco` / `?typ=wagon` / (vše)
-- **Dopravce**: `?op=ČD` / `?op=ČSD` / `?op=ÖBB` / `?op=RJ`
-- **Barevné varianty**: `?barvy=1` (zobrazit všechny nátěry)
-
-Filtry se kombinují a fungují s tlačítkem zpět v prohlížeči.
-
-## Dekodér označení
-
-Komponenta `designation-decoder.tsx` rozšifruje UIC označení:
-- Velká písmena: A=1.třída, B=2.třída, AB=smíšený, WR=jídelní, WL=lůžkový, D=zavazadlový
-- Malá písmena: m=delší než 24,5m, p=velkoprostorový, z=napájení z vedení, f=řídící, ee=centrální napájení, d=kola, h=bezbariérový...
-
-## Příkazy
-
-```bash
-npm run dev              # Spustit vývojový server
-npm run build            # Sestavit pro produkci
-npm run db:push          # Synchronizovat schema do SQLite
-npm run db:seed          # Naplnit vzorová data
-npm run db:scrape        # Stáhnout katalog z vagonWEB
-npm run db:scrape-images # Stáhnout obrázky barevných variant
-npx tsx src/db/scrape-rady.ts       # Stáhnout řady (ČD+ČSD)
-npx tsx src/db/scrape-rady.ts csd   # Jen ČSD (1957–1993)
-npx tsx src/db/import-*.ts          # Import konkrétní soupravy
-```
-
-## Budoucí rozšíření
-
-- Propojení katalogu s vlastními vozidly (FK `catalogId` na `vehicles`)
-- Import souprav přímo z UI (vyhledání na vagonWEB, klik na import)
-- Další dopravci (ZSSK, PKPIC, MÁV-START...)
-- Deploy na Vercel (migrace SQLite → Turso)
-
-
-## DCC konfigurace vozidla (září 2026)
-
-DCC konfigurace patří fyzickému vozidlu, nikoli soupravě. Staré sloupce `train_vehicles.dcc_address_override` a `lighting_decoder_address` zůstávají pouze pro kompatibilitu; API je již nepřijímá. Výchozí adresa je v `vehicles.dcc_address`, samostatný dekodér může mít vlastní adresu. Soupravy zobrazují aktuální konfiguraci vozidel.
-
-Nové API `GET/PUT /api/vozidla/[id]/dekodery` vyžaduje přihlášení. PUT validuje celý dokument a atomicky ukládá adresu, dekodéry, funkce a CV. Editor podporuje až 12 dekodérů na vozidlo, F0–F128, CV1–CV1024 a hodnoty 0–255. Indexované CV rozlišuje dvojicí CV31/CV32. Manuály mohou být pouze HTTP(S) odkazy. Uložené hodnoty neprogramují hardware a nemění automaticky DCC adresu.
-
-Před nasazením spusťte `npm run db:migrate-decoders`. Migrace je aditivní, opakovatelná a zachovává původní funkce i adresy. `npm run test:decoders` po buildu ověřuje migraci, validaci, ukládání, rollback, oddělení vozidel, zobrazení a kaskádové mazání v dočasné databázi.
-
-## Current speed-profile storage
-
-`vehicle_speed_profiles` adds a one-to-one current profile for physical locomotives, stored as validated JSON with a concurrency token. It is independent of mutable decoder rows, retaining a captured decoder/settings snapshot inside the profile. No measurement history is kept. The section on `/lokomotivy/[id]` supports metadata and point editing, graph/table display, and application-format JSON import/export. See [integration and preservation contract](itrain-integration.md#current-speed-profile-backup-2026-09-20) for schema, API and synchronization boundaries.
-
-
-## Appearance and shared controls
-
-The application uses semantic Tailwind color roles backed by CSS variables in `src/app/globals.css`. Light Hluboká modř is the default; Noční galerie overrides the same roles under `html[data-theme="dark"]`. UI colors, native fields and charts follow these roles, while train/class/operator assets retain their identity colors.
-
-`src/lib/theme.ts` defines the storage key and a defensive pre-paint bootstrap. `ThemeToggle` uses a client external-store subscription, persists explicit choices to browser localStorage and handles cross-tab changes. No database or iTrain field is involved. Login also exposes the switch. The theme defaults to light when storage is missing/invalid/unavailable; it does not follow OS preference.
-
-`ui-actions.tsx` and shared `ui-button` classes define button dimensions and accessible icon-only editing. Primary/secondary/quiet/destructive variants are shared across editors. Labels remain for Save, Cancel and Add. `npm run test:theme` covers first-paint defaults and unavailable storage; real-browser checks cover switching and persistence.
+Import scripts represent specific historical train examples, not the complete or
+current collection inventory. Run them only deliberately: they write data.
+See [operations](operations.md) for migration and maintenance precautions, and
+[design](design.md) for current layout, themes and image scaling.
