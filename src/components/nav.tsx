@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { CollectionActions } from "./collection-actions";
 import { OperatorLogo } from "./operator-logo";
 import { TrainDisplayControls } from "./train-display-controls";
 import { ThemeToggle } from "./theme-toggle";
@@ -14,6 +15,12 @@ const links = [
   { href: "/katalog", label: "Katalog" },
   { href: "/dcc", label: "DCC" },
 ];
+
+const collectionActions: Record<string, { href: string; label: string }> = {
+  "/soupravy": { href: "/soupravy/novy", label: "Přidat soupravu" },
+  "/lokomotivy": { href: "/lokomotivy/novy", label: "Přidat lokomotivu" },
+  "/vozy": { href: "/vozy/novy", label: "Přidat vůz" },
+};
 
 const catalogFilters = [
   { value: "", label: "Vše" },
@@ -40,6 +47,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const addAction = collectionActions[pathname];
   const isTrainList = pathname === "/soupravy";
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
@@ -148,8 +156,11 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             </>
           )}
         </div>}
-        {isTrainList && <div className="order-5 flex w-full justify-end pb-2 lg:order-2 lg:ml-auto lg:w-auto lg:py-2"><TrainDisplayControls /></div>}
-        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${isTrainList ? "lg:ml-0" : ""}`}><ThemeToggle />{accountMenu}</div>
+        {isTrainList && <div className="order-5 flex w-full justify-end pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2"><TrainDisplayControls /></div>}
+        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${isTrainList ? "xl:ml-0" : ""}`}>
+          {addAction && <CollectionActions {...addAction} />}
+          <ThemeToggle />{accountMenu}
+        </div>
       </div>
     </nav>
   );

@@ -1,4 +1,3 @@
-import { CollectionActions } from "@/components/collection-actions";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
@@ -21,7 +20,6 @@ export default async function LokomotivyPage() {
 
   return (
     <div>
-      <CollectionActions href="/lokomotivy/novy" label="Přidat lokomotivu" />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">
           Zatím žádné lokomotivy. Přidejte první!

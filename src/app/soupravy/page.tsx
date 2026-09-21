@@ -1,4 +1,3 @@
-import { CollectionActions } from "@/components/collection-actions";
 import { getDecoders } from "@/lib/decoder-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
@@ -62,7 +61,6 @@ export default async function TrainsPage({ searchParams }: {
   return (
     <div className={selectedTrain ? "grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]" : "min-w-0"}>
       <div className="min-w-0">
-        <CollectionActions href="/soupravy/novy" label="Přidat soupravu" />
         {allTrains.length === 0 ? (
           <p className="py-12 text-center text-secondary">Zatím žádné vlaky. Přidejte první!</p>
         ) : allTrains.map(train => {
@@ -98,7 +96,7 @@ export default async function TrainsPage({ searchParams }: {
         })}
       </div>
       {selectedTrain && (
-        <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block lg:top-16 lg:max-h-[calc(100dvh-5rem)]">
+        <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
           <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} />
         </aside>
       )}
