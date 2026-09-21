@@ -11,6 +11,10 @@ semantic palette lives in [globals.css](../src/app/globals.css), not in study im
 Tune those shared roles instead of adding page-specific gray/blue values.
 
 Global navigation stays at the top. A future contextual sidebar may supplement it.
+Collection add actions live above their lists, aligned right: a compact plus and
+“Přidat” in blue with a transparent background and neutral hover. Use the shared
+`CollectionActions` on Soupravy, Lokomotivy and Vozy; keep contextual accessible
+labels and standard target sizes. Creation actions do not belong in global navigation.
 Train selection uses a subtle gray/slate fill and slightly rounded corners, with
 no enclosing border or left accent; hover uses a lighter fill. The list hides general
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain

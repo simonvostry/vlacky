@@ -14,12 +14,6 @@ const links = [
   { href: "/dcc", label: "DCC" },
 ];
 
-const addButtons: Record<string, { href: string; label: string }> = {
-  "/lokomotivy": { href: "/lokomotivy/novy", label: "+ Přidat lokomotivu" },
-  "/vozy": { href: "/vozy/novy", label: "+ Přidat vůz" },
-  "/soupravy": { href: "/soupravy/novy", label: "+ Přidat soupravu" },
-};
-
 const catalogFilters = [
   { value: "", label: "Vše" },
   { value: "loco", label: "Lokomotivy" },
@@ -44,10 +38,6 @@ export function Nav({ accountMenu }: { accountMenu: ReactNode }) {
 function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const addButton = Object.entries(addButtons).find(([path]) =>
-    path === "/" ? pathname === "/" : pathname === path
-  )?.[1];
 
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
@@ -87,7 +77,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             );
           })}
         </div>
-        {(isKatalog || addButton) && <div className="order-4 flex w-full flex-wrap items-center gap-3 pb-3 xl:order-2 xl:ml-auto xl:w-auto xl:pb-0">
+        {isKatalog && <div className="order-4 flex w-full flex-wrap items-center gap-3 pb-3 xl:order-2 xl:ml-auto xl:w-auto xl:pb-0">
           {isKatalog && (
             <>
               <div className="flex gap-1">
@@ -154,14 +144,6 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
                 Barevné varianty
               </Link>
             </>
-          )}
-          {addButton && (
-            <Link
-              href={addButton.href}
-              className="ui-button ui-button-primary"
-            >
-              {addButton.label}
-            </Link>
           )}
         </div>}
         <div className="order-2 ml-auto flex items-center gap-2 py-2 xl:order-3"><ThemeToggle />{accountMenu}</div>

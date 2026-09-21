@@ -1,3 +1,4 @@
+import { CollectionActions } from "@/components/collection-actions";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
@@ -21,6 +22,7 @@ export default async function VozyPage() {
 
   return (
     <div>
+      <CollectionActions href="/vozy/novy" label="Přidat vůz" />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">
           Zatím žádné vozy. Přidejte první!

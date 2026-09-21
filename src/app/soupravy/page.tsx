@@ -1,3 +1,4 @@
+import { CollectionActions } from "@/components/collection-actions";
 import { getDecoders } from "@/lib/decoder-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
@@ -61,6 +62,7 @@ export default async function TrainsPage({ searchParams }: {
   return (
     <div className={selectedTrain ? "grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]" : "min-w-0"}>
       <div className="min-w-0">
+        <CollectionActions href="/soupravy/novy" label="Přidat soupravu" />
         {allTrains.length === 0 ? (
           <p className="py-12 text-center text-secondary">Zatím žádné vlaky. Přidejte první!</p>
         ) : allTrains.map(train => {
