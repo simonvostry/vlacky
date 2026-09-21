@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { OperatorLogo } from "./operator-logo";
+import { TrainDisplayControls } from "./train-display-controls";
 import { ThemeToggle } from "./theme-toggle";
 
 const links = [
@@ -39,6 +40,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const isTrainList = pathname === "/soupravy";
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
   const currentOp = searchParams.get("op") || "";
@@ -146,7 +148,8 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             </>
           )}
         </div>}
-        <div className="order-2 ml-auto flex items-center gap-2 py-2 xl:order-3"><ThemeToggle />{accountMenu}</div>
+        {isTrainList && <div className="order-5 flex w-full justify-end pb-2 lg:order-2 lg:ml-auto lg:w-auto lg:py-2"><TrainDisplayControls /></div>}
+        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${isTrainList ? "lg:ml-0" : ""}`}><ThemeToggle />{accountMenu}</div>
       </div>
     </nav>
   );

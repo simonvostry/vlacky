@@ -85,7 +85,7 @@ export default async function TrainsPage({ searchParams }: {
                     {train.route && <span className="text-xs text-secondary">{train.route}</span>}
                     {train.era && <span className="text-xs text-secondary">{train.era}</span>}
                   </div>
-                  <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} /></div>
+                  <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} useDisplayPreferences /></div>
                 </Link>
               </div>
               {selected && (
@@ -98,7 +98,7 @@ export default async function TrainsPage({ searchParams }: {
         })}
       </div>
       {selectedTrain && (
-        <aside key={selectedTrain.id} className="sticky top-24 hidden max-h-[calc(100dvh-7rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
+        <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block lg:top-16 lg:max-h-[calc(100dvh-5rem)]">
           <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} />
         </aside>
       )}

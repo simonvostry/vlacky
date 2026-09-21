@@ -109,3 +109,12 @@
   }
   @media (prefers-reduced-motion: reduce) { .ui-button, .ui-icon-button { transition: none; } }
 }
+
+/* Display preferences apply only to overview compositions, never detail panels. */
+html[data-train-labels-hidden~="operator"] [data-train-list] [data-train-label="operator"],
+html[data-train-labels-hidden~="number"] [data-train-list] [data-train-label="number"],
+html[data-train-labels-hidden~="class"] [data-train-list] [data-train-label="class"],
+html[data-train-labels-hidden~="type"] [data-train-list] [data-train-label="type"],
+html[data-train-labels-hidden~="operator"][data-train-labels-hidden~="number"][data-train-labels-hidden~="class"][data-train-labels-hidden~="type"] [data-train-list] [data-train-details] {
+  display: none;
+}

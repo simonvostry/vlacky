@@ -5,6 +5,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { SignOutButton } from "@/components/sign-out-button";
 import { getAuthorizedSession } from "@/lib/auth-guards";
 import { themeBootstrap } from "@/lib/theme";
+import { trainDisplayBootstrap } from "@/lib/train-display";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default async function RootLayout({
   const session = await getAuthorizedSession();
   return (
     <html lang="cs" data-theme="light" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: themeBootstrap }} /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: themeBootstrap + trainDisplayBootstrap }} /></head>
       <body className="bg-canvas text-foreground antialiased">
         {session && <Nav accountMenu={
           <AccountMenu name={session.user?.name} image={session.user?.image}>

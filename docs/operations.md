@@ -25,6 +25,7 @@ Neither is required to build the app from Git.
 ```sh
 npm run build
 npm run test:theme
+npm run test:train-display
 npm run test:auth
 npm run test:auth-http
 npm run test:decoders

@@ -19,7 +19,8 @@
     "test:integration": "tsx --test tests/integration-http.test.ts",
     "db:migrate-speed-profiles": "node scripts/migrate-speed-profiles.mjs",
     "test:speed-profiles": "tsx --test tests/speed-profile*.test.ts",
-    "test:theme": "tsx --test tests/theme.test.ts"
+    "test:theme": "tsx --test tests/theme.test.ts",
+    "test:train-display": "tsx --test tests/train-display.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

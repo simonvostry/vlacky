@@ -20,6 +20,15 @@ no enclosing border or left accent; hover uses a lighter fill. The list hides ge
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain
 available in details.
 
+On `/soupravy`, four independent display toggles beside the theme control show/hide
+Dopravce (logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge)
+and Typ (designation, e.g. Bmz 61 or 642). They affect only labels beneath overview
+compositions, never train headings, images or full detail panels. All default on;
+choices persist per browser/origin in `vlacky-train-labels-hidden`, restore before
+paint, and synchronize across tabs. Turning everything off removes the label row.
+On narrow screens the controls wrap below navigation. Preserve accessible pressed
+states and the original data; these are display settings, not collection filters.
+
 ## Themes and controls
 
 `src/lib/theme.ts` defines the `vlacky-theme` localStorage key and defensive inline
