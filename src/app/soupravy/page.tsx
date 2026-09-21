@@ -83,7 +83,7 @@ export default async function TrainsPage({ searchParams }: {
                     {train.route && <span className="text-xs text-secondary">{train.route}</span>}
                     {train.era && <span className="text-xs text-secondary">{train.era}</span>}
                   </div>
-                  <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} useDisplayPreferences /></div>
+                  <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} /></div>
                 </Link>
               </div>
               {selected && (

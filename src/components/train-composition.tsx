@@ -22,13 +22,12 @@ type TrainVehicle = {
 type Props = {
   vehicles: TrainVehicle[];
   showDescriptions?: boolean;
-  useDisplayPreferences?: boolean;
 };
 
 // Display at 75% native size — compromise between sharpness and readability
 const SCALE = 0.75;
 
-export function TrainComposition({ vehicles, showDescriptions = true, useDisplayPreferences = false }: Props) {
+export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
   if (vehicles.length === 0) {
     return (
       <p className="py-8 text-center text-secondary">
@@ -38,7 +37,7 @@ export function TrainComposition({ vehicles, showDescriptions = true, useDisplay
   }
 
   return (
-    <div className="space-y-0" data-train-list={useDisplayPreferences ? "" : undefined}>
+    <div className="space-y-0">
       {/* Train images */}
       <div className="pb-2">
         <div className="flex items-end" style={{ gap: 0 }}>
@@ -75,7 +74,7 @@ export function TrainComposition({ vehicles, showDescriptions = true, useDisplay
         <div className="h-px bg-control" />
 
         {/* Vehicle details */}
-        <div className="flex" style={{ gap: 0 }} data-train-details>
+        <div className="flex" style={{ gap: 0 }} data-vehicle-label-row={vehicles.some(tv => showDescriptions && tv.notes && !/^Číslo vozu:/.test(tv.notes)) ? undefined : ""}>
           {vehicles.map((tv) => {
             const nw = tv.vehicle.imageWidth || (tv.vehicle.type === "loco" ? 169 : 264);
             const w = Math.round(nw * SCALE);
@@ -85,13 +84,13 @@ export function TrainComposition({ vehicles, showDescriptions = true, useDisplay
                 className="shrink-0 pt-1 flex items-center justify-center gap-1 whitespace-nowrap overflow-hidden"
                 style={{ width: w }}
               >
-                <span className="inline-flex" data-train-label="operator"><OperatorLogo operator={tv.vehicle.operator} /></span>
+                <span className="inline-flex" data-vehicle-label="operator"><OperatorLogo operator={tv.vehicle.operator} /></span>
                 {tv.vehicle.classType && (
-                  <span className="inline-flex" data-train-label="class"><ClassBadge classType={tv.vehicle.classType} size="xs" short /></span>
+                  <span className="inline-flex" data-vehicle-label="class"><ClassBadge classType={tv.vehicle.classType} size="xs" short /></span>
                 )}
-                <span data-train-label="type" className="text-[13px] leading-none font-bold text-foreground">{tv.vehicle.designation}</span>
+                <span data-vehicle-label="type" className="text-[13px] leading-none font-bold text-foreground">{tv.vehicle.designation}</span>
                 {tv.notes && (showDescriptions || /^Číslo vozu:/.test(tv.notes)) && (
-                  <span data-train-label={/^Číslo vozu:/.test(tv.notes) ? "number" : undefined} className="text-[13px] leading-none text-secondary">
+                  <span data-vehicle-label={/^Číslo vozu:/.test(tv.notes) ? "number" : undefined} className="text-[13px] leading-none text-secondary">
                     {tv.notes.replace(/^Číslo vozu:\s*/, "")}
                   </span>
                 )}

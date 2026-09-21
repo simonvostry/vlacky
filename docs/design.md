@@ -20,14 +20,20 @@ no enclosing border or left accent; hover uses a lighter fill. The list hides ge
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain
 available in details.
 
-On `/soupravy`, four independent display toggles beside the theme control show/hide
-Dopravce (logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge)
-and Typ (designation, e.g. Bmz 61 or 642). They affect only labels beneath overview
-compositions, never train headings, images or full detail panels. All default on;
-choices persist per browser/origin in `vlacky-train-labels-hidden`, restore before
-paint, and synchronize across tabs. Turning everything off removes the label row.
-On narrow screens the controls wrap below navigation. Preserve accessible pressed
-states and the original data; these are display settings, not collection filters.
+Four independent display toggles beside the theme control show/hide Dopravce
+(logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge) and Typ
+(designation, e.g. Bmz 61 or 642). They share one selection across Soupravy,
+Lokomotivy, Vozy and Katalog, including read-only detail pages and train side panels.
+DCC and creation/edit forms have no display controls and retain all information.
+Page titles, form fields, image alt text, DCC addresses, model catalog numbers and
+freeform notes remain visible/accessible; filters affect only explicitly marked
+presentation labels. A field absent from a page has nothing to toggle there.
+
+All default on. Keep the existing `vlacky-train-labels-hidden` browser/origin storage
+key to preserve saved choices; restore before paint and synchronize across tabs,
+even while a tab is on DCC or a form. Turning everything off removes pure label
+rows, while preserving descriptions. On narrow screens the controls wrap below
+navigation. Catalog content filters remain separate from these display settings.
 
 ## Themes and controls
 

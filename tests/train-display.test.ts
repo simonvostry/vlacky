@@ -22,3 +22,16 @@ test("missing, malformed and unavailable storage leave labels visible", () => {
   assert.equal(parseHiddenTrainLabels("type operator operator unknown"), "operator type");
   assert.equal(parseHiddenTrainLabels(null), "");
 });
+
+test("display controls cover collection browsing and details, excluding forms and DCC", async () => {
+  const { hasVehicleDisplayControls } = await import("../src/lib/train-display");
+  for (const section of ["soupravy", "lokomotivy", "vozy", "katalog", "vozidla"]) {
+    assert.equal(hasVehicleDisplayControls(`/${section}`), true);
+    assert.equal(hasVehicleDisplayControls(`/${section}/61`), true);
+    assert.equal(hasVehicleDisplayControls(`/${section}/novy`), false);
+    assert.equal(hasVehicleDisplayControls(`/${section}/61/upravit`), false);
+  }
+  for (const path of ["/dcc", "/prihlaseni", "/", "/api/vozidla", "/katalog-invalid"]) {
+    assert.equal(hasVehicleDisplayControls(path), false);
+  }
+});

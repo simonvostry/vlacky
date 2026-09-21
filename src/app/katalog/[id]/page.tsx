@@ -116,9 +116,9 @@ export default async function CatalogDetailPage({
         )}
 
         <h1 className="text-2xl font-bold">{entry.fullDesignation}</h1>
-        <p className="text-secondary">{entry.operator}</p>
+        <p data-vehicle-label="operator" className="text-secondary">{entry.operator}</p>
 
-        <div className="mt-4 rounded-lg bg-subtle p-4">
+        <div data-vehicle-label="type" className="mt-4 rounded-lg bg-subtle p-4">
           <h3 className="mb-2 text-xs font-semibold uppercase text-secondary">
             Význam označení
           </h3>
@@ -131,6 +131,7 @@ export default async function CatalogDetailPage({
               value && (
                 <div
                   key={label}
+                  data-vehicle-label={label === "Operátor" ? "operator" : label === "Třída" ? "class" : label === "Označení" ? "type" : undefined}
                   className="flex justify-between py-2 text-sm"
                 >
                   <dt className="text-secondary">{label}</dt>

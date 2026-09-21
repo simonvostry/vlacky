@@ -29,8 +29,9 @@ function subscribe(notify: () => void) {
 const snapshot = () => parseHiddenTrainLabels(document.documentElement.dataset.trainLabelsHidden);
 const serverSnapshot = () => "";
 
-export function TrainDisplayControls() {
+export function TrainDisplayControls({ visible = true }: { visible?: boolean }) {
   const hidden = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  if (!visible) return null;
   return (
     <div role="group" aria-label="Zobrazení údajů vozidel" className="flex flex-wrap items-center justify-end gap-1">
       {options.map(({ key, label, description }) => {

@@ -10,3 +10,8 @@ export function parseHiddenTrainLabels(value: unknown): string {
 
 // Restore before paint; unavailable storage leaves every label visible.
 export const trainDisplayBootstrap = `(function(){var h="";try{var v=(localStorage.getItem("${TRAIN_DISPLAY_STORAGE_KEY}")||"").split(/\\s+/);h=${JSON.stringify(TRAIN_LABELS)}.filter(function(k){return v.indexOf(k)!==-1}).join(" ")}catch(e){}document.documentElement.dataset.trainLabelsHidden=h})();`;
+
+// Lists and read-only details share display preferences; forms and DCC do not.
+export function hasVehicleDisplayControls(pathname: string): boolean {
+  return /^\/(soupravy|lokomotivy|vozy|vozidla|katalog)(\/\d+)?$/.test(pathname);
+}

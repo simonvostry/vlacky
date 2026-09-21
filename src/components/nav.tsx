@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
 import { OperatorLogo } from "./operator-logo";
 import { TrainDisplayControls } from "./train-display-controls";
@@ -48,7 +49,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const searchParams = useSearchParams();
 
   const addAction = collectionActions[pathname];
-  const isTrainList = pathname === "/soupravy";
+  const showDisplayControls = hasVehicleDisplayControls(pathname);
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
   const currentOp = searchParams.get("op") || "";
@@ -87,7 +88,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             );
           })}
         </div>
-        {isKatalog && <div className="order-4 flex w-full flex-wrap items-center gap-3 pb-3 xl:order-2 xl:ml-auto xl:w-auto xl:pb-0">
+        {isKatalog && <div className="order-6 flex w-full flex-wrap items-center gap-3 pb-3">
           {isKatalog && (
             <>
               <div className="flex gap-1">
@@ -156,8 +157,10 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             </>
           )}
         </div>}
-        {isTrainList && <div className="order-5 flex w-full justify-end pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2"><TrainDisplayControls /></div>}
-        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${isTrainList ? "xl:ml-0" : ""}`}>
+        <div className={showDisplayControls ? "order-5 flex w-full justify-end pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2" : "contents"}>
+          <TrainDisplayControls visible={showDisplayControls} />
+        </div>
+        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${showDisplayControls ? "xl:ml-0" : ""}`}>
           {addAction && <CollectionActions {...addAction} />}
           <ThemeToggle />{accountMenu}
         </div>

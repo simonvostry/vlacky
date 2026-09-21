@@ -69,15 +69,16 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [] 
             return (
               <li key={row.position}>
                 <Link href={`/${vehicle.type === "loco" ? "lokomotivy" : "vozy"}/${vehicle.id}`}
+                  aria-label={`${vehicle.type === "loco" ? "Lokomotiva" : "Vůz"} ${[vehicle.operator, vehicle.designation].filter(Boolean).join(" ")}`}
                   className="group flex gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
                   <span className="flex h-5 w-4 shrink-0 items-center justify-center text-[10px] tabular-nums text-secondary">{row.position}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                      <OperatorLogo operator={vehicle.operator} height={12} />
-                      <span className="text-xs font-semibold group-hover:text-accent">{vehicle.designation}</span>
-                      <ClassBadge classType={vehicle.classType} size="xs" short />
+                    <div data-vehicle-label-row className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                      <span data-vehicle-label="operator" className="inline-flex"><OperatorLogo operator={vehicle.operator} height={12} /></span>
+                      <span data-vehicle-label="type" className="text-xs font-semibold group-hover:text-accent">{vehicle.designation}</span>
+                      <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={vehicle.classType} size="xs" short /></span>
                       {row.notes && /^Číslo vozu:/.test(row.notes) && (
-                        <span className="ml-auto text-[11px] text-secondary" title={row.notes}>
+                        <span data-vehicle-label="number" className="ml-auto text-[11px] text-secondary" title={row.notes}>
                           <span className="sr-only">Číslo vozu: </span>{row.notes.replace(/^Číslo vozu:\s*/, "")}
                         </span>
                       )}

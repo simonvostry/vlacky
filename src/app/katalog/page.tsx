@@ -86,27 +86,28 @@ export default async function CatalogPage({
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
+                aria-label={`${e.operator} ${e.fullDesignation}`}
                 className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
                 {/* Header: operator + designation + badges */}
-                <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]">
-                  <OperatorLogo operator={e.operator} height={12} />
-                  <span className="font-bold">{e.fullDesignation}</span>
+                <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]" data-vehicle-label-row={showColors && images.length > 1 ? undefined : ""}>
+                  <span data-vehicle-label="operator" className="inline-flex"><OperatorLogo operator={e.operator} height={12} /></span>
+                  <span data-vehicle-label="type" className="font-bold">{e.fullDesignation}</span>
                   {e.classType === "1" && (
-                    <span className="rounded bg-amber-400 px-1 py-0 text-[9px] font-bold text-amber-900">1</span>
+                    <span data-vehicle-label="class" className="rounded bg-amber-400 px-1 py-0 text-[9px] font-bold text-amber-900">1</span>
                   )}
                   {e.classType === "2" && (
-                    <span className="rounded bg-blue-500 px-1 py-0 text-[9px] font-bold text-white">2</span>
+                    <span data-vehicle-label="class" className="rounded bg-blue-500 px-1 py-0 text-[9px] font-bold text-white">2</span>
                   )}
                   {e.classType === "12" && (
-                    <span className="rounded bg-purple-500 px-1 py-0 text-[9px] font-bold text-white">1/2</span>
+                    <span data-vehicle-label="class" className="rounded bg-purple-500 px-1 py-0 text-[9px] font-bold text-white">1/2</span>
                   )}
                   {e.classType === "restaurant" && (
-                    <span className="rounded bg-red-600 px-1 py-0 text-[9px] font-bold text-white">R</span>
+                    <span data-vehicle-label="class" className="rounded bg-red-600 px-1 py-0 text-[9px] font-bold text-white">R</span>
                   )}
                   {e.classType === "sleeping" && (
-                    <span className="rounded bg-indigo-600 px-1 py-0 text-[9px] font-bold text-white">L</span>
+                    <span data-vehicle-label="class" className="rounded bg-indigo-600 px-1 py-0 text-[9px] font-bold text-white">L</span>
                   )}
                   {showColors && images.length > 1 && (
                     <span className="text-[9px] text-secondary">

@@ -74,7 +74,7 @@ export default async function VehicleDetailPage({
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{vehicle.designation}</h1>
-                <p className="text-secondary">{vehicle.operator}</p>
+                <p data-vehicle-label="operator" className="text-secondary">{vehicle.operator}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
@@ -86,7 +86,7 @@ export default async function VehicleDetailPage({
                 >
                   {vehicle.type === "loco" ? "Lokomotiva" : "Vůz"}
                 </span>
-                <ClassBadge classType={vehicle.classType} size="md" />
+                <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={vehicle.classType} size="md" /></span>
               </div>
             </div>
 

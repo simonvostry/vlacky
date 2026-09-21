@@ -33,10 +33,11 @@ export default async function LokomotivyPage() {
               <Link
                 key={v.id}
                 href={`/lokomotivy/${v.id}`}
+                aria-label={[v.operator, v.designation].filter(Boolean).join(" ")}
                 className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
-                {v.imagePath && (
+                {v.imagePath ? (
                   <div className="mb-1 flex items-end justify-center">
                     <Image unoptimized
                       src={v.imagePath}
@@ -51,10 +52,12 @@ export default async function LokomotivyPage() {
                       }}
                     />
                   </div>
+                ) : (
+                  <div className="mb-1 text-center text-[10px] text-secondary">bez obrázku</div>
                 )}
-                <div className="flex items-center justify-center gap-1 whitespace-nowrap">
-                  <OperatorLogo operator={v.operator} height={12} />
-                  <span className="text-[12px] font-bold">{v.designation}</span>
+                <div data-vehicle-label-row className="flex items-center justify-center gap-1 whitespace-nowrap">
+                  <span data-vehicle-label="operator" className="inline-flex"><OperatorLogo operator={v.operator} height={12} /></span>
+                  <span data-vehicle-label="type" className="text-[12px] font-bold">{v.designation}</span>
                 </div>
                 {v.dccAddress && (
                   <div className="text-center text-[10px] text-secondary">
