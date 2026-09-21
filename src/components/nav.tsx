@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import appIcon from "@/app/icon.png";
 import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
 import { OperatorLogo } from "./operator-logo";
@@ -71,7 +73,10 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   return (
     <nav className="app-nav sticky top-0 z-50 border-b border-divider">
       <div className="flex flex-wrap items-center gap-x-6 px-4 sm:px-6 lg:px-8">
-        <Link href="/soupravy" className="order-1 mr-2 text-xl font-semibold tracking-tight">Vlacky</Link>
+        <Link href="/soupravy" aria-label="Vláčky — Soupravy" title="Vláčky — Soupravy"
+          className="order-1 mr-2 flex h-12 w-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+          <Image src={appIcon} alt="" width={44} height={44} sizes="44px" className="size-11" />
+        </Link>
         <div className="order-4 flex w-full justify-between gap-3 sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
           {links.map((link) => {
             const isActive =

@@ -108,6 +108,8 @@ authenticated browser or through the authorized image integration.
 
 The app icon is a transparent close crop of Brejlovec cab glazing. Native icon assets
 live in `src/app/`; `scripts/prepare-app-icon.mjs` rebuilds them from the local master.
+The top-left home link reuses `src/app/icon.png` at 44px instead of a text wordmark,
+with a transparent background in both themes and an accessible “Vláčky — Soupravy” label.
 
 ## Verification
 
