@@ -7,6 +7,7 @@ import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { OperatorLogo } from "@/components/operator-logo";
 import { ClassBadge } from "@/components/class-badge";
 import Link from "next/link";
 
@@ -66,7 +67,7 @@ export default async function VehicleDetailPage({
                 <span className="rounded bg-primary px-2 py-0.5 text-xs font-medium uppercase text-white">{vehicle.type === "loco" ? "Lokomotiva" : "Vůz"}</span>
                 <ClassBadge classType={vehicle.classType} size="md" />
               </div>
-              <p className="text-secondary">{vehicle.operator}</p>
+              <div className="mt-2"><OperatorLogo operator={vehicle.operator} height={16} /></div>
             </div>
             <EditAction href={`/lokomotivy/${vehicle.id}/upravit`} label="Upravit lokomotivu" />
           </div>

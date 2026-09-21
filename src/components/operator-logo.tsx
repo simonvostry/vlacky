@@ -7,6 +7,7 @@ const operatorLogos: Record<string, { src: string; width: number; height: number
   "ČSD/ČD": { src: "/img/logo-csd.svg", width: 411, height: 278.444 },
   "DB": { src: "/img/logo-db.svg", width: 100, height: 70 },
   "RJ": { src: "/img/logo-rj.svg", width: 1178, height: 203 },
+  "Vogtlandbahn": { src: "/img/logo-vogtlandbahn.svg", width: 2152, height: 197 },
 };
 
 type Props = {

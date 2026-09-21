@@ -37,6 +37,11 @@ hydration handling when changing the root layout. Login also has the toggle.
 - Keep operator logos and class badges in their identity colors. Dark mode gives
   operator logos a small light backing; it does not recolor train artwork.
 
+Operator logos are registered in `src/components/operator-logo.tsx` by the stored
+operator name. Unknown operators retain a text fallback. The Vogtlandbahn wordmark
+uses the original [Wikimedia SVG](https://commons.wikimedia.org/wiki/File:Vogtlandbahn_logo.svg)
+behind the supplied PNG preview; keep its proportions and original colors.
+
 ## Layout and image dimensions
 
 | Surface | Display size relative to stored native dimensions |
