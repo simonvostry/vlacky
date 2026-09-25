@@ -153,7 +153,8 @@ function classLabel(classType: string | null): string | null {
     "12": "1. + 2. třída",
     restaurant: "Restaurační",
     sleeping: "Lůžkový",
-    luggage: "Zavazadlový",
+    couchette: "Lehátkový",
+    luggage: "Zavazadlový / poštovní",
   };
   return map[classType] || classType;
 }

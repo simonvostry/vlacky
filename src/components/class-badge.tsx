@@ -6,6 +6,10 @@ type Props = {
 const config: Record<string, { label: string; shortLabel: string; className: string }> = {
   "1": { label: "1. třída", shortLabel: "1", className: "bg-amber-400 text-amber-900" },
   "2": { label: "2. třída", shortLabel: "2", className: "bg-blue-500 text-white" },
+  "12": { label: "1. a 2. třída", shortLabel: "1/2", className: "bg-purple-500 text-white" },
+  sleeping: { label: "Lůžkový", shortLabel: "L", className: "bg-indigo-600 text-white" },
+  couchette: { label: "Lehátkový", shortLabel: "Le", className: "bg-indigo-600 text-white" },
+  luggage: { label: "Zavazadlový / poštovní", shortLabel: "Z", className: "bg-muted text-secondary" },
   restaurant: {
     label: "Restaurační",
     shortLabel: "R",
@@ -21,8 +25,9 @@ export function ClassBadge({ classType, size = "sm", short = false }: Props & { 
   if (size === "xs") {
     return (
       <span
+        title={c.label}
         className={`inline-flex items-center justify-center rounded font-bold ${c.className}`}
-        style={{ width: 16, height: 16, fontSize: 11, lineHeight: 1 }}
+        style={{ width: c.shortLabel.length > 1 ? 24 : 16, height: 16, fontSize: 11, lineHeight: 1 }}
       >
         {short ? c.shortLabel : c.label}
       </span>

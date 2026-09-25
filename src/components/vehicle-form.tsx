@@ -131,7 +131,11 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             <option value="">—</option>
             <option value="1">1. třída</option>
             <option value="2">2. třída</option>
+            <option value="12">1. a 2. třída</option>
             <option value="restaurant">Restaurační</option>
+            <option value="sleeping">Lůžkový</option>
+            <option value="couchette">Lehátkový</option>
+            <option value="luggage">Zavazadlový / poštovní</option>
           </select>
         </div>
       </div>

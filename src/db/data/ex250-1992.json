@@ -1,0 +1,271 @@
+{
+  "sourceUrl": "https://www.vagonweb.cz/razeni/vlak.php?zeme=%C4%8CSD&cislo=250&rok=1992",
+  "train": {
+    "number": "250",
+    "name": "Západní expres",
+    "category": "Ex",
+    "era": "1991/1992",
+    "route": "Praha hl.n. – Cheb – Nürnberg Hbf – Frankfurt(Main) Hbf",
+    "notes": "Plánované řazení pro GVD 2. 6. 1991 – 30. 5. 1992. Uložena úplná sestava vyobrazená ve zdroji: 15 vozů a dvě lokomotivy ČSD 363. Nejde o doložené skutečné řazení jednoho konkrétního dne. Vůz 251 a SNCF 93 jezdí v letním období, WLAB 95 pouze 4. VII. – 20. VIII., poslední B pouze v pátek. Poštovní kurz 111 jezdí v úterý až sobotu; číslo 111 není číslo osobního vozu. Zadní lokomotiva je uvedena pro úsek Praha – Plzeň v pracovní dny a sobotu.\n\nVlaková lokomotiva ČSD 363 je doložena Praha – Cheb; trakce za Chebem zde není doplněna. Část vozů jede jen do Chebu či Nürnbergu, přímé vozy 92–95 pokračují přes Frankfurt do Paříže. Omezení jsou uvedena také v poznámkách vozidel.\n\nOrientační časy ze zdroje: Praha hl.n. 13:04; Cheb 16:26–16:46; Nürnberg Hbf 19:03–19:27; Frankfurt(Main) Hbf 22:18.\n\nZdroj: https://www.vagonweb.cz/razeni/vlak.php?zeme=%C4%8CSD&cislo=250&rok=1992"
+  },
+  "vehicles": [
+    {
+      "key": "csd-362-z-a",
+      "designation": "363",
+      "operator": "ČSD",
+      "type": "loco",
+      "classType": null,
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/csd-362-z-a.gif",
+      "width": 169,
+      "height": 58,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/CSD/362-z-a.gif",
+      "notes": "Označení 363 je převzato z řazení; zdroj používá ilustraci s názvem 362-z-a.gif. Konkrétní inventární číslo není doloženo."
+    },
+    {
+      "key": "db-post_mr-a-m-np-a",
+      "designation": "Post mr-a",
+      "operator": "DB",
+      "type": "wagon",
+      "classType": "luggage",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/db-post_mr-a-m-np-a.gif",
+      "width": 264,
+      "height": 42,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/DB/Post_mr-a-m-np-a.gif",
+      "notes": "Poštovní vůz, varianta np. Číslo 111 označuje poštovní kurz, nikoli číslo osobního vozu."
+    },
+    {
+      "key": "db-bm235-m-a",
+      "designation": "Bm",
+      "operator": "DB",
+      "type": "wagon",
+      "classType": "2",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/db-bm235-m-a.gif",
+      "width": 264,
+      "height": 41,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/DB/Bm235-m-a.gif",
+      "notes": "72 míst, oddílové uspořádání. Zdroj řazení uvádí Bm; ilustrace má název Bm235-m-a.gif, přesný podtyp modelu nebyl ověřen."
+    },
+    {
+      "key": "csd-b-77-a",
+      "designation": "B",
+      "operator": "ČSD",
+      "type": "wagon",
+      "classType": "2",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/csd-b-77-a.gif",
+      "width": 245,
+      "height": 42,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/CSD/B-77-a.gif",
+      "notes": "80 míst, oddílové uspořádání. Historické provedení ČSD; bez doplňování pozdějšího číselného indexu ČD."
+    },
+    {
+      "key": "sncf-b10-a",
+      "designation": "B10",
+      "operator": "SNCF",
+      "type": "wagon",
+      "classType": "2",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/sncf-b10-a.gif",
+      "width": 245,
+      "height": 41,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/SNCF/B10-a.gif",
+      "notes": "80 míst, oddílové uspořádání; v řazení označen jako B¹⁰ (C160)."
+    },
+    {
+      "key": "sncf-bc9x-a",
+      "designation": "Bc9x",
+      "operator": "SNCF",
+      "type": "wagon",
+      "classType": "couchette",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/sncf-bc9x-a.gif",
+      "width": 245,
+      "height": 42,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/SNCF/Bc9x-a.gif",
+      "notes": "54 lehátek, 2. třída; v řazení Bc⁹x. Servis CIWLT."
+    },
+    {
+      "key": "csd-wlab-78-a",
+      "designation": "WLAB",
+      "operator": "ČSD",
+      "type": "wagon",
+      "classType": "sleeping",
+      "catalogId": 1482,
+      "catalogImageId": 5029,
+      "imagePath": "/img/catalog/wlab-78-a.gif",
+      "width": 245,
+      "height": 43,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/CSD/WLAB-78-a.gif",
+      "notes": "10–30 lůžek, 1. a 2. třída. Servis JLV. Katalogový odkaz odpovídá vyobrazení WLAB-78; konkrétní výrobní série modelu nebyla ověřena."
+    },
+    {
+      "key": "csd-wr-69-a",
+      "designation": "WR",
+      "operator": "ČSD",
+      "type": "wagon",
+      "classType": "restaurant",
+      "catalogId": 1481,
+      "catalogImageId": 5128,
+      "imagePath": "/img/catalog/wr-69-a.gif",
+      "width": 245,
+      "height": 43,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/CSD/WR-69-a.gif",
+      "notes": "Restaurační vůz WR 88-80, 36 míst; servis JLV. Katalogový odkaz odpovídá vyobrazení WR-69; konkrétní výrobní série modelu nebyla ověřena."
+    },
+    {
+      "key": "db-abm225-m-a",
+      "designation": "ABm",
+      "operator": "DB",
+      "type": "wagon",
+      "classType": "12",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/db-abm225-m-a.gif",
+      "width": 264,
+      "height": 41,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/DB/ABm225-m-a.gif",
+      "notes": "30 míst 1. třídy + 36 míst 2. třídy, oddílové uspořádání. Ilustrace ABm225; přesný podtyp modelu nebyl ověřen."
+    },
+    {
+      "key": "db-bdms273-m-a",
+      "designation": "BDms",
+      "operator": "DB",
+      "type": "wagon",
+      "classType": "2",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/db-bdms273-m-a.gif",
+      "width": 264,
+      "height": 41,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/DB/BDms273-m-a.gif",
+      "notes": "36 míst 2. třídy a zavazadlový oddíl. Ilustrace BDms273; přesný podtyp modelu nebyl ověřen."
+    },
+    {
+      "key": "csd-a-72-a",
+      "designation": "A",
+      "operator": "ČSD",
+      "type": "wagon",
+      "classType": "1",
+      "catalogId": null,
+      "catalogImageId": null,
+      "imagePath": "/img/catalog/csd-a-72-a.gif",
+      "width": 245,
+      "height": 42,
+      "sourceUrl": "https://www.vagonweb.cz/popisy/img/CSD/A-72-a.gif",
+      "notes": "54 míst 1. třídy, oddílové uspořádání. Historické provedení ČSD; bez doplňování pozdějšího číselného indexu ČD."
+    }
+  ],
+  "formation": [
+    {
+      "position": 1,
+      "key": "csd-362-z-a",
+      "number": null,
+      "notes": "Praha – Cheb; vlaková lokomotiva."
+    },
+    {
+      "position": 2,
+      "key": "db-post_mr-a-m-np-a",
+      "number": null,
+      "notes": "Praha – Nürnberg; úterý až sobota. Poštovní kurz 111."
+    },
+    {
+      "position": 3,
+      "key": "db-bm235-m-a",
+      "number": "251",
+      "notes": "Praha – Nürnberg; pouze letní období."
+    },
+    {
+      "position": 4,
+      "key": "db-bm235-m-a",
+      "number": "252",
+      "notes": "Praha – Nürnberg."
+    },
+    {
+      "position": 5,
+      "key": "csd-b-77-a",
+      "number": "92",
+      "notes": "Praha – Frankfurt (– Paris)."
+    },
+    {
+      "position": 6,
+      "key": "sncf-b10-a",
+      "number": "93",
+      "notes": "Praha – Frankfurt (– Paris); pouze letní období."
+    },
+    {
+      "position": 7,
+      "key": "sncf-bc9x-a",
+      "number": "94",
+      "notes": "Praha – Frankfurt (– Paris); servis CIWLT."
+    },
+    {
+      "position": 8,
+      "key": "csd-wlab-78-a",
+      "number": "95",
+      "notes": "Praha – Frankfurt (– Paris); pouze 4. VII. – 20. VIII.; servis JLV."
+    },
+    {
+      "position": 9,
+      "key": "csd-wr-69-a",
+      "number": null,
+      "notes": "Servis JLV."
+    },
+    {
+      "position": 10,
+      "key": "db-bm235-m-a",
+      "number": "262",
+      "notes": "Oddíl č. 11 pro celní a pasové orgány."
+    },
+    {
+      "position": 11,
+      "key": "db-abm225-m-a",
+      "number": "263",
+      "notes": ""
+    },
+    {
+      "position": 12,
+      "key": "db-bdms273-m-a",
+      "number": "264",
+      "notes": ""
+    },
+    {
+      "position": 13,
+      "key": "csd-a-72-a",
+      "number": null,
+      "notes": "Praha – Cheb."
+    },
+    {
+      "position": 14,
+      "key": "csd-b-77-a",
+      "number": null,
+      "notes": "Praha – Cheb."
+    },
+    {
+      "position": 15,
+      "key": "csd-b-77-a",
+      "number": null,
+      "notes": "Praha – Cheb."
+    },
+    {
+      "position": 16,
+      "key": "csd-b-77-a",
+      "number": null,
+      "notes": "Praha – Cheb; pouze pátek."
+    },
+    {
+      "position": 17,
+      "key": "csd-362-z-a",
+      "number": null,
+      "notes": "Praha – Plzeň; lokomotiva na konci soupravy, pracovní dny a sobota."
+    }
+  ]
+}

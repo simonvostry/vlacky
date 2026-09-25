@@ -99,6 +99,14 @@ Run `node scripts/check-train-image-edges.mjs` after image changes: it checks ex
 4× dimensions, original vertical bounds and tight side spacing. AI artwork is
 illustrative and may alter fine markings; never use it as specification evidence.
 
+The Ex 250 historical set uses `scripts/prepare-ex250-images.mjs` with the same
+export contract. Its original references, built-in imagegen prompts, PNG masters
+and review board live in ignored `output/train-250-1992/`; final WebP derivatives
+are in `public/img/enhanced/`. Catalog originals use operator-prefixed filenames
+to avoid collisions between similarly named ČD and ČSD liveries. Byte-identical
+existing WR/WLAB originals are reused. Vehicle forms and badges support mixed
+first/second class, sleeping, couchette and baggage/postal vehicles.
+
 For a paint variation belonging to one physical model, create a unique native asset
 under `public/img/owned/`, add its derivative/mapping and change only that vehicle's
 image path. Preserve identity, DCC, profiles and shared catalog assets. Publish assets

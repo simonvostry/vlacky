@@ -109,6 +109,12 @@ export default async function CatalogPage({
                   {e.classType === "sleeping" && (
                     <span data-vehicle-label="class" className="rounded bg-indigo-600 px-1 py-0 text-[9px] font-bold text-white">L</span>
                   )}
+                  {e.classType === "couchette" && (
+                    <span data-vehicle-label="class" className="rounded bg-indigo-600 px-1 py-0 text-[9px] font-bold text-white">Le</span>
+                  )}
+                  {e.classType === "luggage" && (
+                    <span data-vehicle-label="class" className="rounded bg-muted px-1 py-0 text-[9px] font-bold text-secondary">Z</span>
+                  )}
                   {showColors && images.length > 1 && (
                     <span className="text-[9px] text-secondary">
                       {images.length}×

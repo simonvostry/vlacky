@@ -66,6 +66,14 @@ maintenance commands, not setup or verification steps for an existing collection
 Some rebuild data; do not rerun them casually. The profile maintenance importer
 refuses to replace an existing differing profile; see [integration](itrain-integration.md).
 
+`node scripts/import-ex250-1992.mjs` previews the source-backed Ex 250 import;
+`--apply` adds its catalog entries, owned models and formation in one transaction.
+It reuses exact catalog/livery matches, refuses a conflicting existing train, and
+does nothing on a verified repeat. Set `TRAIN_IMPORT_URL=file:/absolute/test.db`
+for a disposable database. Back up the intended database and deploy the original
+and enhanced image assets before applying to production. The manifest is
+`src/db/data/ex250-1992.json`; it includes seasonal and route restrictions.
+
 ## Hosting and deployment
 
 - Canonical app URL: https://vlacky.vostry.org; original alias: https://vlacky.vercel.app.
