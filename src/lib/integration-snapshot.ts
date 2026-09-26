@@ -21,7 +21,9 @@ export async function collectionSnapshot(includeTemplates = false) {
     type: String(v.type), wagonKind: v.type === "wagon" ? string(v.wagon_kind) ?? "passenger" : null, designation: String(v.designation), operator: string(v.operator), classType: string(v.class_type),
     modelManufacturer: string(v.manufacturer), catalogNumber: string(v.catalog_number), notes: string(v.notes),
     dccAddress: number(v.dcc_address),
-    referenceOnly: { speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
+    referenceOnly: { wagonVariantId: number(v.wagon_variant_id), runningNumber: string(v.running_number),
+      magneticCouplers: v.magnetic_couplers == null ? null : Boolean(v.magnetic_couplers),
+      hasLights: v.has_lights == null ? null : Boolean(v.has_lights), speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
     image: await imageManifest(Number(v.id), string(v.image_path)),
     decoders: decoders.filter(d => d.vehicle_id === v.id).map(d => ({
       sourceId: `vlacky:decoder:${d.id}`, id: String(d.id), name: String(d.name), manufacturer: String(d.manufacturer), model: String(d.model),
@@ -46,6 +48,6 @@ export async function collectionSnapshot(includeTemplates = false) {
       composition: rows.map(c => ({ sourceId: `vlacky:assignment:${c.id}`, position: Number(c.position), vehicleSourceId: `vlacky:vehicle:${c.vehicle_id}`, notes: string(c.notes), orientation: null })),
     }];
   });
-  const data = { schemaVersion: "1.2", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
+  const data = { schemaVersion: "1.3", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
   return { ...data, revision: createHash("sha256").update(JSON.stringify(data)).digest("hex"), generatedAt: new Date().toISOString() };
 }

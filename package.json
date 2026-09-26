@@ -22,7 +22,9 @@
     "test:theme": "tsx --test tests/theme.test.ts",
     "test:train-display": "tsx --test tests/train-display.test.ts",
     "db:migrate-freight": "node scripts/migrate-freight.mjs",
-    "test:freight": "tsx --test tests/freight-http.test.ts"
+    "test:freight": "tsx --test tests/freight-http.test.ts",
+    "db:migrate-wagon-variants": "node scripts/migrate-wagon-variants.mjs",
+    "test:wagon-variants": "tsx --test tests/wagon-variants-http.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

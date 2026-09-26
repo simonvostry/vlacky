@@ -53,6 +53,7 @@ migration logic. These scripts load `.env.local`, so inspect the target before r
 | --- | --- |
 | `npm run db:migrate-decoders` | `DECODER_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-integration` | `INTEGRATION_MIGRATION_URL=file:/absolute/path.db` |
+| `npm run db:migrate-wagon-variants` | `WAGON_VARIANTS_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-freight` | `FREIGHT_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-speed-profiles` | `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db` |
 
@@ -114,3 +115,26 @@ After building, `npm run test:freight` exercises migration preservation and repe
 execution, owned freight creation, filtered collections, shared locomotive assembly,
 legacy edits, authentication-compatible pages and snapshot classification. No sample
 freight vehicles are inserted into the real collection.
+
+## Wagon variant migration
+
+Back up the intended database, then run `npm run db:migrate-wagon-variants` before
+deploying dependent code. The migration adds a grouping table, nullable variant FK,
+running number and nullable equipment flags. It groups only previously ungrouped
+wagons with an exact match of image, dimensions, designation, operator, class/kind,
+manufacturer/SKU, catalog/livery links and template status. Unpictured wagons remain
+separate. Existing individual configuration and notes do not split an otherwise
+identical variant. A repeat preserves existing grouping and intentional splits.
+No vehicle or membership rows are deleted or renumbered.
+
+After building, run `npm run test:wagon-variants`, `npm run test:freight`, decoder,
+integration, speed-profile and authentication tests. The variant HTTP test uses a
+disposable database to verify migration preservation/idempotence, gallery grouping,
+individual and shared edits, guarded reduction, blank configuration for additional
+copies, explicit selection, concurrent allocation, cross-train isolation and export.
+
+The 2026-09-26 implementation was checked in an isolated browser against a disposable
+copy of the collection: light/dark at 1440 and 390 px, gallery/detail/edit/train
+screens, quantity increases, individual equipment edits and explicit piece selection.
+Long compositions and the membership table scroll locally on narrow screens.
+Private review captures and the database backup stay outside Git.

@@ -1,5 +1,4 @@
-import { isTrafficKind } from "@/lib/vehicle-kind";
-import { parseDccAddress } from "@/lib/decoder-config";
+import { saveVehicle, removeVehicle, CollectionError } from "@/lib/wagon-storage";
 import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
@@ -29,35 +28,14 @@ export async function PUT(
   if (denied) return denied;
   const { id } = await params;
   const body = await request.json();
-  if (body.wagonKind !== undefined && !isTrafficKind(body.wagonKind)) return NextResponse.json({ error: "Neplatný druh vozu." }, { status: 400 });
-  if (body.type !== undefined && !["loco", "wagon"].includes(body.type)) return NextResponse.json({ error: "Neplatný typ vozidla." }, { status: 400 });
-  if (body.isTemplate !== undefined && typeof body.isTemplate !== "boolean") return NextResponse.json({ error: "isTemplate must be boolean" }, { status: 400 });
-  try { parseDccAddress(body.dccAddress ?? null); }
-  catch { return NextResponse.json({ error: "DCC adresa musí být celé číslo 1–10239." }, { status: 400 }); }
-  const vehicle = await db
-    .update(schema.vehicles)
-    .set({
-      designation: body.designation,
-      operator: body.operator || null,
-      type: body.type,
-      wagonKind: body.wagonKind,
-      classType: body.classType || null,
-      imagePath: body.imagePath || null,
-      imageWidth: body.imageWidth || null,
-      imageHeight: body.imageHeight || null,
-      manufacturer: body.manufacturer || null,
-      catalogNumber: body.catalogNumber || null,
-      catalogId: body.catalogId === undefined ? undefined : body.catalogId || null,
-      catalogImageId: body.catalogImageId === undefined ? undefined : body.catalogImageId || null,
-      dccAddress: body.dccAddress || null,
-      isTemplate: body.isTemplate,
-      notes: body.notes || null,
-    })
-    .where(eq(schema.vehicles.id, parseInt(id, 10)))
-    .returning()
-    .get();
-  if (!vehicle) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(vehicle);
+  try {
+    const savedId = await saveVehicle(body, parseInt(id, 10));
+    const vehicle = await db.select().from(schema.vehicles).where(eq(schema.vehicles.id, savedId)).get();
+    return NextResponse.json(vehicle, { status: 200 });
+  } catch (error) {
+    if (error instanceof CollectionError) return NextResponse.json({ error: error.message }, { status: error.status });
+    throw error;
+  }
 }
 
 export async function DELETE(
@@ -67,8 +45,9 @@ export async function DELETE(
   const denied = await authorizeApiRequest();
   if (denied) return denied;
   const { id } = await params;
-  await db.delete(schema.vehicles)
-    .where(eq(schema.vehicles.id, parseInt(id, 10)))
-    .run();
-  return NextResponse.json({ ok: true });
+  try { await removeVehicle(parseInt(id, 10)); return NextResponse.json({ ok: true }); }
+  catch (error) {
+    if (error instanceof CollectionError) return NextResponse.json({ error: error.message }, { status: error.status });
+    throw error;
+  }
 }

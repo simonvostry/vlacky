@@ -43,6 +43,7 @@ test("hosted MCP and image API export read-only collection with preservation con
   sqlite.prepare('UPDATE vehicle_decoders SET cvs=? WHERE vehicle_id=1').run(JSON.stringify([{number:3,value:10,cv31:null,cv32:null,note:'Reference only'}]));
   execFileSync(process.execPath, ['scripts/migrate-speed-profiles.mjs'], { env: { ...process.env, SPEED_PROFILE_MIGRATION_URL: url } });
   sqlite.prepare('INSERT INTO vehicle_speed_profiles (vehicle_id, profile, updated_at) VALUES (?, ?, ?)').run(1, JSON.stringify(fixture), 'fixture-token');
+  execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
   const origin = 'http://localhost:3109';
   const token = randomBytes(32).toString('base64url');
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', '3109'], {env:{...process.env, NODE_ENV:'production', AUTH_SECRET:randomBytes(48).toString('base64url'), AUTH_ALLOWED_EMAIL:'mcp-test@example.com', AUTH_GOOGLE_ID:'test', AUTH_GOOGLE_SECRET:'test', AUTH_URL:origin, AUTH_TRUST_HOST:'true', VLACKY_MCP_TOKEN:token, VLACKY_PUBLIC_URL:origin, TURSO_DATABASE_URL:url, TURSO_AUTH_TOKEN:'test-only'}, stdio:'pipe'});
@@ -71,7 +72,7 @@ test("hosted MCP and image API export read-only collection with preservation con
     assert.equal((await request('/api/integrations/v1/snapshot',{method:'POST'})).status,405);
     const before = JSON.stringify(sqlite.prepare('SELECT * FROM vehicles ORDER BY id').all());
     const snapshot = await (await request('/api/integrations/v1/snapshot')).json();
-    assert.equal(snapshot.schemaVersion,'1.2');
+    assert.equal(snapshot.schemaVersion,'1.3');
     assert.deepEqual(snapshot.vehicles[0].referenceOnly.speedProfile,fixture);
     assert.ok(!snapshot.syncContract.allowedSourceFields.includes('referenceOnly.speedProfile'));
     assert.ok(snapshot.syncContract.speedProfiles.includes('never an automatically applied'));

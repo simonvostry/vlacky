@@ -1,4 +1,8 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+
+export const wagonVariants = sqliteTable("wagon_variants", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+});
 
 export const vehicles = sqliteTable("vehicles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -14,13 +18,17 @@ export const vehicles = sqliteTable("vehicles", {
   catalogNumber: text("catalog_number"), // "73219"
   catalogId: integer("catalog_id").references(() => vehicleCatalog.id),
   catalogImageId: integer("catalog_image_id").references(() => catalogImages.id),
+  wagonVariantId: integer("wagon_variant_id").references(() => wagonVariants.id),
+  magneticCouplers: integer("magnetic_couplers", { mode: "boolean" }),
+  hasLights: integer("has_lights", { mode: "boolean" }),
+  runningNumber: text("running_number"),
   dccAddress: integer("dcc_address"),
   isTemplate: integer("is_template", { mode: "boolean" }).notNull().default(false),
   notes: text("notes"),
   createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => [index("vehicles_wagon_variant_idx").on(table.wagonVariantId)]);
 
 export const vehicleSpeedProfiles = sqliteTable("vehicle_speed_profiles", {
   vehicleId: integer("vehicle_id").primaryKey().references(() => vehicles.id, { onDelete: "cascade" }),

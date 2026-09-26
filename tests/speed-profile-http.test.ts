@@ -29,6 +29,7 @@ test("speed profile CRUD is authenticated, latest-only, lossless and concurrency
   assert.equal((sqlite.prepare('SELECT decoder_id FROM decoder_functions').get() as {decoder_id: string}).decoder_id, 'legacy-1');
   execFileSync(process.execPath, ['scripts/migrate-speed-profiles.mjs'], { env: { ...process.env, SPEED_PROFILE_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-speed-profiles.mjs'], { env: { ...process.env, SPEED_PROFILE_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
   const origin = 'http://localhost:3110';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'decoder-test@example.com';

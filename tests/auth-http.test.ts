@@ -58,6 +58,7 @@ test("production server protects pages, images, API methods and session integrit
       assert.equal(location.searchParams.get("callbackUrl"), path);
     }
     for (const [path, methods] of [
+      ["/api/varianty-vozu/1", ["PUT"]],
       ["/api/vozidla/1/dekodery", ["GET", "PUT"]],
       ["/api/vozidla", ["GET", "POST"]], ["/api/vozidla/1", ["GET", "PUT", "DELETE"]],
       ["/api/vlaky", ["GET", "POST"]], ["/api/vlaky/1", ["GET", "PUT", "DELETE"]],

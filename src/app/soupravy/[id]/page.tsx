@@ -55,15 +55,9 @@ export default async function TrainDetailPage({
     .orderBy(schema.trainVehicles.position)
     .all();
 
-  // All vehicles for the manager dropdown
+  // Physical IDs remain the train membership identity; the picker groups variants.
   const allVehicles = await db
-    .select({
-      id: schema.vehicles.id,
-      designation: schema.vehicles.designation,
-      operator: schema.vehicles.operator,
-      type: schema.vehicles.type,
-        wagonKind: schema.vehicles.wagonKind,
-    })
+    .select()
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
     .all();
@@ -123,7 +117,7 @@ export default async function TrainDetailPage({
 
       <div className="rounded-lg border border-divider bg-surface p-6">
         <h2 className="mb-4 text-lg font-semibold">Řazení {train.kind === "freight" ? "nákladní" : "osobní"} soupravy</h2>
-        <TrainComposition vehicles={trainVehicles} />
+        <div className="overflow-x-auto"><TrainComposition vehicles={trainVehicles} /></div>
       </div>
 
       {/* Vehicle manager */}

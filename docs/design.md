@@ -183,3 +183,18 @@ also quote 217 mm and an inconsistent 121 mm. Preserve this uncertainty in its
 vehicle notes until the physical model is measured. Its loads are road semitrailers,
 including their wheels, rather than containers. Transparent rounding rows may be
 split between top/bottom to satisfy the unchanged alpha-bound checks without stretching.
+
+### Wagon quantities
+
+Wagon collection tiles show one image per stable variant and an owned `N ks` badge.
+Display filters affect identity labels, never the quantity. The detail route remains
+the physical vehicle URL for compatibility; its shared image is followed by “Moje
+kusy” and the selected piece's notes, DCC and appearances. Individual piece rows
+show stable IDs, optional running numbers, and three-state equipment values
+(Ano / Ne / Nezjištěno), with accessible pencil actions. Selection uses `bg-selected`.
+
+The edit form explicitly offers a single-piece or whole-variant scope for shared
+model/artwork fields. Its physical settings always affect only the selected piece.
+Quantity reductions require selecting the pieces and confirming configuration loss;
+assigned pieces cannot be deleted. The train picker shows grouped availability,
+a quantity control, selected artwork and an optional specific-piece checklist.

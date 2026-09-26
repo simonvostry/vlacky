@@ -1,5 +1,7 @@
 "use client";
+import { groupVehicles, equipmentLabel } from "@/lib/wagon-variants";
 
+import VehicleImage from "@/components/vehicle-image";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
 import { ArrowUpIcon, ArrowDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
@@ -12,6 +14,16 @@ type Vehicle = {
   operator: string | null;
   type: string;
   wagonKind: string;
+  wagonVariantId: number | null;
+  magneticCouplers: boolean | null;
+  hasLights: boolean | null;
+  runningNumber: string | null;
+  dccAddress: number | null;
+  imagePath: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
+  manufacturer: string | null;
+  catalogNumber: string | null;
 };
 
 type TrainVehicleRow = {
@@ -45,41 +57,38 @@ export function TrainVehicleManager({
   const [showAll, setShowAll] = useState(false);
   const available = allVehicles.filter(v => showAll || v.type === "loco" || v.wagonKind === kind);
   const [busy, setBusy] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [choosePieces, setChoosePieces] = useState(false);
+  const [chosenIds, setChosenIds] = useState<number[]>([]);
+  const [error, setError] = useState('');
+  const groups = groupVehicles(available);
+  const selected = groups.find(g=>g.key===addVehicleId);
+  const usedIds = new Set(trainVehicles.map(v=>v.vehicleId));
+  const freePieces = selected?.pieces.filter(p=>!usedIds.has(p.id)) ?? [];
+  async function change(method: string, body: object) {
+    setBusy(true); setError('');
+    try {
+      const res = await fetch(`/api/vlaky/${trainId}/vozidla`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if (!res.ok) {setError((await res.json()).error || 'Změna se nezdařila.');return false;}
+      router.refresh(); return true;
+    } catch {setError('Spojení se nezdařilo. Zkuste to znovu.');return false;}
+    finally {setBusy(false);}
+  }
 
   async function addVehicle() {
     if (!addVehicleId) return;
-    setBusy(true);
-    await fetch(`/api/vlaky/${trainId}/vozidla`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vehicleId: parseInt(addVehicleId) }),
-    });
-    setAddVehicleId("");
-    setBusy(false);
-    router.refresh();
+    if (!selected) return;
+    const target = selected.vehicle.wagonVariantId && selected.vehicle.type === 'wagon'
+      ? {variantId:selected.vehicle.wagonVariantId,quantity, ...(choosePieces ? {vehicleIds:chosenIds} : {})}
+      : {vehicleId:selected.vehicle.id};
+    if (await change('POST',target)) {setAddVehicleId('');setQuantity(1);setChosenIds([]);}
   }
 
   async function moveVehicle(trainVehicleId: number, direction: "up" | "down") {
-    setBusy(true);
-    await fetch(`/api/vlaky/${trainId}/vozidla`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "move", trainVehicleId, direction }),
-    });
-    setBusy(false);
-    router.refresh();
+    await change('PUT',{action:'move',trainVehicleId,direction});
   }
-
   async function removeVehicle(trainVehicleId: number) {
-    if (!confirm("Odebrat vozidlo ze soupravy?")) return;
-    setBusy(true);
-    await fetch(`/api/vlaky/${trainId}/vozidla`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ trainVehicleId }),
-    });
-    setBusy(false);
-    router.refresh();
+    if (confirm('Odebrat vozidlo ze soupravy?')) await change('DELETE',{trainVehicleId});
   }
 
   function classLabel(classType: string | null) {
@@ -97,7 +106,7 @@ export function TrainVehicleManager({
       </h2>
 
       {trainVehicles.length > 0 && (
-        <div className="overflow-x-auto"><table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-divider text-left text-xs uppercase text-secondary">
               <th className="px-4 py-2 w-10">#</th>
@@ -126,7 +135,7 @@ export function TrainVehicleManager({
                     {tv.designation}
                   </Link>
                   <span className="ml-1 text-[10px] uppercase text-secondary">
-                    {tv.vehicleType === "loco" ? "lok" : "vůz"}
+                    {tv.vehicleType === "loco" ? "lok" : `kus #${tv.vehicleId}`}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-secondary">
@@ -183,26 +192,37 @@ export function TrainVehicleManager({
       <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
         <select
           value={addVehicleId}
-          onChange={(e) => setAddVehicleId(e.target.value)}
+          onChange={(e) => {setAddVehicleId(e.target.value);setQuantity(1);setChosenIds([]);setChoosePieces(false);}}
           aria-label="Vozidlo k přidání do soupravy"
           className="min-w-0 flex-1 rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
         >
           <option value="">Vyberte vozidlo...</option>
-          {available.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.operator ? `${v.operator} ` : ""}
-              {v.designation} ({v.type === "loco" ? "lok" : v.wagonKind === "freight" ? "nákladní vůz" : "osobní vůz"})
+          {groups.map(({key,vehicle:v,pieces}) => (
+            <option key={key} value={key} disabled={pieces.every(p=>usedIds.has(p.id))}>
+              {v.operator ? `${v.operator} ` : ""}{v.designation} ({v.type === "loco" ? "lok" : v.wagonKind === "freight" ? "nákladní vůz" : "osobní vůz"}) · {pieces.filter(p=>!usedIds.has(p.id)).length}/{pieces.length} volných{v.type === 'wagon' ? ` · ${[v.manufacturer,v.catalogNumber].filter(Boolean).join(' ')} · #${v.wagonVariantId ?? v.id}` : ''}
             </option>
           ))}
         </select>
+        {selected?.vehicle.type === 'wagon' && <label className="flex items-center gap-2 text-sm">Počet
+          <input type="number" min={1} max={freePieces.length} step={1} value={quantity} onChange={e=>setQuantity(Number(e.target.value))} className="w-20 rounded-md border border-control px-2 py-2" />
+        </label>}
         <button
           onClick={addVehicle}
-          disabled={!addVehicleId || busy}
+          disabled={!addVehicleId || busy || !Number.isInteger(quantity) || quantity < 1 || quantity > freePieces.length || (choosePieces && chosenIds.length !== quantity)}
           className="ui-button ui-button-primary"
         >
           Přidat
         </button>
       </div>
+      {selected?.vehicle.imagePath && <div className="overflow-x-auto px-4 pb-3"><VehicleImage unoptimized src={selected.vehicle.imagePath} alt={selected.vehicle.designation} width={selected.vehicle.imageWidth ?? 264} height={selected.vehicle.imageHeight ?? 41} style={{width:(selected.vehicle.imageWidth ?? 264)*.75,height:(selected.vehicle.imageHeight ?? 41)*.75}} /></div>}
+      {selected?.vehicle.type === 'wagon' && <div className="px-4 pb-3 text-sm">
+        <label className="flex items-center gap-2"><input type="checkbox" checked={choosePieces} onChange={e=>{setChoosePieces(e.target.checked);setChosenIds([]);}} />Vybrat konkrétní kusy</label>
+        {choosePieces && <ul className="mt-2 space-y-2">{freePieces.map(p=><li key={p.id}><label className="flex items-start gap-2">
+          <input type="checkbox" className="mt-1" checked={chosenIds.includes(p.id)} onChange={e=>setChosenIds(ids=>e.target.checked ? [...ids,p.id] : ids.filter(id=>id!==p.id))} />
+          <span>Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}<span className="block text-xs text-secondary">Magnetická spřáhla: {equipmentLabel(p.magneticCouplers)} · Osvětlení: {equipmentLabel(p.hasLights)} · DCC: {p.dccAddress ?? '—'}</span></span>
+        </label></li>)}</ul>}
+      </div>}
+      {error && <p role="alert" className="px-4 pb-3 text-sm text-danger">{error}</p>}
     </div>
   );
 }

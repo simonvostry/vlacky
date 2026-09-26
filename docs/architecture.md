@@ -32,11 +32,12 @@ and [integration](itrain-integration.md) for the separate boundaries.
 
 ## Data model
 
-Eight active tables are defined in [the schema](../src/db/schema.ts).
+Nine active tables are defined in [the schema](../src/db/schema.ts).
 
 | Table | Purpose and relationships |
 | --- | --- |
-| `vehicles` | Owned physical models; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
+| `wagon_variants` | Stable identity for a group of visually identical wagon models |
+| `vehicles` | Owned physical pieces; nullable variant link, individual running number, magnetic couplers and lighting; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
 | `vehicle_catalog` | Reference vehicle types and prototype specifications |
 | `catalog_images` | Ordered livery variants belonging to a catalog type |
 | `trains` | Named compositions with category, number, route, era and notes |
@@ -85,6 +86,7 @@ catalog entries labeled ČSD/ČD.
 | --- | --- |
 | `/api/vozidla`, `/api/vlaky` | GET/POST collection list/create |
 | `/api/vozidla/[id]`, `/api/vlaky/[id]` | GET/PUT/DELETE item CRUD |
+| `/api/varianty-vozu/[id]` | PUT quantity with expected count and explicit IDs when reducing |
 | `/api/vlaky/[id]/vozidla` | POST/PUT/DELETE composition membership/order |
 | `/api/vozidla/[id]/dekodery` | GET/PUT validated atomic decoder configuration |
 | `/api/vozidla/[id]/rychlostni-profil` | GET/PUT current locomotive profile with `expectedUpdatedAt` |
@@ -127,3 +129,41 @@ wagons by default; an explicit checkbox also offers the other wagon group for mi
 formations. Changing classification never removes existing composition members.
 Owned models, catalog references, decoders, profiles and integration identities retain
 their existing IDs. Omitted classification in older API edits preserves stored values.
+
+## Wagon variants and physical copies
+
+Passenger and freight galleries show one tile per `wagon_variant_id`, with an owned
+piece count. Locomotives stay individual. The grouping ID is independent of an image
+URL; different liveries have different groups. Existing physical `vehicles.id`,
+catalog links, templates, memberships, decoders and speed profiles are retained.
+An ungrouped legacy record is displayed individually until migrated.
+
+`wagon_variants` provides stable group identity. Shared model/artwork fields remain
+on each vehicle as a compatibility projection for existing queries and integrations:
+designation, operator, type/kind, class, image path/dimensions, model manufacturer,
+SKU and catalog/livery links. `wagon-storage.ts` is the write boundary: a variant
+edit updates these fields on every member in one transaction. A piece edit that
+changes shared fields splits that piece when it has siblings; changing artwork for
+a single-piece variant keeps its group ID. Physical fields are never propagated:
+DCC, notes, template status, running number, nullable magnetic couplers and lighting.
+Use this service/API for maintenance edits rather than changing shared SQL columns
+in place. Existing direct-import scripts predate grouping: run the additive variant
+migration after such imports, or migrate the importer to this write boundary.
+
+Creating a wagon reuses an exact pictured model/catalog match, or creates a new
+variant. Quantity creates separate physical rows; only the first new row receives
+explicit individual configuration. Additional copies have unknown equipment and
+blank DCC, running number and notes, and no decoder/profile cloning. The quantity
+editor also uses actual rows, requires an expected count and explicit IDs for a
+reduction, and refuses to delete any piece still used in a composition. Explicit
+piece deletion has the same membership guard; deleting an unassigned piece removes
+its attached configuration through foreign keys. No automatic destructive merge
+or decrement occurs.
+
+The train picker groups variants, shows free/total counts for the current train,
+and accepts a quantity or selected piece IDs. Membership always points to physical
+IDs. The same physical piece cannot be added twice to one train, but can occur in
+alternative saved compositions. Allocation, deletion and reorder operations use
+one interactive write transaction, including their validation reads. The raw helper
+uses libSQL for both Turso and local SQLite to avoid asynchronous callbacks inside
+better-sqlite3 transactions. API edits to a membership must match its parent train.

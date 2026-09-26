@@ -95,3 +95,13 @@ and `list_vehicles` optionally filters `wagonKind`. These are collection metadat
 not inferred iTrain enums: a future adapter must explicitly support a target mapping
 before writing them. All calibration, profile and operational-state preservation
 requirements still apply.
+
+## Physical wagon copies
+
+Snapshot schema `1.3` retains one exported vehicle and stable source ID per physical
+piece. Gallery grouping never collapses train memberships or export records. The
+vehicle's `referenceOnly` object additionally contains `wagonVariantId`,
+`runningNumber`, `magneticCouplers` and `hasLights` (unknown equipment is null).
+These are backup/reference metadata, outside the synchronization field allowlist;
+a future adapter must explicitly support them. DCC and decoder definitions remain
+per physical piece. Group/image changes do not remap any iTrain identity.

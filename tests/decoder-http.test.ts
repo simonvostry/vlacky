@@ -40,6 +40,7 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
   assert.equal((sqlite.prepare('SELECT COUNT(*) AS n FROM vehicle_decoders').get() as {n: number}).n, 1);
   assert.equal((sqlite.prepare('SELECT decoder_id FROM decoder_functions').get() as {decoder_id: string}).decoder_id, 'legacy-1');
   execFileSync(process.execPath, ['scripts/migrate-speed-profiles.mjs'], { env: { ...process.env, SPEED_PROFILE_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
   const origin = 'http://localhost:3108';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'decoder-test@example.com';
@@ -82,6 +83,9 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     assert.equal((await request('/api/vlaky/1/vozidla', { method: 'PUT', headers, body: JSON.stringify({ action: 'update', trainVehicleId: 1, lightingDecoderAddress: 8 }) })).status, 400);
     assert.equal((await save(1, { dccAddress: null, decoders: [] })).status, 200);
     assert.equal((sqlite.prepare('SELECT COUNT(*) AS n FROM decoder_functions WHERE vehicle_id = 1').get() as {n: number}).n, 0);
+    assert.equal((await request('/api/vozidla/2', { method: 'DELETE', headers })).status, 409);
+    const assignment = sqlite.prepare('SELECT id FROM train_vehicles WHERE vehicle_id=2').get() as {id:number};
+    assert.equal((await request('/api/vlaky/1/vozidla', {method:'DELETE',headers,body:JSON.stringify({trainVehicleId:assignment.id})})).status,200);
     assert.equal((await request('/api/vozidla/2', { method: 'DELETE', headers })).status, 200);
     assert.equal((sqlite.prepare('SELECT COUNT(*) AS n FROM vehicle_decoders WHERE vehicle_id = 2').get() as {n: number}).n, 0);
     assert.equal((sqlite.prepare('SELECT COUNT(*) AS n FROM decoder_functions WHERE vehicle_id = 2').get() as {n: number}).n, 0);

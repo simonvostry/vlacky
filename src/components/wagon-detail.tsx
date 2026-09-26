@@ -1,3 +1,4 @@
+import { WagonPieces } from "@/components/wagon-pieces";
 import { EditAction } from "@/components/ui-actions";
 import { VehicleDecoders } from "@/components/vehicle-decoders";
 import { vehicleSection } from "@/lib/vehicle-kind";
@@ -29,6 +30,8 @@ export default async function VehicleDetailPage({
 
   if (!vehicle || vehicle.type !== "wagon") notFound();
   if (vehicle.wagonKind !== kind) redirect(`/${vehicleSection(vehicle)}/${vehicle.id}`);
+
+  const pieces = vehicle.wagonVariantId ? await db.select().from(schema.vehicles).where(eq(schema.vehicles.wagonVariantId, vehicle.wagonVariantId)).orderBy(schema.vehicles.id).all() : [vehicle];
 
   // Trains this vehicle appears in
   const appearances = await db
@@ -88,25 +91,16 @@ export default async function VehicleDetailPage({
               </div>
             </div>
 
-            {vehicle.dccAddress && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-accent-soft px-4 py-2">
-                <span className="text-sm text-accent">DCC adresa:</span>
-                <span className="font-mono text-xl font-bold text-accent">{vehicle.dccAddress}</span>
-              </div>
-            )}
-
-            {vehicle.isTemplate && <p className="mt-3 text-xs font-medium text-warning">Ukázka / předloha · vynecháno z běžné synchronizace</p>}
-
-            {vehicle.notes && (
-              <p className="mt-4 text-sm text-secondary">{vehicle.notes}</p>
-            )}
-
             <div className="mt-4">
-              <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit vůz" />
+              <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit vzhled a údaje vozu" />
             </div>
           </div>
 
 
+          <WagonPieces key={`${vehicle.wagonVariantId}-${pieces.map(p=>p.id).join(',')}`} variantId={vehicle.wagonVariantId} pieces={pieces} selectedId={vehicle.id} section={vehicleSection(vehicle)} />
+          <h2 className="mt-6 text-lg font-semibold">Kus #{vehicle.id}{vehicle.runningNumber ? ` · ${vehicle.runningNumber}` : ''}</h2>
+          {vehicle.isTemplate && <p className="mt-2 text-sm text-warning">Předloha · vynecháno z běžné synchronizace</p>}
+          {vehicle.notes && <p className="mt-2 whitespace-pre-line text-sm text-secondary">{vehicle.notes}</p>}
           <VehicleDecoders key={vehicleId} vehicleId={vehicleId} dccAddress={vehicle.dccAddress} />
 
           {/* Train appearances */}

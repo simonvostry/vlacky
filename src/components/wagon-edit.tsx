@@ -41,6 +41,10 @@ export default async function EditVehiclePage({
       <VehicleForm
         vehicle={{
           id: vehicle.id,
+          wagonVariantId: vehicle.wagonVariantId,
+          magneticCouplers: vehicle.magneticCouplers,
+          hasLights: vehicle.hasLights,
+          runningNumber: vehicle.runningNumber || "",
           designation: vehicle.designation,
           operator: vehicle.operator || "",
           type: vehicle.type,

@@ -6,6 +6,10 @@ import { useState } from "react";
 
 type Vehicle = {
   id?: number;
+  wagonVariantId?: number | null;
+  magneticCouplers?: boolean | null;
+  hasLights?: boolean | null;
+  runningNumber?: string;
   isTemplate?: boolean;
   designation: string;
   operator: string;
@@ -43,45 +47,58 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const router = useRouter();
   const [form, setForm] = useState<Vehicle>({ ...defaults, ...vehicle });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [editScope, setEditScope] = useState("piece");
+  const [quantity, setQuantity] = useState(1);
 
   const isEdit = !!vehicle?.id;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setError("");
+    try {
 
-    const url = isEdit ? `/api/vozidla/${vehicle!.id}` : "/api/vozidla";
-    const method = isEdit ? "PUT" : "POST";
+      const url = isEdit ? `/api/vozidla/${vehicle!.id}` : "/api/vozidla";
+      const method = isEdit ? "PUT" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        dccAddress: form.dccAddress || null,
-        imageWidth: form.imageWidth || null,
-        imageHeight: form.imageHeight || null,
-        catalogId: form.catalogId || null,
-        catalogImageId: form.catalogImageId || null,
-      }),
-    });
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          editScope,
+          quantity: form.type === "wagon" ? quantity : 1,
+          dccAddress: form.dccAddress || null,
+          imageWidth: form.imageWidth || null,
+          imageHeight: form.imageHeight || null,
+          catalogId: form.catalogId || null,
+          catalogImageId: form.catalogImageId || null,
+        }),
+      });
 
-    if (res.ok) {
-      const saved = await res.json();
-      const section = vehicleSection(saved);
-      router.push(`/${section}/${saved.id}`);
-      router.refresh();
-    } else {
-      setSaving(false);
-    }
+      if (res.ok) {
+        const saved = await res.json();
+        const section = vehicleSection(saved);
+        router.push(`/${section}/${saved.id}`);
+        router.refresh();
+      } else {
+        setError((await res.json()).error || "Uložení se nezdařilo.");
+      }
+    } catch { setError("Spojení se nezdařilo. Zkuste to znovu."); }
+    finally { setSaving(false); }
   }
 
   async function handleDelete() {
     if (!isEdit || !confirm("Opravdu smazat toto vozidlo?")) return;
-    await fetch(`/api/vozidla/${vehicle!.id}`, { method: "DELETE" });
-    const section = vehicleSection(form);
-    router.push(`/${section}`);
-    router.refresh();
+    setSaving(true); setError("");
+    try {
+      const res = await fetch(`/api/vozidla/${vehicle!.id}`, { method: "DELETE" });
+      if (!res.ok) { setError((await res.json()).error || "Smazání se nezdařilo."); return; }
+      router.push(`/${vehicleSection(form)}`);
+      router.refresh();
+    } catch { setError("Spojení se nezdařilo. Zkuste to znovu."); }
+    finally { setSaving(false); }
   }
 
   function set<K extends keyof Vehicle>(key: K, value: Vehicle[K]) {
@@ -90,6 +107,18 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {form.type === 'wagon' && isEdit && <div className="rounded-lg bg-subtle p-4 text-sm">
+        <label htmlFor="edit-scope" className="mb-2 block font-medium">Rozsah úpravy vzhledu a modelu</label>
+        <select id="edit-scope" value={editScope} onChange={e => setEditScope(e.target.value)} className="w-full rounded-md border border-control px-3 py-2">
+          <option value="piece">Jen tento kus (#{vehicle?.id})</option>
+          <option value="variant">Všechny kusy této varianty</option>
+        </select>
+        <p className="mt-2 text-secondary">{editScope === 'piece' ? 'Změna vzhledu se týká jen tohoto kusu. ' : 'Obrázek a údaje modelu se změní všem kusům varianty. '}DCC, výbava, číslo a poznámky se vždy mění jen u kusu #{vehicle?.id}.</p>
+      </div>}
+      {form.type === 'wagon' && !isEdit && <label className="block text-sm font-medium">Počet kusů
+        <input type="number" min={1} max={1000} step={1} required value={quantity} onChange={e=>setQuantity(Number(e.target.value))} className="mt-1 block w-28 rounded-md border border-control px-3 py-2" />
+        <span className="mt-1 block font-normal text-secondary">DCC a výbava se při vytvoření vyplní jen prvnímu kusu; ostatní zůstanou nezjištěné.</span>
+      </label>}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Označení *</label>
@@ -230,6 +259,18 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         </div>
       </div>
 
+      {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">
+        <legend className="px-2 text-sm font-semibold">Výbava konkrétního kusu{vehicle?.id ? ` #${vehicle.id}` : ''}</legend>
+        {(['magneticCouplers','hasLights'] as const).map(key => <div key={key} className="text-sm font-medium">
+          <label htmlFor={key}>{key === 'magneticCouplers' ? 'Magnetická spřáhla' : 'Osvětlení'}</label>
+          <select id={key} value={form[key] == null ? '' : String(form[key])} onChange={e=>set(key,e.target.value === '' ? null : e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
+            <option value="">Nezjištěno</option><option value="true">Ano</option><option value="false">Ne</option>
+          </select>
+        </div>)}
+        <label className="text-sm font-medium sm:col-span-2">Číslo / označení konkrétního kusu
+          <input value={form.runningNumber ?? ''} onChange={e=>set('runningNumber',e.target.value)} className="mt-1 block w-full rounded-md border border-control px-3 py-2" />
+        </label>
+      </fieldset>}
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={form.isTemplate ?? false} onChange={e => set("isTemplate", e.target.checked)} />
         Ukázka / předloha (vynechat z běžné synchronizace)
@@ -245,6 +286,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         />
       </div>
 
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
@@ -264,6 +306,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           <button
             type="button"
             onClick={handleDelete}
+            disabled={saving}
             className="ui-button ui-button-danger ml-auto"
           >
             Smazat

@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { createClient, type InStatement } from "@libsql/client";
+import { createClient, type Transaction, type InStatement } from "@libsql/client";
 import Database from "better-sqlite3";
 import { drizzle as drizzleLibsql } from "drizzle-orm/libsql";
 import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
@@ -61,3 +61,16 @@ function createDb(): BaseSQLiteDatabase<"sync" | "async", unknown, typeof schema
 
 export const db = createDb();
 export { schema };
+
+// An interactive libSQL write transaction also works against the local SQLite file.
+// Reads and dependent writes share the same lock; no async better-sqlite3 transaction.
+const writeClient = createClient({
+  url: useTurso ? process.env.TURSO_DATABASE_URL! : `file:${path.join(process.cwd(), "data", "vlacky.db")}`,
+  authToken: useTurso && !process.env.TURSO_DATABASE_URL!.startsWith("file:") ? process.env.TURSO_AUTH_TOKEN : undefined,
+});
+export async function withWriteTransaction<T>(work: (tx: Transaction) => Promise<T>): Promise<T> {
+  const tx = await writeClient.transaction("write");
+  try { const result = await work(tx); await tx.commit(); return result; }
+  catch (error) { await tx.rollback(); throw error; }
+  finally { tx.close(); }
+}

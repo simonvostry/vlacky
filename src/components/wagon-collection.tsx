@@ -1,3 +1,4 @@
+import { groupVehicles } from "@/lib/wagon-variants";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
@@ -28,14 +29,14 @@ export async function WagonCollection({ kind }: { kind: "passenger" | "freight" 
         </p>
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
-          {allVehicles.map((v) => {
+          {groupVehicles(allVehicles).map(({ vehicle: v, pieces, key }) => {
             const scaledW = Math.round((v.imageWidth || 264) * SCALE);
             const tileWidth = scaledW + 24;
             return (
               <Link
-                key={v.id}
+                key={key}
                 href={`/${vehicleSection(v)}/${v.id}`}
-                aria-label={[v.operator, v.designation].filter(Boolean).join(" ")}
+                aria-label={`${[v.operator, v.designation].filter(Boolean).join(" ")} · ${pieces.filter(p => !p.isTemplate).length} ks`}
                 className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
@@ -64,11 +65,9 @@ export async function WagonCollection({ kind }: { kind: "passenger" | "freight" 
                     <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={v.classType} size="xs" short /></span>
                   )}
                 </div>
-                {v.dccAddress && (
-                  <div className="text-center text-[10px] text-secondary">
-                    DCC: {v.dccAddress}
-                  </div>
-                )}
+                <div className="mt-1 text-center text-xs tabular-nums text-secondary">
+                  {pieces.filter(p => !p.isTemplate).length} ks{pieces.some(p => p.isTemplate) ? ' · předloha' : ''}
+                </div>
               </Link>
             );
           })}

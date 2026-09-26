@@ -5,7 +5,7 @@ import enhancedImages from "@/lib/enhanced-vehicle-images.json";
 // Clear this mapping to restore originals; DB paths and integration downloads stay original.
 const previews: Record<string, string> = enhancedImages;
 
-export default function VehicleImage({ src, style, ...props }: ImageProps) {
-  return <Image {...props} src={typeof src === "string" ? previews[src] ?? src : src}
+export default function VehicleImage({ src, style, alt, ...props }: ImageProps) {
+  return <Image {...props} alt={alt} src={typeof src === "string" ? previews[src] ?? src : src}
     style={{ ...style, maxWidth: "none" }} />;
 }
