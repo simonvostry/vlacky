@@ -3,7 +3,7 @@ import { EditAction } from "@/components/ui-actions";
 import { VehicleDecoders } from "@/components/vehicle-decoders";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
-import Image from "@/components/vehicle-image";
+import { VehicleDetailImage } from "@/components/vehicle-detail-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
@@ -62,17 +62,8 @@ export default async function VehicleDetailPage({
           <div className="rounded-lg border border-divider p-6">
             {vehicle.imagePath && (
               <div className="mb-6 overflow-x-auto rounded-lg bg-subtle p-6">
-                <Image unoptimized
-                  src={vehicle.imagePath}
-                  alt={vehicle.designation}
-                  width={(vehicle.imageWidth || 264) * 2}
-                  height={(vehicle.imageHeight || 41) * 2}
-                  className="mx-auto block"
-                  style={{
-                    width: (vehicle.imageWidth || 264) * 2,
-                    height: (vehicle.imageHeight || 41) * 2,
-                  }}
-                />
+                <VehicleDetailImage src={vehicle.imagePath} alt={vehicle.designation}
+                  width={(vehicle.imageWidth || 264) * 2} height={(vehicle.imageHeight || 41) * 2} center responsive={false} />
               </div>
             )}
 

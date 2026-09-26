@@ -198,3 +198,48 @@ model/artwork fields. Its physical settings always affect only the selected piec
 Quantity reductions require selecting the pieces and confirming configuration loss;
 assigned pieces cannot be deleted. The train picker shows grouped availability,
 a quantity control, selected artwork and an optional specific-piece checklist.
+
+### Detail image magnifier
+
+`VehicleDetailImage` adds a cursor-following lens to locomotive, passenger wagon,
+freight wagon and legacy vehicle details. Normal galleries and composed trains keep
+using the compact 4× derivatives. Larger detail artwork is loaded on first hover or
+keyboard focus only. Tab focuses the image, arrows move the inspection point, and
+Escape closes the lens. Pointer leave, scrolling, window blur and resizing dismiss
+it. Touch gestures remain ordinary page/image scrolling.
+
+The magnification is bounded by both actual loaded image dimensions divided by
+rendered CSS dimensions and `window.devicePixelRatio`, with a maximum of 3×. An
+image already at its native display-pixel limit offers no enlargement. A missing
+zoom asset falls back to the loaded preview with the same pixel cap. Browser zoom
+and viewport changes remeasure the available resolution. The lens uses semantic
+surface/border roles, stays inside the viewport and cannot intercept pointer input.
+
+`src/lib/zoom-vehicle-images.json` maps original paths to detail-only WebP derivatives
+in `public/img/zoom/`. Rebuild with `node scripts/prepare-vehicle-zoom.mjs` when the
+private approved masters and earlier export manifests are available. The exporter
+uses the same approved cutouts and geometry as existing previews, retains transparent
+padding and never enlarges beyond the master crop in either axis. It does not
+regenerate artwork, change stored vehicle dimensions, or alter MCP/iTrain images.
+A source whose artwork is replaced must have its zoom derivative rebuilt or its zoom
+mapping removed too. Private masters, references and review captures stay in output/.
+
+### Additional operator SVGs
+
+Logos are registered in `operator-logo.tsx`, not separate database records. Existing
+operator strings automatically use the registered asset throughout galleries,
+compositions and operator badges. Display height remains caller-controlled
+(typically 12–16 CSS px); SVG viewBoxes preserve proportions at every pixel density.
+ZSSK and ZSSK Cargo have distinct registrations. DB retains its plain DB mark;
+DB Cargo uses a horizontal mark with the original black lettering to its right.
+
+| Asset | Source / attribution | License and adaptation |
+| --- | --- | --- |
+| `logo-cd-cargo.svg` | [ČD Cargo, a.s., via Wikimedia](https://commons.wikimedia.org/wiki/File:Logo_cd_cargo.svg) | Commons PD-textlogo; intrinsic dimensions normalized, vector artwork retained |
+| `logo-zssk.svg` | [ZSSK logo, converted by Marsupilami from operator vector data](https://commons.wikimedia.org/wiki/File:%C5%BDelezni%C4%8Dn%C3%A1_spolo%C4%8Dnos%C5%A5_Slovensko_logo.svg) | Commons PD-textlogo; original viewBox and artwork retained |
+| `logo-zssk-cargo.svg` | [ŽSR attribution, via Wikimedia](https://commons.wikimedia.org/wiki/File:ZSSK_Cargo.svg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); explicit intrinsic dimensions added, artwork unchanged |
+| `logo-db-cargo.svg` | [Communication DB Cargo France, via Wikimedia](https://commons.wikimedia.org/wiki/File:DB-Logo-data.svg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); horizontal adaptation retains original paths/colors, moves DB by −0.7 horizontally and Cargo by (120, −74.729), viewBox 253 × 70; this derivative remains CC BY-SA 4.0 |
+
+DB Cargo and ZSSK Cargo SVGs embed source/author/license descriptions. Keep those
+credits and the derivative licenses with redistributed assets. Dark mode continues
+to use the shared light backing behind operator logos without recoloring them.

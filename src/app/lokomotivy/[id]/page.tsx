@@ -3,7 +3,7 @@ import { SpeedProfileEditor } from "@/components/speed-profile-editor";
 import { getSpeedProfile } from "@/lib/speed-profile-storage";
 import { VehicleDecoders } from "@/components/vehicle-decoders";
 import { requireUser } from "@/lib/auth-guards";
-import Image from "@/components/vehicle-image";
+import { VehicleDetailImage } from "@/components/vehicle-detail-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -55,9 +55,8 @@ export default async function VehicleDetailPage({
 
       <section className="entity-header space-y-4" aria-label="Přehled lokomotivy">
         {vehicle.imagePath && <div className="image-stage min-w-0 rounded-lg p-4" data-locomotive-image>
-          <Image unoptimized src={vehicle.imagePath} alt={vehicle.designation}
-            width={(vehicle.imageWidth || 264) * 2} height={(vehicle.imageHeight || 41) * 2}
-            className="block" style={{ width: `min(100%, ${(vehicle.imageWidth || 264) * 2}px)`, height: "auto", maxWidth: "none" }} />
+          <VehicleDetailImage src={vehicle.imagePath} alt={vehicle.designation}
+                  width={(vehicle.imageWidth || 264) * 2} height={(vehicle.imageHeight || 41) * 2} />
         </div>}
         <div className="min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-3">

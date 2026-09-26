@@ -40,7 +40,9 @@ collection. `test:auth-http` deliberately uses an unreachable database for anony
 requests. Decoder/profile/integration suites validate writes against temporary SQLite.
 `npm run lint` is also available; a build is not a substitute for linting changed code.
 
-For image changes, run `node scripts/check-train-image-edges.mjs`. For UI changes,
+For image changes, run `node scripts/check-train-image-edges.mjs`.
+For detail magnifier changes also run `npm run test:image-zoom` and check hover,
+keyboard, touch, lazy loading and native-pixel limits at DPR 1, 2 and 3. For UI changes,
 check both themes and mobile layouts; use the [design rules](design.md). Verify live
 images with authentication, not an anonymous response that may be a login page.
 
