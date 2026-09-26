@@ -240,6 +240,26 @@ DB Cargo uses a horizontal mark with the original black lettering to its right.
 | `logo-zssk-cargo.svg` | [ŽSR attribution, via Wikimedia](https://commons.wikimedia.org/wiki/File:ZSSK_Cargo.svg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); explicit intrinsic dimensions added, artwork unchanged |
 | `logo-db-cargo.svg` | [Communication DB Cargo France, via Wikimedia](https://commons.wikimedia.org/wiki/File:DB-Logo-data.svg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); horizontal adaptation retains original paths/colors, moves DB by −0.7 horizontally and Cargo by (120, −74.729), viewBox 253 × 70; this derivative remains CC BY-SA 4.0 |
 
+The remaining named companies in the collection/catalog are covered by SVGs too:
+
+| Asset / stored operator | Source / attribution | License and adaptation |
+| --- | --- | --- |
+| `logo-sncf.svg` / SNCF | [French Wikipedia SVG, sourced from SNCF's brand portal](https://fr.wikipedia.org/wiki/Fichier:Logo_SNCF_(2011).svg) | Registered trademark; rights remain with SNCF; original gradient and paths retained, editor metadata removed |
+| `logo-dlb.svg` / DLB | [Länderbahn route-map vectors via Wikimedia](https://commons.wikimedia.org/wiki/File:L%C3%A4nderbahn_logo.svg) | Commons PD-textlogo; original paths/colors retained, explicit viewBox added |
+| `logo-aae.svg` / AAE | [AAE vectors converted by Imalipusram via Wikimedia](https://commons.wikimedia.org/wiki/File:AAE_Ahaus_Alst%C3%A4tter_Eisenbahn_logo.svg) | Commons PD-textlogo; original artwork/viewBox retained |
+| `logo-hz-cargo.svg` / HŽ Cargo | [HŽ Cargo's official website SVG](https://www.hzcargo.hr/wp-content/uploads/2023/07/header-logo.svg) | Rights remain with HŽ Cargo; artwork unchanged |
+
+These four assets embed source descriptions and contain only self-contained vectors
+(including internal gradient/clip references). DLB uses the Länderbahn company mark;
+AAE keeps its own identity rather than substituting a successor's logo. Logos identify
+the stored company; the registry does not automatically select marks by historical era.
+Wagon, legacy vehicle and catalog detail headings now use the same `OperatorLogo`
+as galleries and train panels, retaining the operator display toggle. Catalog metadata
+still spells out the operator name. Unknown/blank values retain text/no-logo fallback.
+No collection records or operator strings are changed by adding assets. Long URLs in
+vehicle notes wrap on narrow screens; catalog livery actions wrap below the artwork
+when they cannot fit beside it.
+
 DB Cargo and ZSSK Cargo SVGs embed source/author/license descriptions. Keep those
 credits and the derivative licenses with redistributed assets. Dark mode continues
 to use the shared light backing behind operator logos without recoloring them.

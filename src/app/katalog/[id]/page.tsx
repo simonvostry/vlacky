@@ -1,3 +1,4 @@
+import { OperatorLogo } from "@/components/operator-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
@@ -89,7 +90,7 @@ export default async function CatalogDetailPage({
               return (
                 <div
                   key={img.id}
-                  className="flex items-center gap-3 rounded-lg bg-subtle p-4"
+                  className="flex flex-wrap items-center gap-3 rounded-lg bg-subtle p-4"
                 >
                   <Image unoptimized
                     src={img.imagePath}
@@ -118,7 +119,7 @@ export default async function CatalogDetailPage({
         )}
 
         <h1 className="text-2xl font-bold">{entry.fullDesignation}</h1>
-        <p data-vehicle-label="operator" className="text-secondary">{entry.operator}</p>
+        <div data-vehicle-label="operator" className="mt-1"><OperatorLogo operator={entry.operator} height={16} /></div>
 
         <div data-vehicle-label="type" className="mt-4 rounded-lg bg-subtle p-4">
           <h3 className="mb-2 text-xs font-semibold uppercase text-secondary">

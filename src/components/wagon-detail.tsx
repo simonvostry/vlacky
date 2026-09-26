@@ -1,3 +1,4 @@
+import { OperatorLogo } from "@/components/operator-logo";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { WagonPieces } from "@/components/wagon-pieces";
 import { EditAction } from "@/components/ui-actions";
@@ -71,7 +72,7 @@ export default async function VehicleDetailPage({
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{vehicle.designation}</h1>
-                <p data-vehicle-label="operator" className="text-secondary">{vehicle.operator}</p>
+                <div data-vehicle-label="operator" className="mt-1"><OperatorLogo operator={vehicle.operator} height={16} /></div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
@@ -92,7 +93,7 @@ export default async function VehicleDetailPage({
           <WagonPieces key={`${vehicle.wagonVariantId}-${pieces.map(p=>p.id).join(',')}`} variantId={vehicle.wagonVariantId} pieces={pieces} selectedId={vehicle.id} section={vehicleSection(vehicle)} />
           <h2 className="mt-6 text-lg font-semibold">Kus #{vehicle.id}{vehicle.runningNumber ? ` · ${vehicle.runningNumber}` : ''}</h2>
           {vehicle.isTemplate && <p className="mt-2 text-sm text-warning">Předloha · vynecháno z běžné synchronizace</p>}
-          {vehicle.notes && <p className="mt-2 whitespace-pre-line text-sm text-secondary">{vehicle.notes}</p>}
+          {vehicle.notes && <p className="mt-2 whitespace-pre-line break-words text-sm text-secondary">{vehicle.notes}</p>}
           <VehicleDecoders key={vehicleId} vehicleId={vehicleId} dccAddress={vehicle.dccAddress} />
 
           {/* Train appearances */}

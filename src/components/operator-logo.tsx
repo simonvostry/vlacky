@@ -1,6 +1,10 @@
 import Image from "next/image";
 
 const operatorLogos: Record<string, { src: string; width: number; height: number }> = {
+  "SNCF": { src: "/img/logo-sncf.svg", width: 447.96207, height: 234.8 },
+  "DLB": { src: "/img/logo-dlb.svg", width: 1154.8369, height: 123.94531 },
+  "AAE": { src: "/img/logo-aae.svg", width: 1024, height: 233 },
+  "HŽ Cargo": { src: "/img/logo-hz-cargo.svg", width: 218, height: 58 },
   "ČD Cargo": { src: "/img/logo-cd-cargo.svg", width: 164, height: 38 },
   "ZSSK": { src: "/img/logo-zssk.svg", width: 1024, height: 541 },
   "ZSSK Cargo": { src: "/img/logo-zssk-cargo.svg", width: 512, height: 225 },
