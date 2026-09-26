@@ -159,6 +159,15 @@ Keep the transparent 4× derivative consistent with the native canvas and verify
 Record the dimension source and distinguish verified length from inferred height.
 Existing catalog artwork is not silently rescaled by this rule.
 
+`scripts/prepare-custom-dhl-image.mjs` exports the individually photographed,
+weathered DB Cargo Lgs 579 with a DHL swap body to a unique `img/owned/` asset,
+4× preview and full-resolution detail derivative. Its private master is in
+`output/freight-dhl-custom/`; uploaded personal photographs in `x/` are excluded
+from Git and deployment. The provisional 136 px width uses the Fleischmann Lgs 579
+chassis length of 85 mm in N (13.6 m equivalent); measure the individual model to
+confirm. The supplied 824204 listing shows a different load, so it does not establish
+this physical piece's exact SKU or running number. Preserve those uncertainties.
+
 `scripts/prepare-sggmrrs-images.mjs` exports the empty ČD Cargo Smart GigaWood from
 `output/freight-sggmrrs/master-v3.png` at 296 × 43 and 1184 × 172 px. Its 29.61 m
 length comes from [Innofreight's Smart GigaWood specification](https://www.innofreight.com/wp-content/uploads/2025/04/Smart_GigaWood_EN.pdf);

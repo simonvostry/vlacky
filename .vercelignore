@@ -11,3 +11,4 @@ node_modules/
 
 # Local AI masters and review artifacts; only public/img derivatives are served.
 output/
+x/

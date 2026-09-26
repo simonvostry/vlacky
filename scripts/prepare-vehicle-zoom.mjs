@@ -13,6 +13,7 @@ Object.assign(masters, {
   '/img/catalog/642-regiojet-ai.png':'output/desiro-regiojet/regiojet-642-master.png',
   '/img/catalog/642-vogtlandbahn-ai.png':'output/desiro-742004/vogtlandbahn-642-master.png',
   '/img/owned/vehicle-36-yellow-v1.png':'output/brejlovec-36-yellow-details/master-v1.png',
+  '/img/owned/db-lgs579-dhl-weathered.png':'output/freight-dhl-custom/master.png',
   '/img/catalog/csd-uacs-raj-yellow-brown.png':'output/freight-uacs/uacs-csd-side-v2.png',
   '/img/catalog/cdc-sggmrrs-90-gigawood.png':'output/freight-sggmrrs/master-v3.png',
 });
