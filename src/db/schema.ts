@@ -5,6 +5,7 @@ export const vehicles = sqliteTable("vehicles", {
   designation: text("designation").notNull(), // "362", "Amz 61", "Bmz 61"
   operator: text("operator"), // "ČD", "ÖBB"
   type: text("type").notNull(), // "loco" | "wagon"
+  wagonKind: text("wagon_kind").notNull().default("passenger"), // used only for wagons: passenger | freight
   classType: text("class_type"), // "1" | "2" | "restaurant" | null
   imagePath: text("image_path"), // "/img/loco-362.gif"
   imageWidth: integer("image_width"), // px
@@ -29,6 +30,7 @@ export const vehicleSpeedProfiles = sqliteTable("vehicle_speed_profiles", {
 
 export const trains = sqliteTable("trains", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  kind: text("kind").notNull().default("passenger"), // passenger | freight
   number: text("number"), // "70"
   name: text("name"), // "Antonín Dvořák"
   category: text("category"), // "EC", "IC", "R", "Os"
@@ -89,6 +91,7 @@ export const vehicleCatalog = sqliteTable("vehicle_catalog", {
   operator: text("operator").notNull(), // "ČD"
   wagonFamily: text("wagon_family").notNull(), // "CD_Y" | "CD_Z"
   type: text("type").notNull(), // "wagon" | "loco"
+  wagonKind: text("wagon_kind").notNull().default("passenger"), // used only for wagons: passenger | freight
   classType: text("class_type"), // "1" | "2" | "12" | "restaurant" | "sleeping" | "luggage"
   uicNumber: text("uic_number"), // "50 54 22-44"
   inventoryRange: text("inventory_range"), // "001 ... 320"

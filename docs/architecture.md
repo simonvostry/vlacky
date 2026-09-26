@@ -71,8 +71,8 @@ See [the speed-profile contract](itrain-integration.md#current-speed-profile-bac
 | `/prihlaseni` | Public Google login |
 | `/soupravy` | Composition list; `?souprava=ID` opens in-flow details, below the selected row on mobile |
 | `/soupravy/[id]` | Composition detail and vehicle ordering |
-| `/lokomotivy`, `/vozy` | Owned locomotive/wagon libraries |
-| `/lokomotivy/[id]`, `/vozy/[id]` | Vehicle identity, DCC configuration and train appearances; locomotives also have speed profiles |
+| `/lokomotivy`, `/vozy`, `/nakladni-vozy` | Shared locomotives, passenger wagons and freight wagons |
+| `/lokomotivy/[id]`, `/vozy/[id]`, `/nakladni-vozy/[id]` | Vehicle identity, DCC configuration and train appearances; locomotives also have speed profiles |
 | `/katalog`, `/katalog/[id]` | Reference catalog, filters and livery variants; Přidat pre-fills an owned-vehicle form |
 | `/dcc` | Address overview and conflicts |
 | `/vozidla` | Legacy redirect to `/lokomotivy`; older detail/edit routes remain compatible |
@@ -104,3 +104,26 @@ Import scripts represent specific historical train examples, not the complete or
 current collection inventory. Run them only deliberately: they write data.
 See [operations](operations.md) for migration and maintenance precautions, and
 [design](design.md) for current layout, themes and image scaling.
+
+## Passenger and freight collections
+
+`vehicles.wagonKind` and `vehicle_catalog.wagonKind` classify wagons as `passenger`
+or `freight`; the default preserves existing passenger records. The field is
+irrelevant for locomotives: `type` stays `loco` / `wagon`, and locomotives remain
+one shared collection. `trains.kind` independently classifies a saved composition.
+Do not infer either classification from a designation, class badge or train number.
+
+`/vozy` contains passenger stock (including sleeping, restaurant, baggage and postal
+vehicles); `/nakladni-vozy` contains freight stock with the same new/detail/edit
+routes and DCC support. Shared server components enforce authentication and redirect
+wagon detail/edit links to the correct section. `vehicleSection` owns link routing.
+The vehicle type selector offers Lokomotiva, Osobní vůz and Nákladní vůz; freight
+forms omit passenger class selection. Catalog filter `typ=freight` selects freight,
+while `typ=wagon` selects passenger stock. Catalog add actions keep this classification.
+
+Soupravy has Vše / Osobní / Nákladní filters (`druh`). Adding from the freight filter
+preselects a freight train. Its vehicle picker offers shared locomotives and matching
+wagons by default; an explicit checkbox also offers the other wagon group for mixed
+formations. Changing classification never removes existing composition members.
+Owned models, catalog references, decoders, profiles and integration identities retain
+their existing IDs. Omitted classification in older API edits preserves stored values.

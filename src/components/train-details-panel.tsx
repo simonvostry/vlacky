@@ -1,3 +1,4 @@
+import { vehicleSection } from "@/lib/vehicle-kind";
 import type { DecoderConfig } from "@/lib/decoder-config";
 import Image from "@/components/vehicle-image";
 import Link from "next/link";
@@ -7,12 +8,13 @@ import { OperatorLogo } from "./operator-logo";
 
 type Train = typeof trains.$inferSelect;
 type Vehicle = Pick<typeof vehicles.$inferSelect,
-  "id" | "designation" | "operator" | "type" | "classType" | "imagePath" |
+  "wagonKind" | "id" | "designation" | "operator" | "type" | "classType" | "imagePath" |
   "imageWidth" | "imageHeight" | "manufacturer" | "catalogNumber" | "dccAddress">;
 
-export function TrainDetailsPanel({ train, vehicles: composition, decoders = [] }: {
+export function TrainDetailsPanel({ train, vehicles: composition, decoders = [], closeHref = "/soupravy" }: {
   decoders?: (DecoderConfig & { vehicleId: number })[];
   train: Train;
+  closeHref?: string;
   vehicles: {
     position: number;
     notes: string | null;
@@ -32,7 +34,7 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [] 
               {train.name && <span className="ml-2 text-sm font-normal text-secondary">{train.name}</span>}
             </h2>
           </div>
-          <Link href="/soupravy" scroll={false} aria-label="Zavřít detail soupravy"
+          <Link href={closeHref} scroll={false} aria-label="Zavřít detail soupravy"
             className="-mr-1 -mt-1 rounded-md p-1.5 text-secondary hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="m5 5 10 10M15 5 5 15" />
@@ -68,7 +70,7 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [] 
             const imageHeight = vehicle.imageHeight || (vehicle.type === "loco" ? 58 : 41);
             return (
               <li key={row.position}>
-                <Link href={`/${vehicle.type === "loco" ? "lokomotivy" : "vozy"}/${vehicle.id}`}
+                <Link href={`/${vehicleSection(vehicle)}/${vehicle.id}`}
                   aria-label={`${vehicle.type === "loco" ? "Lokomotiva" : "Vůz"} ${[vehicle.operator, vehicle.designation].filter(Boolean).join(" ")}`}
                   className="group flex gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
                   <span className="flex h-5 w-4 shrink-0 items-center justify-center text-[10px] tabular-nums text-secondary">{row.position}</span>

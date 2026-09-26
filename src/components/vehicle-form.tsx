@@ -1,5 +1,6 @@
 "use client";
 
+import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +10,7 @@ type Vehicle = {
   designation: string;
   operator: string;
   type: string;
+  wagonKind?: string;
   classType: string;
   imagePath: string;
   imageWidth: number | null;
@@ -26,6 +28,7 @@ const defaults: Vehicle = {
   isTemplate: false,
   operator: "",
   type: "wagon",
+  wagonKind: "passenger",
   classType: "",
   imagePath: "",
   imageWidth: 264,
@@ -65,7 +68,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
     if (res.ok) {
       const saved = await res.json();
-      const section = saved.type === "loco" ? "lokomotivy" : "vozy";
+      const section = vehicleSection(saved);
       router.push(`/${section}/${saved.id}`);
       router.refresh();
     } else {
@@ -76,7 +79,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   async function handleDelete() {
     if (!isEdit || !confirm("Opravdu smazat toto vozidlo?")) return;
     await fetch(`/api/vozidla/${vehicle!.id}`, { method: "DELETE" });
-    const section = form.type === "loco" ? "lokomotivy" : "vozy";
+    const section = vehicleSection(form);
     router.push(`/${section}`);
     router.refresh();
   }
@@ -111,17 +114,19 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">Typ *</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="vehicle-type">Typ *</label>
           <select
-            value={form.type}
-            onChange={(e) => set("type", e.target.value)}
+            id="vehicle-type"
+            value={form.type === "loco" ? "loco" : form.wagonKind === "freight" ? "freight" : "wagon"}
+            onChange={(e) => setForm(f => ({ ...f, type: e.target.value === "loco" ? "loco" : "wagon", wagonKind: e.target.value === "freight" ? "freight" : "passenger", classType: e.target.value === "freight" ? "" : f.classType }))}
             className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
           >
             <option value="loco">Lokomotiva</option>
-            <option value="wagon">Vůz</option>
+            <option value="wagon">Osobní vůz</option>
+            <option value="freight">Nákladní vůz</option>
           </select>
         </div>
-        <div>
+        {!(form.type === "wagon" && form.wagonKind === "freight") && <div>
           <label className="mb-1 block text-sm font-medium">Třída</label>
           <select
             value={form.classType}
@@ -137,7 +142,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             <option value="couchette">Lehátkový</option>
             <option value="luggage">Zavazadlový / poštovní</option>
           </select>
-        </div>
+        </div>}
       </div>
 
       <div>

@@ -125,3 +125,10 @@ Check both themes, a narrow viewport, long Desiros, form controls, edit/cancel,
 keyboard focus and remembered selection. The [2026-09-20 review](reviews/theme-2026-09-20.md)
 records the implementation checks. Local image-generation boards are historical
 explorations; do not reintroduce their placeholder data or abandoned palette options.
+
+Passenger and freight wagon libraries use the same gallery tiles and shared editors.
+Top navigation names them **Osobní vozy** and **Nákladní vozy** and wraps on narrow
+screens. Both retain the compact top-bar add action and shared display preferences.
+Soupravy uses quiet Vše / Osobní / Nákladní filter buttons with the selected semantic
+surface. Freight forms omit passenger class controls; shared locomotives have no
+passenger/freight restriction.

@@ -25,7 +25,7 @@ test("missing, malformed and unavailable storage leave labels visible", () => {
 
 test("display controls cover collection browsing and details, excluding forms and DCC", async () => {
   const { hasVehicleDisplayControls } = await import("../src/lib/train-display");
-  for (const section of ["soupravy", "lokomotivy", "vozy", "katalog", "vozidla"]) {
+  for (const section of ["soupravy", "lokomotivy", "vozy", "nakladni-vozy", "katalog", "vozidla"]) {
     assert.equal(hasVehicleDisplayControls(`/${section}`), true);
     assert.equal(hasVehicleDisplayControls(`/${section}/61`), true);
     assert.equal(hasVehicleDisplayControls(`/${section}/novy`), false);

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 type Train = {
   id?: number;
+  kind?: string;
   number: string;
   name: string;
   category: string;
@@ -14,6 +15,7 @@ type Train = {
 };
 
 const defaults: Train = {
+  kind: "passenger",
   number: "",
   name: "",
   category: "",
@@ -22,11 +24,11 @@ const defaults: Train = {
   notes: "",
 };
 
-const categories = ["EC", "IC", "Ex", "R", "Sp", "Os", "Nex"];
+const categories = ["EC", "IC", "Ex", "R", "Sp", "Os", "Nex", "Pn", "Mn", "Vn"];
 
-export function TrainForm({ train }: { train?: Train }) {
+export function TrainForm({ train, kind = "passenger" }: { train?: Train; kind?: string }) {
   const router = useRouter();
-  const [form, setForm] = useState<Train>({ ...defaults, ...train });
+  const [form, setForm] = useState<Train>({ ...defaults, kind, ...train });
   const [saving, setSaving] = useState(false);
 
   const isEdit = !!train?.id;
@@ -56,7 +58,7 @@ export function TrainForm({ train }: { train?: Train }) {
   async function handleDelete() {
     if (!isEdit || !confirm("Opravdu smazat tento vlak?")) return;
     await fetch(`/api/vlaky/${train!.id}`, { method: "DELETE" });
-    router.push("/soupravy");
+    router.push(`/soupravy?druh=${form.kind}`);
     router.refresh();
   }
 
@@ -66,6 +68,13 @@ export function TrainForm({ train }: { train?: Train }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="train-kind" className="mb-1 block text-sm font-medium">Druh soupravy</label>
+        <select id="train-kind" value={form.kind} onChange={e => set("kind", e.target.value)} className="w-full rounded-md border border-control px-3 py-2 text-sm">
+          <option value="passenger">Osobní</option>
+          <option value="freight">Nákladní</option>
+        </select>
+      </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label className="mb-1 block text-sm font-medium">Kategorie</label>

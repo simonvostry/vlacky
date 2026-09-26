@@ -13,5 +13,5 @@ export const trainDisplayBootstrap = `(function(){var h="";try{var v=(localStora
 
 // Lists and read-only details share display preferences; forms and DCC do not.
 export function hasVehicleDisplayControls(pathname: string): boolean {
-  return /^\/(soupravy|lokomotivy|vozy|vozidla|katalog)(\/\d+)?$/.test(pathname);
+  return /^\/(soupravy|lokomotivy|vozy|nakladni-vozy|vozidla|katalog)(\/\d+)?$/.test(pathname);
 }

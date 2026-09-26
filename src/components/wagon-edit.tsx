@@ -1,15 +1,16 @@
+import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { VehicleForm } from "@/components/vehicle-form";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
 
 export default async function EditVehiclePage({
-  params,
+  params, kind,
 }: {
+  kind: "passenger" | "freight";
   params: Promise<{ id: string }>;
 }) {
   await requireUser();
@@ -23,12 +24,13 @@ export default async function EditVehiclePage({
     .where(eq(schema.vehicles.id, vehicleId))
     .get();
 
-  if (!vehicle) notFound();
+  if (!vehicle || vehicle.type !== "wagon") notFound();
+  if (vehicle.wagonKind !== kind) redirect(`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`);
 
   return (
     <div className="mx-auto max-w-2xl">
       <Link
-        href={`/vozidla/${vehicle.id}`}
+        href={`/${vehicleSection(vehicle)}/${vehicle.id}`}
         className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět

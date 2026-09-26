@@ -18,11 +18,11 @@ const handler = createMcpHandler(server => {
   }, async () => result({ syncContract }));
   server.registerTool("list_vehicles", {
     title: "List collection vehicles", description: "Find locomotives and wagons by stable ID, designation, operator or DCC address. Excludes templates by default.",
-    inputSchema: z.object({ type: z.enum(["loco", "wagon"]).optional(), query: z.string().max(200).optional(), includeTemplates }), annotations,
+    inputSchema: z.object({ type: z.enum(["loco", "wagon"]).optional(), wagonKind: z.enum(["passenger", "freight"]).optional(), query: z.string().max(200).optional(), includeTemplates }), annotations,
   }, async args => {
     const snapshot = await collectionSnapshot(args.includeTemplates);
     const query = args.query?.toLowerCase();
-    return result({ revision: snapshot.revision, syncContractVersion: syncContract.version, vehicles: snapshot.vehicles.filter(v => (!args.type || v.type === args.type) && (!query || `${v.designation} ${v.operator} ${v.dccAddress ?? ""}`.toLowerCase().includes(query))).map(v => ({ id: v.id, sourceId: v.sourceId, recordType: v.recordType, designation: v.designation, operator: v.operator, type: v.type, dccAddress: v.dccAddress, decoderCount: v.decoders.length, hasImage: v.image?.status === "available" })) });
+    return result({ revision: snapshot.revision, syncContractVersion: syncContract.version, vehicles: snapshot.vehicles.filter(v => (!args.type || v.type === args.type) && (!args.wagonKind || v.wagonKind === args.wagonKind) && (!query || `${v.designation} ${v.operator} ${v.dccAddress ?? ""}`.toLowerCase().includes(query))).map(v => ({ id: v.id, sourceId: v.sourceId, recordType: v.recordType, designation: v.designation, operator: v.operator, type: v.type, wagonKind: v.wagonKind, dccAddress: v.dccAddress, decoderCount: v.decoders.length, hasImage: v.image?.status === "available" })) });
   });
   server.registerTool("get_vehicle", {
     title: "Get vehicle definition", description: "Vehicle details, decoder addresses and function mappings, image downloads and reference-only CV records. Preserve iTrain measured profiles and calibration.", inputSchema: z.object({ id, includeTemplates }), annotations,
@@ -36,7 +36,7 @@ const handler = createMcpHandler(server => {
     title: "List train compositions", description: "List saved collection compositions. These do not represent live train positions or active layout assignments.", inputSchema: z.object({ includeTemplates }), annotations,
   }, async args => {
     const snapshot = await collectionSnapshot(args.includeTemplates);
-    return result({ revision: snapshot.revision, trains: snapshot.trains.map(t => ({ id: t.id, sourceId: t.sourceId, number: t.number, name: t.name, category: t.category, vehicleCount: t.composition.length })), excluded: snapshot.excluded });
+    return result({ revision: snapshot.revision, trains: snapshot.trains.map(t => ({ id: t.id, sourceId: t.sourceId, number: t.number, name: t.name, category: t.category, kind: t.kind, vehicleCount: t.composition.length })), excluded: snapshot.excluded });
   });
   server.registerTool("get_train", {
     title: "Get ordered train composition", description: "Train definition with vehicles in order, each vehicle's decoder functions and images. Does not activate a train or change layout state.", inputSchema: z.object({ id, includeTemplates }), annotations,

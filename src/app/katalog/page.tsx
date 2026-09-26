@@ -28,7 +28,9 @@ export default async function CatalogPage({
     .all();
 
   const entries = allEntries.filter((e) => {
-    if (typ && e.type !== typ) return false;
+    if (typ === "freight" && (e.type !== "wagon" || e.wagonKind !== "freight")) return false;
+    if (typ === "wagon" && (e.type !== "wagon" || e.wagonKind !== "passenger")) return false;
+    if (typ === "loco" && e.type !== "loco") return false;
     if (op) {
       if (op === "ČSD") {
         if (e.operator !== "ČSD" && e.operator !== "ČSD/ČD") return false;
@@ -74,7 +76,7 @@ export default async function CatalogPage({
 
       {entries.length === 0 ? (
         <p className="py-12 text-center text-secondary">
-          Katalog je prázdný. Spusťte <code>npm run db:scrape</code>.
+          Pro vybrané filtry zatím nejsou v katalogu žádná vozidla.
         </p>
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>

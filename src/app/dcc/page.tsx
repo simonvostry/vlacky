@@ -1,3 +1,4 @@
+import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { getDecoders } from "@/lib/decoder-storage";
@@ -85,7 +86,7 @@ export default async function DccPage() {
                   </td>
                   <td className="px-4 py-2">
                     <Link
-                      href={`/${v.type === "loco" ? "lokomotivy" : "vozy"}/${v.id}`}
+                      href={`/${vehicleSection(v)}/${v.id}`}
                       className="font-medium hover:text-accent"
                     >
                       {v.designation}

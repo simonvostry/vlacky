@@ -50,7 +50,7 @@ test("production server protects pages, images, API methods and session integrit
       const response = await request(path);
       assert.equal(new URL(response.headers.get("location")!, origin).pathname, "/prihlaseni", `${path} must remain protected`);
     }
-    for (const path of ["/", "/katalog", "/katalog/1", "/lokomotivy", "/lokomotivy/1", "/lokomotivy/1/upravit", "/lokomotivy/novy", "/vozy", "/vozy/1", "/vozy/1/upravit", "/vozy/novy", "/soupravy", "/soupravy/1", "/soupravy/1/upravit", "/soupravy/novy", "/vozidla", "/vozidla/1", "/vozidla/1/upravit", "/vozidla/novy", "/dcc", "/img/cd-bmee.gif"]) {
+    for (const path of ["/", "/katalog", "/katalog/1", "/lokomotivy", "/lokomotivy/1", "/lokomotivy/1/upravit", "/lokomotivy/novy", "/nakladni-vozy", "/nakladni-vozy/1", "/nakladni-vozy/1/upravit", "/nakladni-vozy/novy", "/vozy", "/vozy/1", "/vozy/1/upravit", "/vozy/novy", "/soupravy", "/soupravy/1", "/soupravy/1/upravit", "/soupravy/novy", "/vozidla", "/vozidla/1", "/vozidla/1/upravit", "/vozidla/novy", "/dcc", "/img/cd-bmee.gif"]) {
       const response = await request(path);
       assert.ok([302, 303, 307].includes(response.status), `${path}: ${response.status}`);
       const location = new URL(response.headers.get("location")!, origin);

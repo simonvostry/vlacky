@@ -85,3 +85,13 @@ For an existing database without profile storage, run `npm run db:migrate-speed-
 
 Collection-specific measurement provenance and unresolved facts are recorded in
 [decisions](decisions.md#brejlovec-vehicle-36), not in the integration schema.
+
+## Passenger/freight classification
+
+Snapshot schema `1.2` adds `wagonKind` (`passenger` / `freight`, null for locomotives)
+and train `kind` (`passenger` / `freight`). Vehicle `type` remains `loco` / `wagon`;
+source IDs and membership order are unchanged. MCP summaries expose these fields,
+and `list_vehicles` optionally filters `wagonKind`. These are collection metadata,
+not inferred iTrain enums: a future adapter must explicitly support a target mapping
+before writing them. All calibration, profile and operational-state preservation
+requirements still apply.

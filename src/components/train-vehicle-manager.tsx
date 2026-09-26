@@ -1,5 +1,6 @@
 "use client";
 
+import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
 import { ArrowUpIcon, ArrowDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
@@ -10,6 +11,7 @@ type Vehicle = {
   designation: string;
   operator: string | null;
   type: string;
+  wagonKind: string;
 };
 
 type TrainVehicleRow = {
@@ -19,6 +21,7 @@ type TrainVehicleRow = {
   designation: string;
   operator: string | null;
   vehicleType: string;
+  wagonKind: string;
   classType: string | null;
   dccAddresses: string;
   notes: string | null;
@@ -26,17 +29,21 @@ type TrainVehicleRow = {
 
 type Props = {
   trainId: number;
+  kind: string;
   trainVehicles: TrainVehicleRow[];
   allVehicles: Vehicle[];
 };
 
 export function TrainVehicleManager({
   trainId,
+  kind,
   trainVehicles,
   allVehicles,
 }: Props) {
   const router = useRouter();
   const [addVehicleId, setAddVehicleId] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const available = allVehicles.filter(v => showAll || v.type === "loco" || v.wagonKind === kind);
   const [busy, setBusy] = useState(false);
 
   async function addVehicle() {
@@ -90,7 +97,7 @@ export function TrainVehicleManager({
       </h2>
 
       {trainVehicles.length > 0 && (
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead>
             <tr className="border-b border-divider text-left text-xs uppercase text-secondary">
               <th className="px-4 py-2 w-10">#</th>
@@ -110,7 +117,7 @@ export function TrainVehicleManager({
                 <td className="px-4 py-2 text-secondary">{tv.position}</td>
                 <td className="px-4 py-2 font-medium">
                   <Link
-                    href={`/${tv.vehicleType === "loco" ? "lokomotivy" : "vozy"}/${tv.vehicleId}`}
+                    href={`/${vehicleSection({ type: tv.vehicleType, wagonKind: tv.wagonKind })}/${tv.vehicleId}`}
                     className="hover:text-accent"
                   >
                     {tv.operator && (
@@ -166,20 +173,25 @@ export function TrainVehicleManager({
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
 
-      <div className="flex items-center gap-2 border-t border-divider px-4 py-3">
+      <label className="flex items-center gap-2 border-t border-divider px-4 py-3 text-sm text-secondary">
+        <input type="checkbox" checked={showAll} onChange={e => { setShowAll(e.target.checked); setAddVehicleId(""); }} />
+        Nabídnout i vozy pro {kind === "freight" ? "osobní" : "nákladní"} soupravy
+      </label>
+      <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
         <select
           value={addVehicleId}
           onChange={(e) => setAddVehicleId(e.target.value)}
-          className="flex-1 rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
+          aria-label="Vozidlo k přidání do soupravy"
+          className="min-w-0 flex-1 rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
         >
           <option value="">Vyberte vozidlo...</option>
-          {allVehicles.map((v) => (
+          {available.map((v) => (
             <option key={v.id} value={v.id}>
               {v.operator ? `${v.operator} ` : ""}
-              {v.designation} ({v.type === "loco" ? "lok" : "vůz"})
+              {v.designation} ({v.type === "loco" ? "lok" : v.wagonKind === "freight" ? "nákladní vůz" : "osobní vůz"})
             </option>
           ))}
         </select>

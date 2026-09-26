@@ -14,7 +14,8 @@ import { ThemeToggle } from "./theme-toggle";
 const links = [
   { href: "/soupravy", label: "Soupravy" },
   { href: "/lokomotivy", label: "Lokomotivy" },
-  { href: "/vozy", label: "Vozy" },
+  { href: "/vozy", label: "Osobní vozy" },
+  { href: "/nakladni-vozy", label: "Nákladní vozy" },
   { href: "/katalog", label: "Katalog" },
   { href: "/dcc", label: "DCC" },
 ];
@@ -22,13 +23,15 @@ const links = [
 const collectionActions: Record<string, { href: string; label: string }> = {
   "/soupravy": { href: "/soupravy/novy", label: "Přidat soupravu" },
   "/lokomotivy": { href: "/lokomotivy/novy", label: "Přidat lokomotivu" },
+  "/nakladni-vozy": { href: "/nakladni-vozy/novy", label: "Přidat nákladní vůz" },
   "/vozy": { href: "/vozy/novy", label: "Přidat vůz" },
 };
 
 const catalogFilters = [
   { value: "", label: "Vše" },
   { value: "loco", label: "Lokomotivy" },
-  { value: "wagon", label: "Vozy" },
+  { value: "wagon", label: "Osobní vozy" },
+  { value: "freight", label: "Nákladní vozy" },
 ];
 
 const operatorFilters = [
@@ -50,7 +53,9 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const addAction = collectionActions[pathname];
+  const addAction = pathname === "/soupravy" && searchParams.get("druh") === "freight"
+    ? { href: "/soupravy/novy?druh=freight", label: "Přidat nákladní soupravu" }
+    : collectionActions[pathname];
   const showDisplayControls = hasVehicleDisplayControls(pathname);
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
@@ -77,7 +82,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
           className="order-1 mr-2 flex h-12 w-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
           <Image src={appIcon} alt="" width={44} height={44} sizes="44px" className="size-11" />
         </Link>
-        <div className="order-4 flex w-full justify-between gap-3 sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
+        <div className="order-4 flex w-full flex-wrap gap-x-4 gap-y-0 sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
           {links.map((link) => {
             const isActive =
               pathname.startsWith(link.href);
@@ -96,7 +101,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
         {isKatalog && <div className="order-6 flex w-full flex-wrap items-center gap-3 pb-3">
           {isKatalog && (
             <>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
                 {catalogFilters.map((f) => (
                   <Link
                     key={f.value}

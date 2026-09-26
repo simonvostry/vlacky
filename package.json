@@ -20,7 +20,9 @@
     "db:migrate-speed-profiles": "node scripts/migrate-speed-profiles.mjs",
     "test:speed-profiles": "tsx --test tests/speed-profile*.test.ts",
     "test:theme": "tsx --test tests/theme.test.ts",
-    "test:train-display": "tsx --test tests/train-display.test.ts"
+    "test:train-display": "tsx --test tests/train-display.test.ts",
+    "db:migrate-freight": "node scripts/migrate-freight.mjs",
+    "test:freight": "tsx --test tests/freight-http.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

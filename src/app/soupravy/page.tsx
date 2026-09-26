@@ -9,11 +9,11 @@ import { TrainComposition } from "@/components/train-composition";
 export const dynamic = "force-dynamic";
 
 export default async function TrainsPage({ searchParams }: {
-  searchParams: Promise<{ souprava?: string }>;
+  searchParams: Promise<{ souprava?: string; druh?: string }>;
 }) {
   await requireUser();
   const decoders = await getDecoders();
-  const { souprava } = await searchParams;
+  const { souprava, druh } = await searchParams;
   const allTrains = await db
     .select()
     .from(schema.trains)
@@ -31,6 +31,7 @@ export default async function TrainsPage({ searchParams }: {
         designation: schema.vehicles.designation,
         operator: schema.vehicles.operator,
         type: schema.vehicles.type,
+        wagonKind: schema.vehicles.wagonKind,
         classType: schema.vehicles.classType,
         imagePath: schema.vehicles.imagePath,
         imageWidth: schema.vehicles.imageWidth,
@@ -55,51 +56,59 @@ export default async function TrainsPage({ searchParams }: {
     vehiclesByTrain.set(tv.trainId, existing);
   }
 
-  const selectedTrain = allTrains.find(train => String(train.id) === souprava);
+  const visibleTrains = allTrains.filter(t => !druh || !["passenger", "freight"].includes(druh) || t.kind === druh);
+  const selectedTrain = visibleTrains.find(train => String(train.id) === souprava);
   const selectedVehicles = selectedTrain ? vehiclesByTrain.get(selectedTrain.id) || [] : [];
 
   return (
-    <div className={selectedTrain ? "grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]" : "min-w-0"}>
-      <div className="min-w-0">
-        {allTrains.length === 0 ? (
-          <p className="py-12 text-center text-secondary">Zatím žádné vlaky. Přidejte první!</p>
-        ) : allTrains.map(train => {
-          const vehicles = vehiclesByTrain.get(train.id) || [];
-          const selected = selectedTrain?.id === train.id;
-          return (
-            <div key={train.id}>
-              <div className={`my-1 overflow-x-auto rounded-lg transition-colors ${selected ? "bg-muted" : "hover:bg-subtle"}`}>
-                <Link
-                  href={`/soupravy?souprava=${train.id}`}
-                  scroll={false}
-                  aria-current={selected ? "true" : undefined}
-                  aria-label={`Zobrazit soupravu ${[train.category, train.number, train.name].filter(Boolean).join(" ")}`}
-                  className="block rounded-lg px-3 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                >
-                  <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    {train.category && <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-bold text-secondary">{train.category}</span>}
-                    <span className="text-sm font-bold">{train.number}</span>
-                    {train.name && <span className="text-sm italic text-secondary">{train.name}</span>}
-                    {train.route && <span className="text-xs text-secondary">{train.route}</span>}
-                    {train.era && <span className="text-xs text-secondary">{train.era}</span>}
-                  </div>
-                  <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} /></div>
-                </Link>
-              </div>
-              {selected && (
-                <div className="my-3 md:hidden">
-                  <TrainDetailsPanel decoders={decoders} train={train} vehicles={vehicles} />
-                </div>
-              )}
-            </div>
-          );
-        })}
+    <div>
+      <div aria-label="Druh soupravy" className="mb-4 flex flex-wrap gap-1">
+        {[["", "Vše"], ["passenger", "Osobní"], ["freight", "Nákladní"]].map(([value, label]) => (
+          <Link key={value} href={value ? `/soupravy?druh=${value}` : "/soupravy"} aria-current={(druh || "") === value ? "page" : undefined} className={`ui-button ${(druh || "") === value ? "bg-selected text-foreground" : "ui-button-quiet"}`}>{label}</Link>
+        ))}
       </div>
-      {selectedTrain && (
-        <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
-          <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} />
-        </aside>
-      )}
+      <div className={selectedTrain ? "grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]" : "min-w-0"}>
+        <div className="min-w-0">
+          {visibleTrains.length === 0 ? (
+            <p className="py-12 text-center text-secondary">Zatím žádné vlaky. Přidejte první!</p>
+          ) : visibleTrains.map(train => {
+            const vehicles = vehiclesByTrain.get(train.id) || [];
+            const selected = selectedTrain?.id === train.id;
+            return (
+              <div key={train.id}>
+                <div className={`my-1 overflow-x-auto rounded-lg transition-colors ${selected ? "bg-muted" : "hover:bg-subtle"}`}>
+                  <Link
+                    href={`/soupravy?souprava=${train.id}${druh ? `&druh=${druh}` : ""}`}
+                    scroll={false}
+                    aria-current={selected ? "true" : undefined}
+                    aria-label={`Zobrazit soupravu ${[train.category, train.number, train.name].filter(Boolean).join(" ")}`}
+                    className="block rounded-lg px-3 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  >
+                    <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      {train.category && <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-bold text-secondary">{train.category}</span>}
+                      <span className="text-sm font-bold">{train.number}</span>
+                      {train.name && <span className="text-sm italic text-secondary">{train.name}</span>}
+                      {train.route && <span className="text-xs text-secondary">{train.route}</span>}
+                      {train.era && <span className="text-xs text-secondary">{train.era}</span>}
+                    </div>
+                    <div className="w-max min-w-full"><TrainComposition vehicles={vehicles} showDescriptions={false} /></div>
+                  </Link>
+                </div>
+                {selected && (
+                  <div className="my-3 md:hidden">
+                    <TrainDetailsPanel decoders={decoders} train={train} vehicles={vehicles} closeHref={druh ? `/soupravy?druh=${druh}` : "/soupravy"} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {selectedTrain && (
+          <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
+            <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} closeHref={druh ? `/soupravy?druh=${druh}` : "/soupravy"} />
+          </aside>
+        )}
+      </div>
     </div>
   );
 }

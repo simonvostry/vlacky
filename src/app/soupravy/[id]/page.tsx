@@ -39,6 +39,7 @@ export default async function TrainDetailPage({
         designation: schema.vehicles.designation,
         operator: schema.vehicles.operator,
         type: schema.vehicles.type,
+        wagonKind: schema.vehicles.wagonKind,
         classType: schema.vehicles.classType,
         imagePath: schema.vehicles.imagePath,
         imageWidth: schema.vehicles.imageWidth,
@@ -61,6 +62,7 @@ export default async function TrainDetailPage({
       designation: schema.vehicles.designation,
       operator: schema.vehicles.operator,
       type: schema.vehicles.type,
+        wagonKind: schema.vehicles.wagonKind,
     })
     .from(schema.vehicles)
     .orderBy(schema.vehicles.type, schema.vehicles.designation)
@@ -76,6 +78,7 @@ export default async function TrainDetailPage({
     designation: tv.vehicle.designation,
     operator: tv.vehicle.operator,
     vehicleType: tv.vehicle.type,
+    wagonKind: tv.vehicle.wagonKind,
     classType: tv.vehicle.classType,
     dccAddresses: [...new Set([tv.vehicle.dccAddress, ...decoders.filter(d => d.vehicleId === tv.vehicle.id).map(d => d.address ?? tv.vehicle.dccAddress)].filter(a => a !== null))].join(", "),
     notes: tv.notes,
@@ -84,7 +87,7 @@ export default async function TrainDetailPage({
   return (
     <div className="mx-auto max-w-7xl">
       <Link
-        href="/soupravy"
+        href={`/soupravy?druh=${train.kind}`}
         className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
       >
         &larr; Zpět na vlaky
@@ -119,7 +122,7 @@ export default async function TrainDetailPage({
       </div>
 
       <div className="rounded-lg border border-divider bg-surface p-6">
-        <h2 className="mb-4 text-lg font-semibold">Řazení soupravy</h2>
+        <h2 className="mb-4 text-lg font-semibold">Řazení {train.kind === "freight" ? "nákladní" : "osobní"} soupravy</h2>
         <TrainComposition vehicles={trainVehicles} />
       </div>
 
@@ -127,6 +130,7 @@ export default async function TrainDetailPage({
       <div className="mt-8">
         <TrainVehicleManager
           trainId={trainId}
+          kind={train.kind}
           trainVehicles={managerRows}
           allVehicles={allVehicles}
         />

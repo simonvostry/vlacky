@@ -18,7 +18,7 @@ export async function collectionSnapshot(includeTemplates = false) {
   const visibleIds = new Set(visible.map(v => Number(v.id)));
   const exportedVehicles = await Promise.all(visible.map(async v => ({
     sourceId: `vlacky:vehicle:${v.id}`, id: Number(v.id), recordType: v.is_template ? "template" : "owned",
-    type: String(v.type), designation: String(v.designation), operator: string(v.operator), classType: string(v.class_type),
+    type: String(v.type), wagonKind: v.type === "wagon" ? string(v.wagon_kind) ?? "passenger" : null, designation: String(v.designation), operator: string(v.operator), classType: string(v.class_type),
     modelManufacturer: string(v.manufacturer), catalogNumber: string(v.catalog_number), notes: string(v.notes),
     dccAddress: number(v.dcc_address),
     referenceOnly: { speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
@@ -41,11 +41,11 @@ export async function collectionSnapshot(includeTemplates = false) {
       excludedTrains.push({ sourceId: `vlacky:train:${t.id}`, reason: "Contains an excluded template or missing vehicle; omitted to prevent incomplete composition." });
       return [];
     }
-    return [{ sourceId: `vlacky:train:${t.id}`, id: Number(t.id), number: string(t.number), name: string(t.name), category: string(t.category), notes: string(t.notes),
+    return [{ sourceId: `vlacky:train:${t.id}`, id: Number(t.id), kind: string(t.kind) ?? "passenger", number: string(t.number), name: string(t.name), category: string(t.category), notes: string(t.notes),
       referenceOnly: { route: string(t.route), era: string(t.era) },
       composition: rows.map(c => ({ sourceId: `vlacky:assignment:${c.id}`, position: Number(c.position), vehicleSourceId: `vlacky:vehicle:${c.vehicle_id}`, notes: string(c.notes), orientation: null })),
     }];
   });
-  const data = { schemaVersion: "1.1", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
+  const data = { schemaVersion: "1.2", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
   return { ...data, revision: createHash("sha256").update(JSON.stringify(data)).digest("hex"), generatedAt: new Date().toISOString() };
 }

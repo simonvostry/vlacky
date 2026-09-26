@@ -14,8 +14,8 @@ test("speed profile CRUD is authenticated, latest-only, lossless and concurrency
   const directory = mkdtempSync(join(tmpdir(), "vlacky-speed-"));
   const path = join(directory, "test.db");
   const sqlite = new Database(path);
-  sqlite.exec(`CREATE TABLE vehicles (id INTEGER PRIMARY KEY, designation TEXT NOT NULL, operator TEXT, type TEXT NOT NULL, class_type TEXT, image_path TEXT, image_width INTEGER, image_height INTEGER, manufacturer TEXT, catalog_number TEXT, catalog_id INTEGER, catalog_image_id INTEGER, dcc_address INTEGER, is_template INTEGER NOT NULL DEFAULT 0, notes TEXT, created_at TEXT NOT NULL DEFAULT '2026-09-05');
-    CREATE TABLE trains (id INTEGER PRIMARY KEY, number TEXT, name TEXT, category TEXT, route TEXT, era TEXT, notes TEXT, created_at TEXT);
+  sqlite.exec(`CREATE TABLE vehicles (id INTEGER PRIMARY KEY, designation TEXT NOT NULL, operator TEXT, type TEXT NOT NULL, wagon_kind TEXT NOT NULL DEFAULT 'passenger', class_type TEXT, image_path TEXT, image_width INTEGER, image_height INTEGER, manufacturer TEXT, catalog_number TEXT, catalog_id INTEGER, catalog_image_id INTEGER, dcc_address INTEGER, is_template INTEGER NOT NULL DEFAULT 0, notes TEXT, created_at TEXT NOT NULL DEFAULT '2026-09-05');
+    CREATE TABLE trains (id INTEGER PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'passenger', number TEXT, name TEXT, category TEXT, route TEXT, era TEXT, notes TEXT, created_at TEXT);
     CREATE TABLE train_vehicles (id INTEGER PRIMARY KEY, train_id INTEGER REFERENCES trains(id), vehicle_id INTEGER REFERENCES vehicles(id) ON DELETE CASCADE, position INTEGER, dcc_address_override INTEGER, lighting_decoder_address INTEGER, notes TEXT);
     CREATE TABLE decoder_functions (id INTEGER PRIMARY KEY, vehicle_id INTEGER REFERENCES vehicles(id) ON DELETE CASCADE, function_number INTEGER NOT NULL, label TEXT NOT NULL, description TEXT);
     INSERT INTO vehicles (id, designation, type, dcc_address) VALUES (1, 'Test locomotive', 'loco', 3), (2, 'Test wagon', 'wagon', NULL);

@@ -1,3 +1,4 @@
+import { isTrafficKind } from "@/lib/vehicle-kind";
 import { authorizeApiRequest } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
@@ -27,9 +28,11 @@ export async function PUT(
   if (denied) return denied;
   const { id } = await params;
   const body = await request.json();
+  if (body.kind !== undefined && !isTrafficKind(body.kind)) return NextResponse.json({ error: "Neplatný druh soupravy." }, { status: 400 });
   const train = await db
     .update(schema.trains)
     .set({
+      kind: body.kind,
       number: body.number || null,
       name: body.name || null,
       category: body.category || null,

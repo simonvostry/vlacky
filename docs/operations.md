@@ -26,6 +26,7 @@ Neither is required to build the app from Git.
 npm run build
 npm run test:theme
 npm run test:train-display
+npm run test:freight
 npm run test:auth
 npm run test:auth-http
 npm run test:decoders
@@ -52,6 +53,7 @@ migration logic. These scripts load `.env.local`, so inspect the target before r
 | --- | --- |
 | `npm run db:migrate-decoders` | `DECODER_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-integration` | `INTEGRATION_MIGRATION_URL=file:/absolute/path.db` |
+| `npm run db:migrate-freight` | `FREIGHT_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-speed-profiles` | `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db` |
 
 Apply required migrations to a backed-up, intended database before deploying code
@@ -98,3 +100,17 @@ The last recorded MCP client/export origin uses the Vercel alias. Moving it to t
 custom hostname remains a separate configuration task: verify `VLACKY_PUBLIC_URL`,
 client URLs and source identity mappings together. Do not silently change identity
 scope as part of documentation or styling work.
+
+## Freight support migration
+
+Before deploying freight support, back up the intended database and run
+`npm run db:migrate-freight`. Override the target with
+`FREIGHT_MIGRATION_URL=file:/absolute/test.db` for a disposable copy. The migration
+adds `wagon_kind` to vehicles/catalog and `kind` to trains, defaults existing rows
+to `passenger`, and is transactional and idempotent. It never rebuilds tables or
+changes memberships, model identities, DCC settings or measured profiles.
+
+After building, `npm run test:freight` exercises migration preservation and repeat
+execution, owned freight creation, filtered collections, shared locomotive assembly,
+legacy edits, authentication-compatible pages and snapshot classification. No sample
+freight vehicles are inserted into the real collection.

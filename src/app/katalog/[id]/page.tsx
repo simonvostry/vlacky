@@ -1,3 +1,4 @@
+import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
@@ -72,13 +73,14 @@ export default async function CatalogDetailPage({
         {images.length > 0 && (
           <div className="mb-6 space-y-3">
             {images.map((img) => {
-              const section = entry.type === "loco" ? "lokomotivy" : "vozy";
+              const section = vehicleSection(entry);
               const addParams = new URLSearchParams({
                 catalogId: String(entry.id),
                 catalogImageId: String(img.id),
                 designation: entry.fullDesignation,
                 operator: entry.operator,
                 type: entry.type,
+                druh: entry.wagonKind,
                 classType: entry.classType || "",
                 imagePath: img.imagePath,
                 imageWidth: String(img.imageWidth || ""),

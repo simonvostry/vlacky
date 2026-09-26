@@ -39,6 +39,7 @@ export default async function EditTrainPage({
       <TrainForm
         train={{
           id: train.id,
+          kind: train.kind,
           number: train.number || "",
           name: train.name || "",
           category: train.category || "",
