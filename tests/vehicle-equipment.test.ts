@@ -28,3 +28,24 @@ test('equipment migration preserves legacy data, initializes each end, and never
     for (const key of fields) {assert.equal(fresh[key],0);assert.throws(()=>db.exec(`UPDATE vehicles SET ${key}=NULL WHERE id=5`));assert.throws(()=>db.exec(`UPDATE vehicles SET ${key}=2 WHERE id=5`));}
   } finally {db.close();rmSync(directory,{recursive:true,force:true});}
 });
+
+test('lighting migration replaces only unknown values and defaults legacy inserts to No', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'vlacky-lighting-'));
+  const path = join(directory, 'test.db');
+  const db = new Database(path);
+  try {
+    db.exec(`PRAGMA foreign_keys=ON;
+      CREATE TABLE vehicles (id INTEGER PRIMARY KEY, has_lights INTEGER, dcc_address INTEGER, notes TEXT);
+      CREATE TABLE assigned (vehicle_id INTEGER REFERENCES vehicles(id));
+      INSERT INTO vehicles VALUES (1,1,44,'Keep Yes'),(2,0,NULL,'Keep No'),(3,NULL,36,'Default No');
+      INSERT INTO assigned VALUES (1),(3);`);
+    const migrate = () => execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], {env:{...process.env,LIGHTING_MIGRATION_URL:`file:${path}`}});
+    const expected = db.prepare('SELECT * FROM vehicles').all().map(row => ({...(row as Record<string, unknown>), has_lights: (row as {has_lights:number|null}).has_lights ?? 0}));
+    migrate();assert.deepEqual(db.prepare('SELECT * FROM vehicles').all(),expected);
+    db.exec("INSERT INTO vehicles(id,notes) VALUES(4,'Omitted'); INSERT INTO vehicles(id,has_lights) VALUES(5,NULL); UPDATE vehicles SET has_lights=NULL WHERE id=2");
+    assert.deepEqual(db.prepare('SELECT has_lights FROM vehicles ORDER BY id').all(),[{has_lights:1},{has_lights:0},{has_lights:0},{has_lights:0},{has_lights:0}]);
+    const saved=db.prepare('SELECT * FROM vehicles').all();migrate();assert.deepEqual(db.prepare('SELECT * FROM vehicles').all(),saved);
+    assert.deepEqual(db.prepare('SELECT * FROM assigned').all(),[{vehicle_id:1},{vehicle_id:3}]);
+    assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
+  } finally {db.close();rmSync(directory,{recursive:true,force:true});}
+});

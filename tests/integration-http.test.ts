@@ -45,6 +45,7 @@ test("hosted MCP and image API export read-only collection with preservation con
   sqlite.prepare('INSERT INTO vehicle_speed_profiles (vehicle_id, profile, updated_at) VALUES (?, ?, ?)').run(1, JSON.stringify(fixture), 'fixture-token');
   execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   const origin = 'http://localhost:3109';
   const token = randomBytes(32).toString('base64url');
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', '3109'], {env:{...process.env, NODE_ENV:'production', AUTH_SECRET:randomBytes(48).toString('base64url'), AUTH_ALLOWED_EMAIL:'mcp-test@example.com', AUTH_GOOGLE_ID:'test', AUTH_GOOGLE_SECRET:'test', AUTH_URL:origin, AUTH_TRUST_HOST:'true', VLACKY_MCP_TOKEN:token, VLACKY_PUBLIC_URL:origin, TURSO_DATABASE_URL:url, TURSO_AUTH_TOKEN:'test-only'}, stdio:'pipe'});

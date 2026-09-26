@@ -15,7 +15,7 @@ const patchSchema = z.object({
   dccAddress: z.number().int().min(1).max(10239).nullable(), isTemplate: z.boolean(), notes: nullableText,
   magneticCouplerA: z.boolean(), magneticCouplerB: z.boolean(), hasTailLights: z.boolean(),
   hasSoundDecoder: z.boolean(), hasSpeaker: z.boolean(), isWeathered: z.boolean(),
-  magneticCouplers: z.boolean().nullable(), hasLights: z.boolean().nullable(), runningNumber: nullableText,
+  magneticCouplers: z.boolean().nullable(), hasLights: z.boolean().nullable().transform(v => v ?? false), runningNumber: nullableText,
 }).partial();
 const shared = {
   designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
@@ -39,7 +39,7 @@ async function insert(tx: Transaction, entries: [string, InValue][]) {
 }
 async function copyMany(tx: Transaction, source: Row, variantId: number, count: number) {
   if (count <= 0) return;
-  const entries: [string, InValue][] = [...Object.values(shared).map(k => [k, source[k] as InValue] as [string, InValue]), ['wagon_variant_id',variantId],['is_template',source.is_template as InValue],['created_at',new Date().toISOString()]];
+  const entries: [string, InValue][] = [...Object.values(shared).map(k => [k, source[k] as InValue] as [string, InValue]), ['has_lights',0],['wagon_variant_id',variantId],['is_template',source.is_template as InValue],['created_at',new Date().toISOString()]];
   await tx.execute({sql:`WITH RECURSIVE copies(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM copies WHERE n < ?)
     INSERT INTO vehicles (${entries.map(([k])=>k).join(',')}) SELECT ${entries.map(()=>'?').join(',')} FROM copies`,args:[count,...entries.map(([,v])=>v)]});
 }
@@ -59,6 +59,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
   if (body.editScope !== undefined && !['piece','variant'].includes(String(body.editScope))) throw new CollectionError('Neplatný rozsah úpravy.');
   return withWriteTransaction(async tx => {
     if (id === undefined) {
+      patch.hasLights ??= false;
       if (!patch.designation || !patch.type) throw new CollectionError('Vyplňte označení a typ vozidla.');
       const quantity = body.quantity ?? 1;
       if (!Number.isInteger(quantity) || Number(quantity) < 1 || Number(quantity) > 1000 || (patch.type !== 'wagon' && quantity !== 1)) throw new CollectionError('Počet kusů musí být 1–1000; lokomotivy přidávejte jednotlivě.');

@@ -9,4 +9,4 @@ export function groupVehicles<T extends { id: number; type: string; wagonVariant
   }
   return [...groups.entries()].map(([key, pieces]) => ({ key, vehicle: pieces[0], pieces }));
 }
-export function equipmentLabel(value: boolean | null) { return value == null ? 'Nezjištěno' : value ? 'Ano' : 'Ne'; }
+export function equipmentLabel(value: boolean | null) { return value ? 'Ano' : 'Ne'; }

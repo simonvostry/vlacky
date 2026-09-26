@@ -1,3 +1,4 @@
+import { modelManufacturerOptions } from "@/lib/manufacturer-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { VehicleForm } from "@/components/vehicle-form";
 
@@ -30,7 +31,7 @@ export default async function NewLocoPage({
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-6 text-2xl font-bold">Nová lokomotiva</h1>
-      <VehicleForm vehicle={prefill} />
+      <VehicleForm manufacturers={await modelManufacturerOptions()} vehicle={prefill} />
     </div>
   );
 }

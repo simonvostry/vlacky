@@ -56,6 +56,7 @@ migration logic. These scripts load `.env.local`, so inspect the target before r
 | `npm run db:migrate-decoders` | `DECODER_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-integration` | `INTEGRATION_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-vehicle-equipment` | `VEHICLE_EQUIPMENT_MIGRATION_URL=file:/absolute/test.db` |
+| `npm run db:migrate-lighting-defaults` | `LIGHTING_MIGRATION_URL=file:/absolute/test.db` |
 | `npm run db:migrate-wagon-variants` | `WAGON_VARIANTS_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-freight` | `FREIGHT_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-speed-profiles` | `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db` |
@@ -157,3 +158,10 @@ freight, decoder, integration, speed-profile and authentication suites after bui
 Check passenger/freight and locomotive editing in both themes/narrow layouts,
 per-piece independence, copy defaults, mixed coupler ends, speaker-only wagons,
 weathering and the train picker/placement hint against a disposable database.
+
+`npm run db:migrate-lighting-defaults` converts only null general-lighting values to
+false, preserving explicit Yes/No and all other data. Back up before applying. It
+adds insert/update fallback triggers so legacy nullable tables default omitted/null
+lighting to No without rebuilding vehicles or foreign keys. Fresh schemas have a
+NOT NULL false default. The vehicle-equipment suite checks preservation, repeat
+execution and legacy writes; the wagon-variant suite checks app defaults and copies.

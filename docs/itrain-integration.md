@@ -110,7 +110,8 @@ per physical piece. Group/image changes do not remap any iTrain identity.
 
 Snapshot schema `1.4` adds `referenceOnly.magneticCouplerA`, `magneticCouplerB`,
 `hasTailLights`, `hasSoundDecoder`, `hasSpeaker` and `isWeathered`, all booleans.
-General `hasLights` remains independent and nullable. The deprecated aggregate
+General `hasLights` remains independent and exports a boolean; former unknown
+lighting values now mean false, per the collection's default-No policy. The deprecated aggregate
 `magneticCouplers` is true/false when both ends agree and null for mixed ends;
 consumers should read the two explicit ends. A/B are fixed physical ends, not an
 instruction to change iTrain orientation. Weathering applies to locos and wagons.

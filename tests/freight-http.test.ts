@@ -45,6 +45,7 @@ test("freight migration, separate collections, shared locomotives and preservati
     INSERT INTO catalog_images VALUES (2, 2, '/img/test.gif', 100, 20, NULL, NULL, 0);`);
   execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   const origin = 'http://localhost:3113';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';

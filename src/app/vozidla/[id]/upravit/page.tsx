@@ -1,3 +1,4 @@
+import { modelManufacturerOptions } from "@/lib/manufacturer-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
@@ -36,7 +37,7 @@ export default async function EditVehiclePage({
       <h1 className="mb-6 text-2xl font-bold">
         Upravit: {vehicle.designation}
       </h1>
-      <VehicleForm
+      <VehicleForm manufacturers={await modelManufacturerOptions()}
         vehicle={{
           id: vehicle.id,
           magneticCouplerA: vehicle.magneticCouplerA,

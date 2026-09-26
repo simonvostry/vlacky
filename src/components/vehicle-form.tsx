@@ -1,6 +1,7 @@
 "use client";
 
 import { wagonEquipmentFields } from "@/lib/vehicle-equipment";
+import { manufacturerKey, manufacturerName, manufacturerOptions } from "@/lib/model-manufacturers";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,7 +36,7 @@ type Vehicle = {
 
 const defaults: Vehicle = {
   magneticCouplerA: false, magneticCouplerB: false, hasTailLights: false,
-  hasSoundDecoder: false, hasSpeaker: false, isWeathered: false,
+  hasSoundDecoder: false, hasSpeaker: false, isWeathered: false, hasLights: false,
   designation: "",
   isTemplate: false,
   operator: "",
@@ -51,13 +52,17 @@ const defaults: Vehicle = {
   notes: "",
 };
 
-export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
+export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle; manufacturers?: string[] }) {
   const router = useRouter();
-  const [form, setForm] = useState<Vehicle>({ ...defaults, ...vehicle });
+  const [form, setForm] = useState<Vehicle>({ ...defaults, ...vehicle, hasLights: vehicle?.hasLights ?? false });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [editScope, setEditScope] = useState("piece");
   const [quantity, setQuantity] = useState(1);
+  const [customManufacturer, setCustomManufacturer] = useState(false);
+  const manufacturerChoices = manufacturerOptions([...manufacturers, vehicle?.manufacturer ?? null]);
+  const selectedManufacturer = manufacturerChoices.find(name => manufacturerKey(name) === manufacturerKey(form.manufacturer)) ?? manufacturerName(form.manufacturer);
+  const couplerMode = form.magneticCouplerA && form.magneticCouplerB ? 'both' : form.magneticCouplerA || form.magneticCouplerB ? 'one' : 'none';
 
   const isEdit = !!vehicle?.id;
 
@@ -75,6 +80,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          manufacturer: customManufacturer ? form.manufacturer.trim() : form.manufacturer,
           editScope,
           quantity: form.type === "wagon" ? quantity : 1,
           dccAddress: form.dccAddress || null,
@@ -125,7 +131,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       </div>}
       {form.type === 'wagon' && !isEdit && <label className="block text-sm font-medium">Počet kusů
         <input type="number" min={1} max={1000} step={1} required value={quantity} onChange={e=>setQuantity(Number(e.target.value))} className="mt-1 block w-28 rounded-md border border-control px-3 py-2" />
-        <span className="mt-1 block font-normal text-secondary">DCC a výbava se při vytvoření vyplní jen prvnímu kusu; ostatní zůstanou nezjištěné.</span>
+        <span className="mt-1 block font-normal text-secondary">DCC a výbava se při vytvoření vyplní jen prvnímu kusu; u ostatních bude výbava nastavena na Ne a DCC zůstane prázdné.</span>
       </label>}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -228,13 +234,25 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label className="mb-1 block text-sm font-medium">Výrobce</label>
-          <input
-            value={form.manufacturer}
-            onChange={(e) => set("manufacturer", e.target.value)}
+          <label htmlFor="model-manufacturer" className="mb-1 block text-sm font-medium">Výrobce</label>
+          <select
+            id="model-manufacturer"
+            value={customManufacturer ? '__custom__' : selectedManufacturer}
+            onChange={(e) => {
+              const custom = e.target.value === '__custom__';
+              setCustomManufacturer(custom);
+              set("manufacturer", custom ? '' : e.target.value);
+            }}
             className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
-            placeholder="Roco, ACME..."
-          />
+          >
+            <option value="">Nevyplněno</option>
+            {manufacturerChoices.map(name => <option key={name} value={name}>{name}</option>)}
+            <option value="__custom__">Jiný výrobce…</option>
+          </select>
+          {customManufacturer && <div className="mt-2">
+            <label htmlFor="custom-manufacturer" className="mb-1 block text-sm font-medium">Název výrobce</label>
+            <input id="custom-manufacturer" required value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} className="w-full rounded-md border border-control px-3 py-2 text-sm" />
+          </div>}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">
@@ -269,17 +287,34 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
       {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">
         <legend className="px-2 text-sm font-semibold">Výbava konkrétního kusu{vehicle?.id ? ` #${vehicle.id}` : ''}</legend>
-        <p className="text-xs text-secondary sm:col-span-2">A a B označují stále stejné konce konkrétního vozu, i když jej v soupravě otočíte. Nezaškrtnuto znamená Ne.</p>
-        {wagonEquipmentFields.map(([key,label]) => <label key={key} className="flex min-h-9 items-center gap-2 text-sm">
+        <div>
+          <label htmlFor="magnetic-couplers" className="mb-1 block text-sm font-medium">Magnetická spřáhla</label>
+          <select id="magnetic-couplers" value={couplerMode} onChange={e => {
+            const mode = e.target.value;
+            setForm(f => ({ ...f, magneticCouplerA: mode === 'both' || (mode === 'one' && !f.magneticCouplerB), magneticCouplerB: mode === 'both' || (mode === 'one' && !!f.magneticCouplerB) }));
+          }} className="w-full rounded-md border border-control px-3 py-2 text-sm">
+            <option value="none">Bez magnetických spřáhel</option>
+            <option value="one">Na jednom konci</option>
+            <option value="both">Na obou koncích</option>
+          </select>
+        </div>
+        {couplerMode === 'one' && <div>
+          <label htmlFor="magnetic-coupler-end" className="mb-1 block text-sm font-medium">Magnetický konec</label>
+          <select id="magnetic-coupler-end" value={form.magneticCouplerB ? 'B' : 'A'} onChange={e => setForm(f => ({ ...f, magneticCouplerA: e.target.value === 'A', magneticCouplerB: e.target.value === 'B' }))} className="w-full rounded-md border border-control px-3 py-2 text-sm">
+            <option value="A">Konec A</option><option value="B">Konec B</option>
+          </select>
+          <p className="mt-1 text-xs text-secondary">A a B jsou pevné konce vozu, nezávislé na otočení v soupravě.</p>
+        </div>}
+        {wagonEquipmentFields.filter(([key]) => key !== 'magneticCouplerA' && key !== 'magneticCouplerB').map(([key,label]) => <label key={key} className="flex min-h-9 items-center gap-2 text-sm">
           <input type="checkbox" checked={form[key] ?? false} onChange={e=>set(key,e.target.checked)} />{label}
         </label>)}
         <p className="text-xs text-secondary sm:col-span-2">Reproduktor evidujte samostatně, i když je připojen k dekodéru v lokomotivě. V soupravě tak snadno vyberete tento kus hned za lokomotivu.</p>
         <div className="text-sm font-medium">
           <label htmlFor="hasLights">Osvětlení vozu</label>
-          <select id="hasLights" value={form.hasLights == null ? '' : String(form.hasLights)} onChange={e=>set('hasLights',e.target.value === '' ? null : e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
-            <option value="">Nezjištěno</option><option value="true">Ano</option><option value="false">Ne</option>
+          <select id="hasLights" value={String(form.hasLights ?? false)} onChange={e=>set('hasLights',e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
+            <option value="false">Ne</option><option value="true">Ano</option>
           </select>
-          <p className="mt-1 text-xs font-normal text-secondary">Stávající údaj o osvětlení; koncová světla evidujte zvlášť.</p>
+          <p className="mt-1 text-xs font-normal text-secondary">Koncová světla evidujte zvlášť.</p>
         </div>
         <label className="text-sm font-medium sm:col-span-2">Číslo / označení konkrétního kusu
           <input value={form.runningNumber ?? ''} onChange={e=>set('runningNumber',e.target.value)} className="mt-1 block w-full rounded-md border border-control px-3 py-2" />

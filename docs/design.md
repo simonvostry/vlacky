@@ -206,7 +206,7 @@ Display filters affect identity labels, never the quantity. The detail route rem
 the physical vehicle URL for compatibility; its shared image is followed by “Moje
 kusy” and the selected piece's notes, DCC and appearances. Individual piece rows
 show stable IDs, optional running numbers and per-piece equipment/weathering values,
-with accessible pencil actions. General lighting retains Ano / Ne / Nezjištěno. Selection uses `bg-selected`.
+with accessible pencil actions. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
 The edit form explicitly offers a single-piece or whole-variant scope for shared
 model/artwork fields. Its physical settings always affect only the selected piece.
@@ -287,6 +287,13 @@ Model manufacturers remain stored as text; missing values are not inferred from
 artwork or catalog links. Catalog prototype builders and decoder manufacturers are
 separate fields and retain their existing presentation. No database migration is needed.
 
+Vehicle creation/editing uses a manufacturer dropdown sourced from the shared
+`model-manufacturers.ts` logo/name registry plus distinct model makers already stored
+on vehicles. Choices are loaded server-side after authentication. Known aliases show
+their canonical label; merely opening/saving does not rewrite the stored name.
+“Jiný výrobce…” allows an additional name, which becomes a choice after saving.
+Unknown manufacturers remain usable without a logo; blank stays “Nevyplněno”.
+
 The registry covers the collection's Fleischmann, Minitrix, REE Models and Sudexpress.
 Matching ignores case, accents and extra spaces; REE Modèles and Sud Express are
 explicit aliases. Unknown names retain readable text. Logos preserve proportions,
@@ -308,10 +315,13 @@ Research PDFs, source downloads and review captures stay in ignored output/.
 
 ### Physical equipment controls
 
-Wagon edit forms use checkboxes for magnetic couplers at fixed ends A/B, red tail
-lights, an installed sound decoder and a built-in speaker. Unchecked means No.
-General lighting remains a separate nullable field; it is not reinterpreted as tail
-lights. The independent “Patinováno” checkbox is available for both locomotives and
+Wagon edit forms use a magnetic-coupler dropdown: none, one end, or both ends.
+Only the one-end choice reveals an A/B selector. Existing A-only/B-only values
+remain intact; A/B still identify fixed physical ends, not train direction.
+Red tail lights, an installed sound decoder and a built-in speaker use checkboxes.
+Unchecked means No. General lighting is a separate Ano / Ne dropdown, default Ne;
+legacy unknown values become Ne and are not reinterpreted as tail lights.
+The independent “Patinováno” checkbox is available for both locomotives and
 wagons. These settings always describe the selected physical piece, not its siblings.
 
 Wagon piece lists show explicit Yes/No values; locomotive details show weathering.

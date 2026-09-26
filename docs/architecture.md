@@ -153,8 +153,8 @@ migration after such imports, or migrate the importer to this write boundary.
 
 Creating a wagon reuses an exact pictured model/catalog match, or creates a new
 variant. Quantity creates separate physical rows; only the first new row receives
-explicit individual configuration. Additional copies default the new equipment/weathering flags to false, retain unknown
-general lighting, and have blank DCC, running number and notes, and no decoder/profile cloning. The quantity
+explicit individual configuration. Additional copies default all equipment, general lighting and weathering flags to false,
+and have blank DCC, running number and notes, and no decoder/profile cloning. The quantity
 editor also uses actual rows, requires an expected count and explicit IDs for a
 reduction, and refuses to delete any piece still used in a composition. Explicit
 piece deletion has the same membership guard; deleting an unassigned piece removes
@@ -173,7 +173,7 @@ better-sqlite3 transactions. API edits to a membership must match its parent tra
 
 `vehicles.magneticCouplerA` and `magneticCouplerB` describe fixed physical ends A/B,
 not current train direction. `hasTailLights` records red tail lights separately from
-the existing nullable `hasLights` general-lighting field. `hasSoundDecoder` and
+the `hasLights` general-lighting flag (Yes/No, default false). `hasSoundDecoder` and
 `hasSpeaker` are independent inventory flags: a wagon speaker can be wired to a
 locomotive decoder. These flags neither create decoder configurations nor infer them
 from sound-project names/functions. `isWeathered` records applied weathering for
@@ -189,3 +189,11 @@ migration initializes each new end from its old whole-wagon value (null becomes 
 and never resets existing end columns on repeat. Legacy non-null API edits set both
 ends only if neither explicit end is supplied. End edits refresh the old projection:
 same values produce true/false; mixed ends produce null. The UI uses only end fields.
+
+General lighting has no unknown state. New records and quantity copies explicitly
+default `hasLights` to false. Legacy API null is normalized to false; omission on an
+edit preserves the saved value. The lighting migration converts existing nulls and
+adds fallback triggers for old importers on existing nullable SQLite columns; fresh
+schemas use NOT NULL DEFAULT 0. Manufacturer choices share the logo registry and
+stored vehicle names; selecting a maker still writes its name without changing
+catalog identity, decoder makers or prototype builders.

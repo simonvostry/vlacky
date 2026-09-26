@@ -26,7 +26,7 @@ export async function collectionSnapshot(includeTemplates = false) {
       magneticCouplerA: Boolean(v.magnetic_coupler_a), magneticCouplerB: Boolean(v.magnetic_coupler_b),
       hasTailLights: Boolean(v.has_tail_lights), hasSoundDecoder: Boolean(v.has_sound_decoder),
       hasSpeaker: Boolean(v.has_speaker), isWeathered: Boolean(v.is_weathered),
-      hasLights: v.has_lights == null ? null : Boolean(v.has_lights), speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
+      hasLights: Boolean(v.has_lights), speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
     image: await imageManifest(Number(v.id), string(v.image_path)),
     decoders: decoders.filter(d => d.vehicle_id === v.id).map(d => ({
       sourceId: `vlacky:decoder:${d.id}`, id: String(d.id), name: String(d.name), manufacturer: String(d.manufacturer), model: String(d.model),

@@ -20,7 +20,7 @@ export const vehicles = sqliteTable("vehicles", {
   catalogImageId: integer("catalog_image_id").references(() => catalogImages.id),
   wagonVariantId: integer("wagon_variant_id").references(() => wagonVariants.id),
   magneticCouplers: integer("magnetic_couplers", { mode: "boolean" }),
-  hasLights: integer("has_lights", { mode: "boolean" }),
+  hasLights: integer("has_lights", { mode: "boolean" }).notNull().default(false),
   magneticCouplerA: integer("magnetic_coupler_a", { mode: "boolean" }).notNull().default(false),
   magneticCouplerB: integer("magnetic_coupler_b", { mode: "boolean" }).notNull().default(false),
   hasTailLights: integer("has_tail_lights", { mode: "boolean" }).notNull().default(false),
