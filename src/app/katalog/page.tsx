@@ -2,7 +2,6 @@ import { CollectionFilters } from "@/components/collection-filters";
 import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
-import React from "react";
 import { db, schema } from "@/db";
 import Link from "next/link";
 import { OperatorLogo } from "@/components/operator-logo";
@@ -97,19 +96,19 @@ export default async function CatalogPage({
           {entries.map((e) => {
             const images = imagesByCatalog.get(e.id) || [];
             const scaledW = Math.round((e.imageWidth || 264) * SCALE);
-            const tileWidth = scaledW + 24;
+            const tileWidth = Math.max(scaledW, ...images.map(img => Math.round((img.imageWidth || 264) * SCALE))) + 24;
             return (
               <Link
                 key={e.id}
                 href={`/katalog/${e.id}`}
                 aria-label={`${e.operator} ${e.fullDesignation}`}
-                className="group flex shrink-0 flex-col justify-center rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
+                className="group flex shrink-0 flex-col rounded border border-divider px-2 py-2 transition-colors hover:bg-accent-soft"
                 style={{ width: tileWidth }}
               >
                 {/* Header: operator + designation + badges */}
-                <div className="mb-1 flex items-center justify-center gap-1 whitespace-nowrap text-[12px]" data-vehicle-label-row={showColors && images.length > 1 ? undefined : ""}>
+                <div className="mb-1 flex flex-wrap items-center justify-center gap-1 text-center text-[12px]" data-vehicle-label-row={showColors && images.length > 1 ? undefined : ""}>
                   <span data-vehicle-label="operator" className="inline-flex"><OperatorLogo operator={e.operator} height={12} /></span>
-                  <span data-vehicle-label="type" className="font-bold">{e.fullDesignation}</span>
+                  <span data-vehicle-label="type" className="min-w-0 [overflow-wrap:anywhere] font-bold">{e.fullDesignation}</span>
                   {e.classType === "1" && (
                     <span data-vehicle-label="class" className="rounded bg-amber-400 px-1 py-0 text-[9px] font-bold text-amber-900">1</span>
                   )}
@@ -140,18 +139,12 @@ export default async function CatalogPage({
 
                 {/* All livery variants stacked */}
                 {images.length > 0 ? (
-                  <div
-                    className="mx-auto grid items-center gap-y-1.5 gap-x-1"
-                    style={{
-                      gridTemplateColumns: "1fr auto 1fr",
-                    }}
-                  >
+                  <div className="flex w-full min-w-0 flex-col gap-3">
                     {images.map((img) => {
                       const w = Math.round((img.imageWidth || 264) * SCALE);
                       const h = Math.round((img.imageHeight || 41) * SCALE);
                       return (
-                        <React.Fragment key={img.id}>
-                          <div />
+                        <figure key={img.id} className="flex min-w-0 flex-col items-center gap-1">
                           <Image unoptimized
                             src={img.imagePath}
                             alt={`${e.fullDesignation} ${img.label || ""}`}
@@ -160,10 +153,12 @@ export default async function CatalogPage({
                             className="block shrink-0"
                             style={{ width: w, height: h, minWidth: w, maxWidth: "none" }}
                           />
-                          <span className="text-[8px] leading-none text-secondary whitespace-nowrap self-center">
-                            {img.label || ""}
-                          </span>
-                        </React.Fragment>
+                          {img.label && (
+                            <figcaption className="w-full text-center text-[10px] leading-snug text-secondary [overflow-wrap:anywhere]">
+                              {img.label}
+                            </figcaption>
+                          )}
+                        </figure>
                       );
                     })}
                   </div>

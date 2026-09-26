@@ -80,6 +80,11 @@ Grid tiles use wrapping flex layout with `shrink-0`, preserving vehicle proporti
 Tailwind's image reset. The locomotive header deliberately uses a responsive width
 expression. Long train compositions may scroll locally; the page must not overflow.
 
+Catalog color variants pair each image with a wrapping caption directly below it.
+Card width accommodates the widest displayed livery at the common 0.75× scale;
+long headings wrap within the card. Never place unbounded, non-wrapping descriptions
+beside the artwork, where they can spill over neighboring cards.
+
 ## Artwork pipeline
 
 [The image mapping](../src/lib/enhanced-vehicle-images.json) maps original source
