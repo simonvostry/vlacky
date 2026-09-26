@@ -140,3 +140,28 @@ native PNG and a 580 × 168 WebP derivative. Width-only resizing preserves the
 approved silhouette; trim transparent margins to keep couplers adjacent. The
 photograph, generation prompts and full-resolution master stay local. Markings
 in this reconstructed artwork are illustrative, not verified vehicle identities.
+
+### Common scale for new freight artwork
+
+For reconstructed freight side views, use **10 native display pixels per metre of
+prototype length over buffers**, rounded to the nearest pixel. A verified N-scale
+model length can corroborate this (`model mm × 160 / 1000` gives prototype metres).
+This is a common physical scale, not a fixed thumbnail width: the approximately
+14.5 m Uacs is 145 px; the 29.61 m Sggmrrs double wagon is 296 px. UI scale factors
+above apply equally to both. Keep permanently coupled double wagons as one owned
+model and one complete image; do not halve their recorded image length.
+
+Use a true perpendicular side elevation, align wheel contact baselines, and trim
+horizontal transparency to the outer coupling gear. Resize by width only to preserve
+the reconstructed silhouette; never stretch every wagon into a shared width/height.
+Keep the transparent 4× derivative consistent with the native canvas and verify with
+`check-train-image-edges.mjs`. Compare mixed wagons on both theme backgrounds.
+Record the dimension source and distinguish verified length from inferred height.
+Existing catalog artwork is not silently rescaled by this rule.
+
+`scripts/prepare-sggmrrs-images.mjs` exports the empty ČD Cargo Smart GigaWood from
+`output/freight-sggmrrs/master-v3.png` at 296 × 43 and 1184 × 172 px. Its 29.61 m
+length comes from [Innofreight's Smart GigaWood specification](https://www.innofreight.com/wp-content/uploads/2025/04/Smart_GigaWood_EN.pdf);
+the [model listing](https://www.itvlaky.cz/plosinove-n/n657009/) states 185 mm in N.
+Reference photos, prompts, discarded candidates and light/dark comparison boards
+remain local in `output/freight-sggmrrs/`.
