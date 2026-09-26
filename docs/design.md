@@ -132,3 +132,11 @@ screens. Both retain the compact top-bar add action and shared display preferenc
 Soupravy uses quiet Vše / Osobní / Nákladní filter buttons with the selected semantic
 surface. Freight forms omit passenger class controls; shared locomotives have no
 passenger/freight restriction.
+
+The yellow/brown ČSD Uacs (Raj) artwork is exported by
+`scripts/prepare-uacs-images.mjs` from the approved master in
+`output/freight-uacs/`. With no native side-elevation source, it uses a 145 × 42
+native PNG and a 580 × 168 WebP derivative. Width-only resizing preserves the
+approved silhouette; trim transparent margins to keep couplers adjacent. The
+photograph, generation prompts and full-resolution master stay local. Markings
+in this reconstructed artwork are illustrative, not verified vehicle identities.
