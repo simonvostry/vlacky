@@ -200,7 +200,7 @@ catalog identity, decoder makers or prototype builders.
 
 ## Collection filters
 
-The three owned collection pages compose URL filters: `op` (stored operator),
+The three owned collection pages and the reference catalog compose URL filters: `op` (stored operator),
 `rada` (vehicle series/designation), `pohon` (locomotive traction) and `skupina`
 (passenger construction group). `collection-filters.ts` owns pure classification
 and matching; the shared `CollectionFilters` control changes URLs without writes.
@@ -211,8 +211,9 @@ browser Back; filters are independent per collection, not global display prefere
 Wagons are grouped before filtering, preserving full variant quantities and IDs.
 
 Traction uses an explicit operator-scoped class registry, not the first digit of
-arbitrary foreign numbers. It covers the collection's electric 193, 362, 363, 371,
-388/388.2, diesel 642, 721, 751 and 754, their listed legacy names, and steam 498.0/1.
+arbitrary foreign numbers. It covers the current Czech catalog fleet and owned series, including electric
+193/362/363/371/388, diesel Desiro 642 and GTW 646, and steam 498.0/1.
+Unpowered intermediate vehicles such as 060/063 remain unclassified.
 Unknown classes/operators remain `Nezařazeno`; extend the registry with evidence
 when adding a new class. Sources include [ČD on 362/363](https://zeleznicar.cd.cz/zeleznicar/rozhovor/rostislav-novak--pronajate-lokomotivy-pojedou-do-nemecka-a-rakouska/-11142/18%2C0%2C%2C/),
 [ČD on 751/754](https://seznam.cd.cz/zeleznicar/historie/lokomotivy-rady-t-478-4-jezdi-uz-40-let/-22395/),
@@ -223,8 +224,8 @@ and [ČD on 498.1](https://zeleznicar.cd.cz/zeleznicar/tema/albatros--byla-jsi-k
 
 Passenger construction groups follow the broad [vagonWEB Y/24.5 m](https://www.vagonweb.cz/popisy/popisy.php?k=CD_Y)
 and [Z/26.4 m](https://www.vagonweb.cz/popisy/popisy.php?k=CD_Z) source sections,
-not a claim that every member meets precisely the same UIC standard. Bdmteeo has
-its own double-deck group. Compatible linked CD_Y/CD_Z/DLB_Z references take
+not a claim that every member meets precisely the same UIC standard. Bdmteeo/Bmto/Bmo/Bap have
+their own double-deck group. Compatible linked CD_Y/CD_Z/DLB_Z references take
 precedence; older ČD/ČSD entries may resolve via an unambiguous same-designation
 construction-table match. Generic source buckets (`rady`, `RJ`, historical lists)
 are not themselves construction families. A mismatched operator link is ignored;
@@ -235,3 +236,13 @@ links nor change the authoritative collection or iTrain export.
 Run `npm run test:collection-filters` for classification boundaries, combined
 matching and quantity preservation. Browser review covers all three galleries,
 light/dark, 390/1440 px, combined controls, no results/reset and URL refresh/Back.
+
+
+Catalog filters reuse the same controls and classification. Its operator choices
+come from all entries in the selected vehicle category, including freight operators.
+Existing `typ` and `barvy` controls stay in the navigation; changing category clears
+series/traction/family but retains operator and color visibility. Resetting the row
+retains category/color visibility. On the all-types view, selecting traction excludes
+wagons, and selecting construction group excludes locomotives/freight even for
+“Nezařazeno”. ČSD continues to include catalog entries labeled ČSD/ČD. The series
+filter includes each catalog entry's numeric code to distinguish wagon subtypes.

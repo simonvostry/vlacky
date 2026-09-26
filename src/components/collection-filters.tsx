@@ -4,9 +4,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import type { FilterKey, FilterOption } from "@/lib/collection-filters";
 
-export function CollectionFilters({ filters, count, total, wagons = false }: {
+export function CollectionFilters({ filters, count, total, wagons = false, catalog = false }: {
   filters: { key: FilterKey; label: string; options: FilterOption[] }[];
-  count: number; total: number; wagons?: boolean;
+  count: number; total: number; wagons?: boolean; catalog?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export function CollectionFilters({ filters, count, total, wagons = false }: {
         </label>;
       })}
       {active && <button type="button" onClick={() => update()} disabled={pending} className="ui-button ui-button-quiet">Zrušit filtry</button>}
-      <p role="status" className="w-full pb-2 text-xs tabular-nums text-secondary sm:ml-auto sm:w-auto">{count} / {total} {wagons ? "variant" : "lokomotiv"}</p>
+      <p role="status" className="w-full pb-2 text-xs tabular-nums text-secondary sm:ml-auto sm:w-auto">{count} / {total} {catalog ? "typů vozidel" : wagons ? "variant" : "lokomotiv"}</p>
     </section>
   );
 }

@@ -342,7 +342,7 @@ artwork keep their previous behavior.
 
 ### Collection filtering
 
-Locomotive and wagon galleries have a compact wrapping row above their tiles:
+Locomotive/wagon galleries and the reference catalog have a compact wrapping row above their tiles:
 Dopravce + Řada everywhere, Pohon for locomotives, Konstrukční skupina for passenger
 wagons. Use shared themed native selects with visible labels, a result count and
 “Zrušit filtry” only when a filter is active. Wagon counts describe variants; each
@@ -354,3 +354,18 @@ These controls filter records and are separate from the top navigation's four
 show/hide-label preferences. Choices combine, live in the page URL, and remain
 usable by keyboard. Pending navigation disables controls to avoid conflicting
 updates. On narrow screens the fields wrap; no horizontal page overflow is allowed.
+
+
+The catalog uses the same filter row with a count of reference types, replacing
+its previous fixed four-operator buttons. Category and “Barevné varianty” controls
+stay in the top navigation. Traction/construction controls appear only for relevant
+categories (both in Vše); all available catalog operators are selectable.
+
+`scripts/prepare-doubledeck-images.mjs` exports the owned ČD blue/grey/red-door
+and ČSD navy/yellow-lettered double-deck liveries from private masters under
+`output/wagon-107/` and `output/wagon-108/`. The supplied Fleischmann 6260093 and
+6260092 set photographs guide colors/details. Unique `img/owned/doubledeck-*-v1`
+assets preserve the original catalog GIFs; only the image fields of the respective
+owned variant members change, through the wagon storage service. Keep their 268 px
+native length, width-only proportions, transparent 4× previews and full-resolution
+zoom; a photo's fine markings do not override stored identity or equipment.

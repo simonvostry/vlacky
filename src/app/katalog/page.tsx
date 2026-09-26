@@ -1,3 +1,5 @@
+import { CollectionFilters } from "@/components/collection-filters";
+import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
 import React from "react";
@@ -12,10 +14,12 @@ const SCALE = 0.75;
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ typ?: string; barvy?: string; op?: string }>;
+  searchParams: Promise<CollectionSearch & { typ?: string; barvy?: string }>;
 }) {
   await requireUser();
-  const { typ, barvy, op } = await searchParams;
+  const search = await searchParams;
+  const { typ, barvy } = search;
+  const selected = selectedFilters(search);
   const showColors = barvy === "1";
 
   const allEntries = await db
@@ -27,18 +31,25 @@ export default async function CatalogPage({
     )
     .all();
 
-  const entries = allEntries.filter((e) => {
-    if (typ === "freight" && (e.type !== "wagon" || e.wagonKind !== "freight")) return false;
-    if (typ === "wagon" && (e.type !== "wagon" || e.wagonKind !== "passenger")) return false;
-    if (typ === "loco" && e.type !== "loco") return false;
-    if (op) {
-      if (op === "ČSD") {
-        if (e.operator !== "ČSD" && e.operator !== "ČSD/ČD") return false;
-      } else {
-        if (e.operator !== op) return false;
-      }
-    }
+  const categoryEntries = allEntries.filter(e => {
+    if (typ === "freight") return e.type === "wagon" && e.wagonKind === "freight";
+    if (typ === "wagon") return e.type === "wagon" && e.wagonKind === "passenger";
+    if (typ === "loco") return e.type === "loco";
     return true;
+  });
+  const keys: FilterKey[] = ["op", "rada"];
+  if (!typ || typ === "loco") keys.push("pohon");
+  if (!typ || typ === "wagon") keys.push("skupina");
+  const facets = categoryEntries.map(e => vehicleFacets({
+    ...e, catalogId: e.id,
+    designation: e.code ? `${e.designation} ${e.code}` : e.designation,
+  }, allEntries));
+  const entries = categoryEntries.filter((e, index) => {
+    if (keys.includes("pohon") && selected.pohon && e.type !== "loco") return false;
+    if (keys.includes("skupina") && selected.skupina && (e.type !== "wagon" || e.wagonKind !== "passenger")) return false;
+    // Preserve the existing ČSD catalog filter's inclusion of shared ČSD/ČD entries.
+    const facet = selected.op === "ČSD" && facets[index].op === "ČSD/ČD" ? { ...facets[index], op: "ČSD" } : facets[index];
+    return matchesFilters(facet, selected, keys);
   });
 
   // Load catalog images grouped by catalogId (only when showing colors)
@@ -70,9 +81,12 @@ export default async function CatalogPage({
 
   return (
     <div>
-      <div className="mb-4 text-sm text-secondary">
-        {entries.length} typů vozidel
-      </div>
+      <CollectionFilters count={entries.length} total={categoryEntries.length} catalog filters={[
+        { key: "op", label: "Dopravce", options: facetOptions(facets, "op") },
+        ...(keys.includes("pohon") ? [{ key: "pohon" as const, label: "Pohon", options: facetOptions(facets.filter((_, i) => categoryEntries[i].type === "loco"), "pohon") }] : []),
+        ...(keys.includes("skupina") ? [{ key: "skupina" as const, label: "Konstrukční skupina", options: facetOptions(facets.filter((_, i) => categoryEntries[i].type === "wagon" && categoryEntries[i].wagonKind === "passenger"), "skupina") }] : []),
+        { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+      ]} />
 
       {entries.length === 0 ? (
         <p className="py-12 text-center text-secondary">

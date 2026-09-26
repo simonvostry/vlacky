@@ -7,7 +7,6 @@ import { Suspense, type ReactNode } from "react";
 import appIcon from "@/app/icon.png";
 import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
-import { OperatorLogo } from "./operator-logo";
 import { TrainDisplayControls } from "./train-display-controls";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -34,13 +33,6 @@ const catalogFilters = [
   { value: "freight", label: "Nákladní vozy" },
 ];
 
-const operatorFilters = [
-  { value: "ČD" },
-  { value: "ČSD" },
-  { value: "ÖBB" },
-  { value: "RJ" },
-];
-
 export function Nav({ accountMenu }: { accountMenu: ReactNode }) {
   return (
     <Suspense>
@@ -59,7 +51,6 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const showDisplayControls = hasVehicleDisplayControls(pathname);
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
-  const currentOp = searchParams.get("op") || "";
   const showColors = searchParams.get("barvy") === "1";
 
   function catalogHref(overrides: Record<string, string | null>) {
@@ -105,7 +96,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
                 {catalogFilters.map((f) => (
                   <Link
                     key={f.value}
-                    href={catalogHref({ typ: f.value || null })}
+                    href={catalogHref({ typ: f.value || null, pohon: null, skupina: null, rada: null })}
                     className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                       currentTyp === f.value
                         ? "bg-primary text-white"
@@ -113,35 +104,6 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
                     }`}
                   >
                     {f.label}
-                  </Link>
-                ))}
-              </div>
-              <div className="flex gap-1 border-l border-divider pl-3">
-                <Link
-                  href={catalogHref({ op: null })}
-                  className={`rounded-full px-2 py-1 text-xs font-medium transition-colors ${
-                    !currentOp
-                      ? "bg-primary text-white"
-                      : "bg-muted text-secondary hover:bg-selected"
-                  }`}
-                >
-                  Vše
-                </Link>
-                {operatorFilters.map((f) => (
-                  <Link
-                    key={f.value}
-                    href={catalogHref({ op: currentOp === f.value ? null : f.value })}
-                    className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors ${
-                      currentOp === f.value
-                        ? "bg-primary text-white"
-                        : "bg-muted text-secondary hover:bg-selected"
-                    }`}
-                  >
-                    <OperatorLogo
-                      operator={f.value}
-                      height={12}
-                      inverted={currentOp === f.value}
-                    />
                   </Link>
                 ))}
               </div>

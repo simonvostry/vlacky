@@ -12,6 +12,10 @@ test('traction distinguishes Desiro, Czech electric/diesel and steam; unknown fo
   assert.equal(traction(loco('498.1', 'ČSD')), 'steam');
   assert.equal(traction(loco('362', 'Unknown railway')), UNKNOWN);
   assert.equal(traction(loco('999')), UNKNOWN);
+  assert.equal(traction(loco('681')), 'electric');
+  assert.equal(traction(loco('646')), 'diesel');
+  assert.equal(traction(loco('063')), UNKNOWN); // unpowered intermediate vehicle
+
 });
 test('construction filters use compatible references and resolve only unambiguous legacy groups', () => {
   const catalog = [

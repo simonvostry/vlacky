@@ -16,8 +16,16 @@ export const familyLabels: Record<string, string> = {
 const czechOperators = new Set(["ČD", "ČSD", "ČSD/ČD", "ČD Cargo", "RJ", "RegioJet", "ZSSK", "ZSSK Cargo"]);
 // Explicit known classes, not guesses from the first digit of an international number.
 // Sources and extension policy: docs/architecture.md#collection-filters.
-const electricClasses = new Set(["193", "362", "363", "371", "388", "388.2"]);
-const dieselClasses = new Set(["721", "751", "754", "T478.1", "T478.4"]);
+const electricClasses = new Set([
+  "100", "110", "111", "113", "121", "123", "130", "140", "141", "150", "151", "162", "163", "169", "181", "193",
+  "210", "230", "242", "263", "340", "350", "362", "363", "371", "372", "380", "384", "388", "388.2",
+  "440", "451", "460", "470", "471", "560", "640", "650", "660", "680", "681", "1216",
+]);
+const dieselClasses = new Set([
+  "646", "704", "705", "708", "714", "720", "721", "731", "735", "742", "743", "749", "750", "751", "753", "754", "770", "781",
+  "809", "810", "811", "812", "814", "820", "830", "840", "841", "842", "843", "844", "847", "850", "851", "852", "854", "860",
+  "T478.1", "T478.4",
+]);
 const steamClasses = new Set(["498.0", "498.1"]);
 
 export function vehicleClass(designation: string, locomotive = false): string {
@@ -45,7 +53,7 @@ function sourceFamily(family: string): string | undefined {
 }
 
 export function wagonFamily(v: Vehicle, catalog: Catalog[]): string {
-  if (/^Bdmteeo(?:\s|$)/.test(v.designation) && ["ČD", "ČSD"].includes(v.operator || "")) return "doubledeck";
+  if (/^(?:Bdmteeo|Bmto|Bmo|Bap)(?:\s|$)/.test(v.designation) && ["ČD", "ČSD", "ČSD/ČD"].includes(v.operator || "")) return "doubledeck";
   const linked = catalog.find(c => c.id === v.catalogId);
   // Do not borrow a family from an incorrectly linked operator's reference.
   const compatible = (operator: string) => operator === v.operator || (operator === "ČSD/ČD" && ["ČD", "ČSD"].includes(v.operator || ""));

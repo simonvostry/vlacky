@@ -318,5 +318,15 @@
     "src": "/img/zoom/dlb-abbmdz-alex-881901.webp",
     "width": 2152,
     "height": 351
+  },
+  "/img/owned/doubledeck-107-v1.png": {
+    "src": "/img/zoom/doubledeck-107-v1.webp",
+    "width": 1986,
+    "height": 349
+  },
+  "/img/owned/doubledeck-108-v1.png": {
+    "src": "/img/zoom/doubledeck-108-v1.webp",
+    "width": 1986,
+    "height": 356
   }
 }
