@@ -165,3 +165,12 @@ length comes from [Innofreight's Smart GigaWood specification](https://www.innof
 the [model listing](https://www.itvlaky.cz/plosinove-n/n657009/) states 185 mm in N.
 Reference photos, prompts, discarded candidates and light/dark comparison boards
 remain local in `output/freight-sggmrrs/`.
+
+`scripts/prepare-fleischmann-freight-images.mjs` exports DB DDm (6260066), DB Zags
+(6660081) and AAE T2000/DHL (6660069) from local `output/freight-fleischmann/` masters.
+The Fleischmann catalogs give N-model lengths of 330 mm for the two separate DDm
+wagons together, 110 mm for Zags and 214 mm for the complete articulated T2000.
+At the shared scale these become 264, 176 and 342 native pixels respectively.
+These are model-length conversions, not independently verified prototype dimensions.
+The exporter resolves integer resize rounding with transparent bottom rows, retaining
+width-only artwork proportions and exact 4× canvases; the edge check still applies.
