@@ -1,4 +1,4 @@
-import { installedEquipment } from "@/lib/vehicle-equipment";
+import { EquipmentIcons } from "./equipment-icons";
 import { ManufacturerLogo } from "./manufacturer-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import type { DecoderConfig } from "@/lib/decoder-config";
@@ -12,7 +12,7 @@ type Train = typeof trains.$inferSelect;
 type Vehicle = Pick<typeof vehicles.$inferSelect,
   "wagonKind" | "id" | "designation" | "operator" | "type" | "classType" | "imagePath" |
   "imageWidth" | "imageHeight" | "manufacturer" | "catalogNumber" | "dccAddress" |
-  "magneticCouplerA" | "magneticCouplerB" | "hasTailLights" | "hasSoundDecoder" | "hasSpeaker" | "isWeathered">;
+  "magneticCouplerA" | "magneticCouplerB" | "hasTailLights" | "hasSoundDecoder" | "hasSpeaker" | "isWeathered" | "hasLights">;
 
 export function TrainDetailsPanel({ train, vehicles: composition, decoders = [], closeHref = "/soupravy" }: {
   decoders?: (DecoderConfig & { vehicleId: number })[];
@@ -99,7 +99,7 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [],
                     {row.notes && !/^Číslo vozu:/.test(row.notes) && (
                       <p className="mt-0.5 whitespace-pre-line text-[11px] leading-4 text-secondary">{row.notes}</p>
                     )}
-                    {installedEquipment(vehicle).length > 0 && <p className="mt-1 text-[10px] leading-4 text-secondary">{installedEquipment(vehicle).join(' · ')}</p>}
+                    <div className="mt-1"><EquipmentIcons value={vehicle} wagon={vehicle.type === "wagon"} activeOnly focusable={false} /></div>
                     {(vehicle.manufacturer || vehicle.catalogNumber || dcc != null) && (
                       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] leading-4 text-secondary">
                         {(vehicle.manufacturer || vehicle.catalogNumber) && <span className="inline-flex flex-wrap items-center gap-1.5"><ManufacturerLogo manufacturer={vehicle.manufacturer} compact />{vehicle.catalogNumber && <span>{vehicle.catalogNumber}</span>}</span>}

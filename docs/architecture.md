@@ -174,9 +174,11 @@ better-sqlite3 transactions. API edits to a membership must match its parent tra
 `vehicles.magneticCouplerA` and `magneticCouplerB` describe fixed physical ends A/B,
 not current train direction. `hasTailLights` records red tail lights separately from
 the `hasLights` general-lighting flag (Yes/No, default false). `hasSoundDecoder` and
-`hasSpeaker` are independent inventory flags: a wagon speaker can be wired to a
-locomotive decoder. These flags neither create decoder configurations nor infer them
-from sound-project names/functions. `isWeathered` records applied weathering for
+`hasSpeaker` remain separate stored compatibility flags, but the UI presents one
+**Zvuk** feature, true when either flag is true. Keeping sound enabled preserves the
+existing flags; enabling it on an unequipped piece sets the speaker flag, without
+inventing a decoder. Disabling sound explicitly clears both inventory flags.
+Actual DCC decoder configurations, addresses and functions remain unchanged. `isWeathered` records applied weathering for
 both locomotives and wagons, without changing shared artwork or variant grouping.
 
 All six new fields are non-null booleans, default false. They are validated and saved
@@ -206,8 +208,16 @@ The three owned collection pages and the reference catalog compose URL filters: 
 and matching; the shared `CollectionFilters` control changes URLs without writes.
 Pages authorize before queries. Options come from the whole current collection,
 so changing one filter does not hide the other available choices. Unsupported URL
-values produce an empty result with a reset action. URL state survives refresh and
-browser Back; filters are independent per collection, not global display preferences.
+values produce an empty result with a reset action. Filters are remembered per
+collection in browser localStorage (`vlacky-collection-filters-v1:<route>`), including
+catalog category and color visibility. The persistent navigation restores saved URLs
+when returning via tabs or bare collection links. Explicit URL filters take precedence,
+including browser Back/Forward; `filtry=1` distinguishes an intentional all-selection
+from a bare URL requesting remembered state. Detail/edit routes never overwrite it.
+Only whitelisted query keys are persisted; stored data can never redirect elsewhere.
+Storage failures fall back to in-memory state for the current browser page. Storage
+events refresh links in other browser tabs without overriding their current explicit
+URL. These are per-section filters, separate from global display preferences.
 Wagons are grouped before filtering, preserving full variant quantities and IDs.
 
 Traction uses an explicit operator-scoped class registry, not the first digit of
@@ -241,8 +251,9 @@ light/dark, 390/1440 px, combined controls, no results/reset and URL refresh/Bac
 Catalog filters reuse the same controls and classification. Its operator choices
 come from all entries in the selected vehicle category, including freight operators.
 Existing `typ` and `barvy` controls stay in the navigation; changing category clears
-series/traction/family but retains operator and color visibility. Resetting the row
-retains category/color visibility. On the all-types view, selecting traction excludes
+series/traction/family but retains operator and color visibility. The always-visible
+“Resetovat filtry” clears all record filters and returns category to Vše, preserving
+color visibility and the other sections' remembered selections. On the all-types view, selecting traction excludes
 wagons, and selecting construction group excludes locomotives/freight even for
 “Nezařazeno”. ČSD continues to include catalog entries labeled ČSD/ČD. The series
 filter includes each catalog entry's numeric code to distinguish wagon subtypes.

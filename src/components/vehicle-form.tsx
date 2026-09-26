@@ -1,6 +1,7 @@
 "use client";
 
-import { wagonEquipmentFields } from "@/lib/vehicle-equipment";
+import { hasVehicleSound, soundEquipmentPatch } from "@/lib/vehicle-equipment";
+import { EquipmentGlyph } from "@/components/equipment-icons";
 import { manufacturerKey, manufacturerName, manufacturerOptions } from "@/lib/model-manufacturers";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
@@ -288,7 +289,7 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
       {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">
         <legend className="px-2 text-sm font-semibold">Výbava konkrétního kusu{vehicle?.id ? ` #${vehicle.id}` : ''}</legend>
         <div>
-          <label htmlFor="magnetic-couplers" className="mb-1 block text-sm font-medium">Magnetická spřáhla</label>
+          <label htmlFor="magnetic-couplers" className="mb-1 block text-sm font-medium"><span className="inline-flex items-center gap-2"><EquipmentGlyph name="coupler" />Magnetická spřáhla</span></label>
           <select id="magnetic-couplers" value={couplerMode} onChange={e => {
             const mode = e.target.value;
             setForm(f => ({ ...f, magneticCouplerA: mode === 'both' || (mode === 'one' && !f.magneticCouplerB), magneticCouplerB: mode === 'both' || (mode === 'one' && !!f.magneticCouplerB) }));
@@ -305,12 +306,16 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
           </select>
           <p className="mt-1 text-xs text-secondary">A a B jsou pevné konce vozu, nezávislé na otočení v soupravě.</p>
         </div>}
-        {wagonEquipmentFields.filter(([key]) => key !== 'magneticCouplerA' && key !== 'magneticCouplerB').map(([key,label]) => <label key={key} className="flex min-h-9 items-center gap-2 text-sm">
-          <input type="checkbox" checked={form[key] ?? false} onChange={e=>set(key,e.target.checked)} />{label}
-        </label>)}
-        <p className="text-xs text-secondary sm:col-span-2">Reproduktor evidujte samostatně, i když je připojen k dekodéru v lokomotivě. V soupravě tak snadno vyberete tento kus hned za lokomotivu.</p>
+        <label className="flex min-h-9 items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.hasTailLights ?? false} onChange={e=>set('hasTailLights',e.target.checked)} />
+          <EquipmentGlyph name="tail" />Červená koncová světla
+        </label>
+        <label className="flex min-h-9 items-center gap-2 text-sm">
+          <input type="checkbox" checked={hasVehicleSound(form)} onChange={e=>setForm(f=>({...f, ...soundEquipmentPatch(e.target.checked, f)}))} />
+          <EquipmentGlyph name="sound" />Zvuk
+        </label>
         <div className="text-sm font-medium">
-          <label htmlFor="hasLights">Osvětlení vozu</label>
+          <label htmlFor="hasLights" className="inline-flex items-center gap-2"><EquipmentGlyph name="lights" />Osvětlení vozu</label>
           <select id="hasLights" value={String(form.hasLights ?? false)} onChange={e=>set('hasLights',e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
             <option value="false">Ne</option><option value="true">Ano</option>
           </select>
@@ -322,7 +327,7 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
       </fieldset>}
       <label className="flex min-h-9 items-center gap-2 text-sm">
         <input type="checkbox" checked={form.isWeathered ?? false} onChange={e => set("isWeathered", e.target.checked)} />
-        Patinováno (tento konkrétní kus)
+        <EquipmentGlyph name="weather" />Patinováno (tento konkrétní kus)
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={form.isTemplate ?? false} onChange={e => set("isTemplate", e.target.checked)} />

@@ -8,6 +8,8 @@ import appIcon from "@/app/icon.png";
 import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
 import { TrainDisplayControls } from "./train-display-controls";
+import { useCollectionFilterMemory } from "./collection-filter-memory";
+import { FILTER_STATE_MARKER } from "@/lib/collection-filter-memory";
 import { ThemeToggle } from "./theme-toggle";
 
 const links = [
@@ -43,6 +45,7 @@ export function Nav({ accountMenu }: { accountMenu: ReactNode }) {
 
 function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const pathname = usePathname();
+  const rememberedHref = useCollectionFilterMemory();
   const searchParams = useSearchParams();
 
   const addAction = pathname === "/soupravy" && searchParams.get("druh") === "freight"
@@ -62,6 +65,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
         params.delete(k);
       }
     }
+    params.set(FILTER_STATE_MARKER, "1");
     const qs = params.toString();
     return `/katalog${qs ? `?${qs}` : ""}`;
   }
@@ -80,7 +84,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             return (
               <Link
                 key={link.href}
-                href={link.href}
+                href={rememberedHref(link.href)}
                 aria-current={isActive ? "page" : undefined}
                 className="nav-link"
               >

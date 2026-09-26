@@ -10,6 +10,9 @@ for (const item of JSON.parse(await readFile('output/train-image-enhancements/in
 }
 for (const item of JSON.parse(await readFile('src/db/data/ex250-1992.json','utf8')).vehicles) masters[item.imagePath] = `output/train-250-1992/masters/${item.key}.png`;
 Object.assign(masters, {
+  '/img/owned/doubledeck-107-v2.png':'output/doubledeck-glazing/107-master.png',
+  '/img/owned/doubledeck-108-v2.png':'output/doubledeck-glazing/108-master.png',
+  '/img/catalog/bmto-m-a.gif':'output/catalog-1650/master.png',
   '/img/owned/doubledeck-107-v1.png':'output/wagon-107/master.png',
   '/img/owned/doubledeck-108-v1.png':'output/wagon-108/master.png',
   '/img/catalog/642-regiojet-ai.png':'output/desiro-regiojet/regiojet-642-master.png',

@@ -326,16 +326,21 @@ Research PDFs, source downloads and review captures stay in ignored output/.
 Wagon edit forms use a magnetic-coupler dropdown: none, one end, or both ends.
 Only the one-end choice reveals an A/B selector. Existing A-only/B-only values
 remain intact; A/B still identify fixed physical ends, not train direction.
-Red tail lights, an installed sound decoder and a built-in speaker use checkboxes.
+Red tail lights and unified **Zvuk** use checkboxes. Sound combines the older
+speaker/decoder inventory flags while preserving their stored distinctions.
 Unchecked means No. General lighting is a separate Ano / Ne dropdown, default Ne;
 legacy unknown values become Ne and are not reinterpreted as tail lights.
 The independent “Patinováno” checkbox is available for both locomotives and
 wagons. These settings always describe the selected physical piece, not its siblings.
 
-Wagon piece lists show explicit Yes/No values; locomotive details show weathering.
-The train picker identifies variants containing a speaker and lists the equipment
-of each selectable piece. Active equipment appears under the vehicle in the ordering
-table and train side panel. A speaker wagon not directly behind a locomotive gets
+Wagon piece lists use a consistent outline icon row for magnetic couplers, tail
+lights, sound, weathering and lighting. Each icon has a localized accessible name
+and hover/focus tooltip. Active states have a blue tint and checkmark; inactive
+states have a muted icon and minus. Couplers show A, B or 2 for equipped ends.
+DCC addresses remain text. Forms pair the same icons with their explicit labels.
+The train picker identifies variants containing sound and shows equipment icons
+for each selectable piece. Only active equipment appears in the ordering table
+and train side panel. A sound wagon not directly behind a locomotive gets
 a quiet placement hint; the user chooses the order and no automatic reorder occurs.
 Equipment is not hidden by the four identity display toggles. Quantities and shared
 artwork keep their previous behavior.
@@ -345,14 +350,16 @@ artwork keep their previous behavior.
 Locomotive/wagon galleries and the reference catalog have a compact wrapping row above their tiles:
 Dopravce + Řada everywhere, Pohon for locomotives, Konstrukční skupina for passenger
 wagons. Use shared themed native selects with visible labels, a result count and
-“Zrušit filtry” only when a filter is active. Wagon counts describe variants; each
+an always-visible “Resetovat filtry” action. Wagon counts describe variants; each
 tile retains its owned-piece count. Traction always offers electric/diesel/steam,
 including an empty category. Unclassified records use “Nezařazeno”. The passenger
 Y/Z labels explicitly include related designs and source-section lengths.
 
 These controls filter records and are separate from the top navigation's four
-show/hide-label preferences. Choices combine, live in the page URL, and remain
-usable by keyboard. Pending navigation disables controls to avoid conflicting
+show/hide-label preferences. Choices combine, live in the page URL, and are remembered
+per section across navigation, refresh and later visits in this browser. Explicit URLs
+win over saved state. Reset clears the current section, including catalog category,
+while retaining color-variant visibility. Controls remain usable by keyboard. Pending navigation disables controls to avoid conflicting
 updates. On narrow screens the fields wrap; no horizontal page overflow is allowed.
 
 
@@ -369,3 +376,12 @@ assets preserve the original catalog GIFs; only the image fields of the respecti
 owned variant members change, through the wagon storage service. Keep their 268 px
 native length, width-only proportions, transparent 4× previews and full-resolution
 zoom; a photo's fine markings do not override stored identity or equipment.
+
+The glazing refresh uses `scripts/prepare-doubledeck-glazing.mjs` and private
+`output/doubledeck-glazing/` masters, creating v2 owned assets for variants 47/50.
+Windows use subdued opaque grey glass with no reconstructed interior; frames and
+liveries remain distinct. `scripts/prepare-bmo-1650-image.mjs` enhances catalog
+Bmo #1650 from the private photograph/master in `output/catalog-1650/`, retaining
+the original 268 × 46 catalog canvas and registering 4×/zoom derivatives. Original
+GIFs and all identity/equipment data remain intact. Use this opaque-glass treatment
+for future side elevations when interiors cannot be reconstructed accurately.

@@ -1,7 +1,8 @@
 "use client";
-import { equipmentFields, installedEquipment, type VehicleEquipment } from "@/lib/vehicle-equipment";
-import { groupVehicles, equipmentLabel } from "@/lib/wagon-variants";
+import { hasVehicleSound, type VehicleEquipment } from "@/lib/vehicle-equipment";
+import { groupVehicles } from "@/lib/wagon-variants";
 
+import { EquipmentIcons } from "@/components/equipment-icons";
 import VehicleImage from "@/components/vehicle-image";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
@@ -134,8 +135,8 @@ export function TrainVehicleManager({
                     )}
                     {tv.designation}
                   </Link>
-                  <div className="mt-1 text-xs font-normal text-secondary">{installedEquipment(allVehicles.find(v=>v.id===tv.vehicleId) ?? {}).join(' · ')}</div>
-                  {allVehicles.find(v=>v.id===tv.vehicleId)?.hasSpeaker && (i===0 || trainVehicles[i-1].vehicleType!=='loco') && <p className="mt-1 text-xs font-normal text-accent">Reproduktor: doporučeno zařadit hned za lokomotivu.</p>}
+                  <div className="mt-1"><EquipmentIcons value={allVehicles.find(v=>v.id===tv.vehicleId) ?? {}} wagon={tv.vehicleType === "wagon"} activeOnly /></div>
+                  {hasVehicleSound(allVehicles.find(v=>v.id===tv.vehicleId) ?? {}) && (i===0 || trainVehicles[i-1].vehicleType!=='loco') && <p className="mt-1 text-xs font-normal text-accent">Zvuk: doporučeno zařadit hned za lokomotivu.</p>}
                   <span className="ml-1 text-[10px] uppercase text-secondary">
                     {tv.vehicleType === "loco" ? "lok" : `kus #${tv.vehicleId}`}
                   </span>
@@ -201,7 +202,7 @@ export function TrainVehicleManager({
           <option value="">Vyberte vozidlo...</option>
           {groups.map(({key,vehicle:v,pieces}) => (
             <option key={key} value={key} disabled={pieces.every(p=>usedIds.has(p.id))}>
-              {v.operator ? `${v.operator} ` : ""}{v.designation} ({v.type === "loco" ? "lok" : v.wagonKind === "freight" ? "nákladní vůz" : "osobní vůz"}) · {pieces.filter(p=>!usedIds.has(p.id)).length}/{pieces.length} volných{v.type === 'wagon' ? ` · ${[v.manufacturer,v.catalogNumber].filter(Boolean).join(' ')} · #${v.wagonVariantId ?? v.id}` : ''}{pieces.some(p=>p.hasSpeaker) ? ' · reproduktor' : ''}
+              {v.operator ? `${v.operator} ` : ""}{v.designation} ({v.type === "loco" ? "lok" : v.wagonKind === "freight" ? "nákladní vůz" : "osobní vůz"}) · {pieces.filter(p=>!usedIds.has(p.id)).length}/{pieces.length} volných{v.type === 'wagon' ? ` · ${[v.manufacturer,v.catalogNumber].filter(Boolean).join(' ')} · #${v.wagonVariantId ?? v.id}` : ''}{pieces.some(p=>hasVehicleSound(p)) ? ' · zvuk' : ''}
             </option>
           ))}
         </select>
@@ -218,11 +219,11 @@ export function TrainVehicleManager({
       </div>
       {selected?.vehicle.imagePath && <div className="overflow-x-auto px-4 pb-3"><VehicleImage unoptimized src={selected.vehicle.imagePath} alt={selected.vehicle.designation} width={selected.vehicle.imageWidth ?? 264} height={selected.vehicle.imageHeight ?? 41} style={{width:(selected.vehicle.imageWidth ?? 264)*.75,height:(selected.vehicle.imageHeight ?? 41)*.75}} /></div>}
       {selected?.vehicle.type === 'wagon' && <div className="px-4 pb-3 text-sm">
-        {freePieces.some(p=>p.hasSpeaker) && <p className="mb-2 text-xs text-accent">Reproduktor: {freePieces.filter(p=>p.hasSpeaker).map(p=>`kus #${p.id}`).join(', ')}. Pro jeho zařazení vyberte konkrétní kus.</p>}
+        {freePieces.some(p=>hasVehicleSound(p)) && <p className="mb-2 text-xs text-accent">Zvuk: {freePieces.filter(p=>hasVehicleSound(p)).map(p=>`kus #${p.id}`).join(', ')}. Pro jeho zařazení vyberte konkrétní kus.</p>}
         <label className="flex items-center gap-2"><input type="checkbox" checked={choosePieces} onChange={e=>{setChoosePieces(e.target.checked);setChosenIds([]);}} />Vybrat konkrétní kusy</label>
         {choosePieces && <ul className="mt-2 space-y-2">{freePieces.map(p=><li key={p.id}><label className="flex items-start gap-2">
           <input type="checkbox" className="mt-1" checked={chosenIds.includes(p.id)} onChange={e=>setChosenIds(ids=>e.target.checked ? [...ids,p.id] : ids.filter(id=>id!==p.id))} />
-          <span>Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}<span className="block text-xs text-secondary">{equipmentFields.map(([key,label])=>`${label}: ${equipmentLabel(p[key])}`).join(' · ')} · Osvětlení: {equipmentLabel(p.hasLights)} · DCC: {p.dccAddress ?? '—'}</span></span>
+          <span>Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}<span className="block text-xs text-secondary"><EquipmentIcons value={p} focusable={false} />{p.dccAddress != null && <span className="ml-2">DCC {p.dccAddress}</span>}</span></span>
         </label></li>)}</ul>}
       </div>}
       {error && <p role="alert" className="px-4 pb-3 text-sm text-danger">{error}</p>}

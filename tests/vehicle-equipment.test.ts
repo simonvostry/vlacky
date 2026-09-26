@@ -5,6 +5,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { equipmentIndicators, hasVehicleSound, soundEquipmentPatch } from '../src/lib/vehicle-equipment';
+
+test('unified sound preserves legacy distinctions and never invents a decoder', () => {
+  for (const hasSoundDecoder of [false, true]) for (const hasSpeaker of [false, true]) {
+    const previous = { hasSoundDecoder, hasSpeaker };
+    assert.equal(hasVehicleSound(previous), hasSoundDecoder || hasSpeaker);
+    assert.deepEqual(soundEquipmentPatch(true, previous), hasSoundDecoder || hasSpeaker ? previous : {hasSoundDecoder: false, hasSpeaker: true});
+    assert.deepEqual(soundEquipmentPatch(false, previous), {hasSoundDecoder: false, hasSpeaker: false});
+    const indicators = equipmentIndicators(previous);
+    assert.equal(indicators.filter(i => i.key === 'sound').length, 1);
+    assert.equal(indicators.find(i => i.key === 'sound')?.active, hasSoundDecoder || hasSpeaker);
+  }
+  assert.deepEqual(equipmentIndicators({}).map(i=>i.active), [false,false,false,false,false]);
+  assert.equal(equipmentIndicators({magneticCouplerA:true})[0].badge, 'A');
+  assert.equal(equipmentIndicators({magneticCouplerB:true})[0].badge, 'B');
+  assert.equal(equipmentIndicators({magneticCouplerA:true,magneticCouplerB:true})[0].badge, '2');
+  assert.deepEqual(equipmentIndicators({isWeathered:true},false).map(i=>i.key), ['weather']);
+});
 
 test('equipment migration preserves legacy data, initializes each end, and never overwrites later edits', () => {
   const directory = mkdtempSync(join(tmpdir(), 'vlacky-equipment-'));

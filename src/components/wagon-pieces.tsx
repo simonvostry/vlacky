@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EditAction } from '@/components/ui-actions';
-import { equipmentFields, type VehicleEquipment } from '@/lib/vehicle-equipment';
-import { equipmentLabel } from '@/lib/wagon-variants';
+import { type VehicleEquipment } from '@/lib/vehicle-equipment';
+import { EquipmentIcons } from '@/components/equipment-icons';
 
 type Piece = VehicleEquipment & {id:number; runningNumber:string|null; hasLights:boolean|null; dccAddress:number|null; isTemplate:boolean; notes:string|null};
 export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:number|null;pieces:Piece[];selectedId:number;section:string}) {
@@ -44,11 +44,10 @@ export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:nu
         <div className="min-w-0 flex-1">
           <Link aria-current={p.id===selectedId ? 'page' : undefined} href={`/${section}/${p.id}`} className="text-sm font-semibold hover:text-accent">Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}</Link>
           {p.isTemplate && <span className="ml-2 text-xs text-warning">Předloha</span>}
-          <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-secondary">
-            {equipmentFields.map(([key,label]) => <div key={key}><dt className="inline">{label}: </dt><dd className="inline">{equipmentLabel(p[key])}</dd></div>)}
-            <div><dt className="inline">Osvětlení: </dt><dd className="inline">{equipmentLabel(p.hasLights)}</dd></div>
-            <div><dt className="inline">DCC: </dt><dd className="inline">{p.dccAddress ?? '—'}</dd></div>
-          </dl>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <EquipmentIcons value={p} />
+            {p.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {p.dccAddress}</span>}
+          </div>
         </div>
         <EditAction href={`/${section}/${p.id}/upravit`} label={`Upravit kus #${p.id}`} />
       </li>)}

@@ -29,7 +29,7 @@
     "db:migrate-vehicle-equipment": "node scripts/migrate-vehicle-equipment.mjs",
     "test:vehicle-equipment": "tsx --test tests/vehicle-equipment.test.ts",
     "db:migrate-lighting-defaults": "node scripts/migrate-lighting-defaults.mjs",
-    "test:collection-filters": "tsx --test tests/collection-filters.test.ts"
+    "test:collection-filters": "tsx --test tests/collection-filter*.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

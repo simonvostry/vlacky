@@ -119,3 +119,9 @@ html[data-train-labels-hidden~="type"] [data-vehicle-label="type"],
 html[data-train-labels-hidden~="operator"][data-train-labels-hidden~="number"][data-train-labels-hidden~="class"][data-train-labels-hidden~="type"] [data-vehicle-label-row] {
   display: none;
 }
+
+/* Equipment states have a check/minus as well as color; keyboard focus reveals labels. */
+.equipment-indicator:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.equipment-indicator:hover .equipment-tooltip,
+.equipment-indicator:focus .equipment-tooltip { opacity: 1; }
+.equipment-indicator:nth-child(n+4) .equipment-tooltip { left: auto; right: 0; }

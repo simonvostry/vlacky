@@ -328,5 +328,20 @@
     "src": "/img/zoom/doubledeck-108-v1.webp",
     "width": 1986,
     "height": 356
+  },
+  "/img/owned/doubledeck-107-v2.png": {
+    "src": "/img/zoom/doubledeck-107-v2.webp",
+    "width": 1983,
+    "height": 348
+  },
+  "/img/catalog/bmto-m-a.gif": {
+    "src": "/img/zoom/cd-bmo-1650.webp",
+    "width": 2012,
+    "height": 346
+  },
+  "/img/owned/doubledeck-108-v2.png": {
+    "src": "/img/zoom/doubledeck-108-v2.webp",
+    "width": 1985,
+    "height": 356
   }
 }

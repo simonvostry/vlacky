@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import { FILTER_STATE_MARKER, resetFilterQuery } from "@/lib/collection-filter-memory";
+import { rememberCollectionFilters } from "./collection-filter-memory";
 import type { FilterKey, FilterOption } from "@/lib/collection-filters";
 
 export function CollectionFilters({ filters, count, total, wagons = false, catalog = false }: {
@@ -12,11 +14,11 @@ export function CollectionFilters({ filters, count, total, wagons = false, catal
   const pathname = usePathname();
   const search = useSearchParams();
   const [pending, startTransition] = useTransition();
-  const active = filters.some(f => search.get(f.key));
   function update(key?: FilterKey, value?: string) {
-    const params = new URLSearchParams(search.toString());
+    const params = new URLSearchParams(key ? search.toString() : resetFilterQuery(pathname, search.toString()));
     if (key) { if (value) params.set(key, value); else params.delete(key); }
-    else for (const filter of filters) params.delete(filter.key);
+    params.set(FILTER_STATE_MARKER, "1");
+    rememberCollectionFilters(pathname, params.toString());
     startTransition(() => router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false }));
   }
   return (
@@ -32,7 +34,7 @@ export function CollectionFilters({ filters, count, total, wagons = false, catal
           </select>
         </label>;
       })}
-      {active && <button type="button" onClick={() => update()} disabled={pending} className="ui-button ui-button-quiet">Zrušit filtry</button>}
+      <button type="button" onClick={() => update()} disabled={pending} className="ui-button ui-button-quiet">Resetovat filtry</button>
       <p role="status" className="w-full pb-2 text-xs tabular-nums text-secondary sm:ml-auto sm:w-auto">{count} / {total} {catalog ? "typů vozidel" : wagons ? "variant" : "lokomotiv"}</p>
     </section>
   );

@@ -40,6 +40,7 @@ export default async function TrainsPage({ searchParams }: {
         magneticCouplerA: schema.vehicles.magneticCouplerA,
         magneticCouplerB: schema.vehicles.magneticCouplerB,
         hasTailLights: schema.vehicles.hasTailLights,
+        hasLights: schema.vehicles.hasLights,
         hasSoundDecoder: schema.vehicles.hasSoundDecoder,
         hasSpeaker: schema.vehicles.hasSpeaker,
         isWeathered: schema.vehicles.isWeathered,
