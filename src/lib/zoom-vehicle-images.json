@@ -308,5 +308,15 @@
     "src": "/img/zoom/cdc-rils-gray-modern-logo.webp",
     "width": 2096,
     "height": 435
+  },
+  "/img/catalog/dlb-bmz-alex-881901.png": {
+    "src": "/img/zoom/dlb-bmz-alex-881901.webp",
+    "width": 2150,
+    "height": 343
+  },
+  "/img/catalog/dlb-abbmdz-alex-881901.png": {
+    "src": "/img/zoom/dlb-abbmdz-alex-881901.webp",
+    "width": 2152,
+    "height": 351
   }
 }

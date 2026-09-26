@@ -107,6 +107,14 @@ to avoid collisions between similarly named ČD and ČSD liveries. Byte-identica
 existing WR/WLAB originals are reused. Vehicle forms and badges support mixed
 first/second class, sleeping, couchette and baggage/postal vehicles.
 
+`scripts/prepare-alex-881901-images.mjs` exports the Fleischmann 881901 alex
+passenger set: one plain Bmz image shared by two physical pieces and a separate
+ABbmdz image with München–Regensburg–Prag graphics. The 2020 manufacturer catalog
+lists 495 mm for the three-coach set: 165 mm each in N gives 264 native pixels at
+10 px/m. Width-only exports preserve proportions and include full-resolution zooms.
+Private references, prompts and masters stay in `output/alex-881901/`. Older alex
+artwork and owned pieces are separate and remain unchanged.
+
 For a paint variation belonging to one physical model, create a unique native asset
 under `public/img/owned/`, add its derivative/mapping and change only that vehicle's
 image path. Preserve identity, DCC, profiles and shared catalog assets. Publish assets
