@@ -403,3 +403,10 @@ not independently identify the photographed model's precise subtype. The approve
 perpendicular reconstruction uses 216 × 43 native pixels, width-only 4× preview
 and full-resolution zoom. Keep the manufacturer's Tadgs designation; the photograph's
 apparently different fine subtype lettering and running number remain unverified.
+
+Owned wagon #117 has a user-applied white ČD emblem in place of the DB logo.
+`scripts/prepare-117-cd-image.mjs` exports its unique owned artwork from
+`output/freight-117-cd/master.png`, keeping the 216 × 43 canvas and all pixels
+outside the small logo patch unchanged. Its operator is ČD; the linked original
+DB catalog type/livery remains intact. Private references, prompt and patch stay
+in that output directory. This is a customized model, not evidence of a prototype livery.
