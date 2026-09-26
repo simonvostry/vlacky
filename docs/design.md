@@ -168,6 +168,12 @@ chassis length of 85 mm in N (13.6 m equivalent); measure the individual model t
 confirm. The supplied 824204 listing shows a different load, so it does not establish
 this physical piece's exact SKU or running number. Preserve those uncertainties.
 
+`scripts/prepare-837708-image.mjs` exports the darker grey Fleischmann 837708
+Rils with the modern blue ČD Cargo logo from `output/freight-837708/master.png`.
+It uses the same 198 px width as 837715 (124 mm N-model length, 19.84 m equivalent).
+Keep separate artwork, catalog livery and owned variant for these different logos;
+the reference type remains Rils, ČD Cargo. Each has its own full-resolution zoom.
+
 `scripts/prepare-sggmrrs-images.mjs` exports the empty ČD Cargo Smart GigaWood from
 `output/freight-sggmrrs/master-v3.png` at 296 × 43 and 1184 × 172 px. Its 29.61 m
 length comes from [Innofreight's Smart GigaWood specification](https://www.innofreight.com/wp-content/uploads/2025/04/Smart_GigaWood_EN.pdf);

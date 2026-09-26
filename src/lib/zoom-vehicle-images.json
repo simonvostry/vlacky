@@ -303,5 +303,10 @@
     "src": "/img/zoom/db-lgs579-dhl-weathered.webp",
     "width": 2116,
     "height": 623
+  },
+  "/img/catalog/cdc-rils-gray-modern-logo.png": {
+    "src": "/img/zoom/cdc-rils-gray-modern-logo.webp",
+    "width": 2096,
+    "height": 435
   }
 }
