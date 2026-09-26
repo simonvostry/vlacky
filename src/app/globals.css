@@ -102,7 +102,8 @@
   .entity-header h1 { font-size: 28px; line-height: 36px; font-weight: 600; }
   .image-stage { background: var(--image-stage); }
   /* Preserve source logo colors on a quiet light backing, never recolor train artwork. */
-  [data-theme="dark"] .operator-logo:not(.operator-logo-inverted) { background: #edf3fb; border-radius: 2px; box-shadow: 0 0 0 2px #edf3fb; }
+  [data-theme="dark"] :is(.operator-logo:not(.operator-logo-inverted), .manufacturer-logo) { background: #edf3fb; border-radius: 2px; box-shadow: 0 0 0 2px #edf3fb; }
+  .manufacturer-logo-dark { background: #003b71; box-shadow: 0 0 0 2px #003b71; }
   @media (pointer: coarse) {
     .ui-button, .ui-icon-button { min-height: 44px; }
     .ui-icon-button { width: 44px; height: 44px; }

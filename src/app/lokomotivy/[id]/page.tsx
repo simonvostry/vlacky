@@ -1,3 +1,4 @@
+import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { EditAction } from "@/components/ui-actions";
 import { SpeedProfileEditor } from "@/components/speed-profile-editor";
 import { getSpeedProfile } from "@/lib/speed-profile-storage";
@@ -72,7 +73,7 @@ export default async function VehicleDetailPage({
           </div>
           <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
             <div><dt className="text-secondary">DCC adresa</dt><dd className="font-mono font-medium">{vehicle.dccAddress ?? "Nevyplněna"}</dd></div>
-            {vehicle.manufacturer && <div><dt className="text-secondary">Výrobce</dt><dd>{vehicle.manufacturer}</dd></div>}
+            {vehicle.manufacturer && <div><dt className="text-secondary">Výrobce</dt><dd className="flex min-h-6 items-center"><ManufacturerLogo manufacturer={vehicle.manufacturer} /></dd></div>}
             {vehicle.catalogNumber && <div><dt className="text-secondary">Katalogové číslo</dt><dd className="break-all font-mono">{vehicle.catalogNumber}</dd></div>}
           </dl>
           {vehicle.isTemplate && <p className="mt-3 text-xs font-medium text-warning">Ukázka / předloha · vynecháno z běžné synchronizace</p>}

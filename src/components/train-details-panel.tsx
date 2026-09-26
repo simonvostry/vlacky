@@ -1,3 +1,4 @@
+import { ManufacturerLogo } from "./manufacturer-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import type { DecoderConfig } from "@/lib/decoder-config";
 import Image from "@/components/vehicle-image";
@@ -97,8 +98,8 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [],
                       <p className="mt-0.5 whitespace-pre-line text-[11px] leading-4 text-secondary">{row.notes}</p>
                     )}
                     {(vehicle.manufacturer || vehicle.catalogNumber || dcc != null) && (
-                      <div className="mt-0.5 flex flex-wrap gap-x-2 text-[10px] leading-4 text-secondary">
-                        {(vehicle.manufacturer || vehicle.catalogNumber) && <span>{[vehicle.manufacturer, vehicle.catalogNumber].filter(Boolean).join(" · ")}</span>}
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] leading-4 text-secondary">
+                        {(vehicle.manufacturer || vehicle.catalogNumber) && <span className="inline-flex flex-wrap items-center gap-1.5"><ManufacturerLogo manufacturer={vehicle.manufacturer} compact />{vehicle.catalogNumber && <span>{vehicle.catalogNumber}</span>}</span>}
                         {dcc != null && <span>DCC {dcc}</span>}
 
                       </div>

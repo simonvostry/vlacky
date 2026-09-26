@@ -243,3 +243,30 @@ DB Cargo uses a horizontal mark with the original black lettering to its right.
 DB Cargo and ZSSK Cargo SVGs embed source/author/license descriptions. Keep those
 credits and the derivative licenses with redistributed assets. Dark mode continues
 to use the shared light backing behind operator logos without recoloring them.
+
+### Model manufacturer logos
+
+`ManufacturerLogo` replaces model-maker text in locomotive/wagon/legacy vehicle
+parameters and the train details panel. It does not add another label row to galleries.
+Model manufacturers remain stored as text; missing values are not inferred from
+artwork or catalog links. Catalog prototype builders and decoder manufacturers are
+separate fields and retain their existing presentation. No database migration is needed.
+
+The registry covers the collection's Fleischmann, Minitrix, REE Models and Sudexpress.
+Matching ignores case, accents and extra spaces; REE Modèles and Sud Express are
+explicit aliases. Unknown names retain readable text. Logos preserve proportions,
+fit within 112 × 24 CSS px (64 × 16 in the panel), have accessible names and a title,
+and are not affected by the operator display toggle. Dark mode shares the operator
+logos' light backing. Sudexpress's official white mark uses a navy backing in both themes.
+
+| Asset | Original source | Preparation / rights |
+| --- | --- | --- |
+| `manufacturer-fleischmann.svg` | [Wikimedia source credited to Gebr. Fleischmann GmbH und Co. KG](https://commons.wikimedia.org/wiki/File:Logo_FLEISCHMANN.svg) | Commons PD-textlogo; retains original red wordmark paths, omits frame/tagline for small display |
+| `manufacturer-minitrix.svg` | [Märklin's Minitrix 2026 catalog, cover](https://streaming.maerklin.de/public-media/m/nht26/minitrix_nh2026/DE_minitrix_nh2026_Online.pdf) | Original green vector wordmark paths extracted without tracing; rights remain with Gebr. Märklin & Cie. GmbH |
+| `manufacturer-ree-modeles.svg` | [REE's 2025 H0 catalog, cover](https://catalogues.ree-modeles.com/2025-ree-ho/2025-Catalogue-REE.pdf) | Original emblem/REE paths and outlined MODELES glyphs; omits tagline; rights remain with Rails Europ Express |
+| `manufacturer-sudexpress.png` | [Sudexpress official website logo](https://www.sudexpressmodels.eu/Content/img/logo.png) | Original transparent 220 × 50 PNG, metadata removed without resampling; no genuine vector found in the inspected sources; rights remain with Sudexpress |
+
+SVG assets embed source descriptions, use self-contained paths, and contain no fonts,
+scripts, external references or embedded raster images. Sudexpress stays a PNG rather
+than a raster wrapped in SVG; its 50 px source height covers the 24 px Retina rendering.
+Research PDFs, source downloads and review captures stay in ignored output/.

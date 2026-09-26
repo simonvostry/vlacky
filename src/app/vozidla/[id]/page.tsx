@@ -1,3 +1,4 @@
+import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { EditAction } from "@/components/ui-actions";
 import { VehicleDecoders } from "@/components/vehicle-decoders";
 import { requireUser } from "@/lib/auth-guards";
@@ -146,7 +147,7 @@ export default async function VehicleDetailPage({
               {vehicle.manufacturer && (
                 <>
                   <dt className="text-secondary">Výrobce</dt>
-                  <dd>{vehicle.manufacturer}</dd>
+                  <dd className="flex min-h-6 items-center"><ManufacturerLogo manufacturer={vehicle.manufacturer} /></dd>
                 </>
               )}
               {vehicle.catalogNumber && (
