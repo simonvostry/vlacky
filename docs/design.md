@@ -392,3 +392,14 @@ Bmo with blue doors as a separate livery of catalog #1650. It retains the same
 Its private photo, prompt and master are in `output/doubledeck-photo-210608/`.
 Keep it distinct from the solid-blue Bmo and blue/grey coaches with red doors.
 Do not infer a manufacturer, SKU or running number from the generated lettering.
+
+`scripts/prepare-845414-image.mjs` exports the brown DB Tadgs (Fleischmann 845414)
+from private `output/freight-845414/` references and masters. The
+[manufacturer](https://www.fleischmann.de/fen/products/coaches-and-wagons/freight-wagons/845414-swing-roof-wagon-type-tadgs-db-ag.html)
+specifies 135 mm in N: 21.6 m equivalent gives 216 native pixels. The
+[DB Cargo family specification](https://ro.dbcargo.com/resource/blob/5568472/2afd73ea08813647d1b05653511aa91b/wagon-catalog-pdf-en-ro-data.pdf)
+provides a silhouette cross-check (Tadgs 959: 21.64 m long, 4.249 m high); it does
+not independently identify the photographed model's precise subtype. The approved
+perpendicular reconstruction uses 216 × 43 native pixels, width-only 4× preview
+and full-resolution zoom. Keep the manufacturer's Tadgs designation; the photograph's
+apparently different fine subtype lettering and running number remain unverified.
