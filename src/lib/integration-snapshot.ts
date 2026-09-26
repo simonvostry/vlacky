@@ -22,7 +22,10 @@ export async function collectionSnapshot(includeTemplates = false) {
     modelManufacturer: string(v.manufacturer), catalogNumber: string(v.catalog_number), notes: string(v.notes),
     dccAddress: number(v.dcc_address),
     referenceOnly: { wagonVariantId: number(v.wagon_variant_id), runningNumber: string(v.running_number),
-      magneticCouplers: v.magnetic_couplers == null ? null : Boolean(v.magnetic_couplers),
+      magneticCouplers: Boolean(v.magnetic_coupler_a) === Boolean(v.magnetic_coupler_b) ? Boolean(v.magnetic_coupler_a) : null,
+      magneticCouplerA: Boolean(v.magnetic_coupler_a), magneticCouplerB: Boolean(v.magnetic_coupler_b),
+      hasTailLights: Boolean(v.has_tail_lights), hasSoundDecoder: Boolean(v.has_sound_decoder),
+      hasSpeaker: Boolean(v.has_speaker), isWeathered: Boolean(v.is_weathered),
       hasLights: v.has_lights == null ? null : Boolean(v.has_lights), speedProfile: speedProfiles.find(p => p.vehicle_id === v.id) ? JSON.parse(String(speedProfiles.find(p => p.vehicle_id === v.id)!.profile)) : null },
     image: await imageManifest(Number(v.id), string(v.image_path)),
     decoders: decoders.filter(d => d.vehicle_id === v.id).map(d => ({
@@ -48,6 +51,6 @@ export async function collectionSnapshot(includeTemplates = false) {
       composition: rows.map(c => ({ sourceId: `vlacky:assignment:${c.id}`, position: Number(c.position), vehicleSourceId: `vlacky:vehicle:${c.vehicle_id}`, notes: string(c.notes), orientation: null })),
     }];
   });
-  const data = { schemaVersion: "1.3", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
+  const data = { schemaVersion: "1.4", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
   return { ...data, revision: createHash("sha256").update(JSON.stringify(data)).digest("hex"), generatedAt: new Date().toISOString() };
 }

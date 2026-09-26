@@ -13,6 +13,8 @@ const patchSchema = z.object({
   imagePath: nullableText, imageWidth: nullableId, imageHeight: nullableId,
   manufacturer: nullableText, catalogNumber: nullableText, catalogId: nullableId, catalogImageId: nullableId,
   dccAddress: z.number().int().min(1).max(10239).nullable(), isTemplate: z.boolean(), notes: nullableText,
+  magneticCouplerA: z.boolean(), magneticCouplerB: z.boolean(), hasTailLights: z.boolean(),
+  hasSoundDecoder: z.boolean(), hasSpeaker: z.boolean(), isWeathered: z.boolean(),
   magneticCouplers: z.boolean().nullable(), hasLights: z.boolean().nullable(), runningNumber: nullableText,
 }).partial();
 const shared = {
@@ -20,7 +22,7 @@ const shared = {
   imagePath: 'image_path', imageWidth: 'image_width', imageHeight: 'image_height', manufacturer: 'manufacturer',
   catalogNumber: 'catalog_number', catalogId: 'catalog_id', catalogImageId: 'catalog_image_id',
 };
-const physical = { dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
+const physical = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
 type Row = Record<string, unknown>;
 function values(patch: Record<string, unknown>, mapping: Record<string, string>) {
   return Object.entries(mapping).filter(([key]) => patch[key] !== undefined).map(([key, column]) => [column, typeof patch[key] === 'boolean' ? Number(patch[key]) : patch[key]] as [string, InValue]);
@@ -48,6 +50,12 @@ function parsePatch(body: unknown) {
 }
 export async function saveVehicle(body: Record<string, unknown>, id?: number) {
   const patch = parsePatch(body);
+  // Compatibility with older clients: a non-null whole-wagon setting sets both ends.
+  // Explicit end settings take precedence; omitted/null legacy values never clear them.
+  if (patch.magneticCouplerA === undefined && patch.magneticCouplerB === undefined && patch.magneticCouplers != null) {
+    patch.magneticCouplerA = patch.magneticCouplers;
+    patch.magneticCouplerB = patch.magneticCouplers;
+  }
   if (body.editScope !== undefined && !['piece','variant'].includes(String(body.editScope))) throw new CollectionError('Neplatný rozsah úpravy.');
   return withWriteTransaction(async tx => {
     if (id === undefined) {
@@ -61,6 +69,10 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
         const entries = values(Object.fromEntries(Object.keys(shared).map(k => [k, match[k as keyof typeof match] ?? null])), shared);
         const existing = patch.imagePath ? (await tx.execute({ sql: `SELECT wagon_variant_id FROM vehicles WHERE ${entries.map(([k]) => `${k} IS ?`).join(' AND ')} AND is_template = ? AND wagon_variant_id IS NOT NULL LIMIT 1`, args: [...entries.map(([,v]) => v),Number(patch.isTemplate ?? false)] })).rows[0] : null;
         variantId = existing ? Number(existing.wagon_variant_id) : await newVariant(tx);
+      }
+      if (patch.magneticCouplerA !== undefined || patch.magneticCouplerB !== undefined) {
+        const a = patch.magneticCouplerA ?? false, b = patch.magneticCouplerB ?? false;
+        patch.magneticCouplers = a === b ? a : null;
       }
       const created = await insert(tx, [...values(patch,shared),...values(patch,physical),['wagon_variant_id',variantId]]);
       const source = (await tx.execute({sql:'SELECT * FROM vehicles WHERE id = ?',args:[created]})).rows[0];
@@ -80,6 +92,10 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
       if (nextType !== 'wagon') variantId = null;
       else if (!variantId || (changed && Number((await tx.execute({sql:'SELECT count(*) AS n FROM vehicles WHERE wagon_variant_id = ?',args:[variantId]})).rows[0].n) > 1)) variantId = await newVariant(tx);
       await update(tx,[...entries,['wagon_variant_id',variantId]],'id',id);
+    }
+    if (patch.magneticCouplerA !== undefined || patch.magneticCouplerB !== undefined) {
+      const a = patch.magneticCouplerA ?? Boolean(old.magnetic_coupler_a), b = patch.magneticCouplerB ?? Boolean(old.magnetic_coupler_b);
+      patch.magneticCouplers = a === b ? a : null;
     }
     await update(tx,values(patch,physical),'id',id);
     return id;

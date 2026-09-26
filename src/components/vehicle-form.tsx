@@ -1,5 +1,6 @@
 "use client";
 
+import { wagonEquipmentFields } from "@/lib/vehicle-equipment";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,7 +8,12 @@ import { useState } from "react";
 type Vehicle = {
   id?: number;
   wagonVariantId?: number | null;
-  magneticCouplers?: boolean | null;
+  magneticCouplerA?: boolean;
+  magneticCouplerB?: boolean;
+  hasTailLights?: boolean;
+  hasSoundDecoder?: boolean;
+  hasSpeaker?: boolean;
+  isWeathered?: boolean;
   hasLights?: boolean | null;
   runningNumber?: string;
   isTemplate?: boolean;
@@ -28,6 +34,8 @@ type Vehicle = {
 };
 
 const defaults: Vehicle = {
+  magneticCouplerA: false, magneticCouplerB: false, hasTailLights: false,
+  hasSoundDecoder: false, hasSpeaker: false, isWeathered: false,
   designation: "",
   isTemplate: false,
   operator: "",
@@ -261,16 +269,26 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
       {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">
         <legend className="px-2 text-sm font-semibold">Výbava konkrétního kusu{vehicle?.id ? ` #${vehicle.id}` : ''}</legend>
-        {(['magneticCouplers','hasLights'] as const).map(key => <div key={key} className="text-sm font-medium">
-          <label htmlFor={key}>{key === 'magneticCouplers' ? 'Magnetická spřáhla' : 'Osvětlení'}</label>
-          <select id={key} value={form[key] == null ? '' : String(form[key])} onChange={e=>set(key,e.target.value === '' ? null : e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
+        <p className="text-xs text-secondary sm:col-span-2">A a B označují stále stejné konce konkrétního vozu, i když jej v soupravě otočíte. Nezaškrtnuto znamená Ne.</p>
+        {wagonEquipmentFields.map(([key,label]) => <label key={key} className="flex min-h-9 items-center gap-2 text-sm">
+          <input type="checkbox" checked={form[key] ?? false} onChange={e=>set(key,e.target.checked)} />{label}
+        </label>)}
+        <p className="text-xs text-secondary sm:col-span-2">Reproduktor evidujte samostatně, i když je připojen k dekodéru v lokomotivě. V soupravě tak snadno vyberete tento kus hned za lokomotivu.</p>
+        <div className="text-sm font-medium">
+          <label htmlFor="hasLights">Osvětlení vozu</label>
+          <select id="hasLights" value={form.hasLights == null ? '' : String(form.hasLights)} onChange={e=>set('hasLights',e.target.value === '' ? null : e.target.value === 'true')} className="mt-1 block w-full rounded-md border border-control px-3 py-2">
             <option value="">Nezjištěno</option><option value="true">Ano</option><option value="false">Ne</option>
           </select>
-        </div>)}
+          <p className="mt-1 text-xs font-normal text-secondary">Stávající údaj o osvětlení; koncová světla evidujte zvlášť.</p>
+        </div>
         <label className="text-sm font-medium sm:col-span-2">Číslo / označení konkrétního kusu
           <input value={form.runningNumber ?? ''} onChange={e=>set('runningNumber',e.target.value)} className="mt-1 block w-full rounded-md border border-control px-3 py-2" />
         </label>
       </fieldset>}
+      <label className="flex min-h-9 items-center gap-2 text-sm">
+        <input type="checkbox" checked={form.isWeathered ?? false} onChange={e => set("isWeathered", e.target.checked)} />
+        Patinováno (tento konkrétní kus)
+      </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={form.isTemplate ?? false} onChange={e => set("isTemplate", e.target.checked)} />
         Ukázka / předloha (vynechat z běžné synchronizace)

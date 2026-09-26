@@ -55,6 +55,7 @@ migration logic. These scripts load `.env.local`, so inspect the target before r
 | --- | --- |
 | `npm run db:migrate-decoders` | `DECODER_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-integration` | `INTEGRATION_MIGRATION_URL=file:/absolute/path.db` |
+| `npm run db:migrate-vehicle-equipment` | `VEHICLE_EQUIPMENT_MIGRATION_URL=file:/absolute/test.db` |
 | `npm run db:migrate-wagon-variants` | `WAGON_VARIANTS_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-freight` | `FREIGHT_MIGRATION_URL=file:/absolute/path.db` |
 | `npm run db:migrate-speed-profiles` | `SPEED_PROFILE_MIGRATION_URL=file:/absolute/path.db` |
@@ -140,3 +141,19 @@ copy of the collection: light/dark at 1440 and 390 px, gallery/detail/edit/train
 screens, quantity increases, individual equipment edits and explicit piece selection.
 Long compositions and the membership table scroll locally on narrow screens.
 Private review captures and the database backup stay outside Git.
+
+## Vehicle equipment migration
+
+After the wagon-variant migration, back up the intended database and run
+`npm run db:migrate-vehicle-equipment` before deploying code that reads the new
+columns. `VEHICLE_EQUIPMENT_MIGRATION_URL=file:/absolute/test.db` targets a disposable
+copy. The transactional, additive migration adds six boolean columns with false
+defaults and 0/1 constraints. Only newly added coupler columns are initialized from
+the legacy whole-wagon flag (unknown becomes false); subsequent runs preserve edits.
+No IDs, variant memberships, decoder settings, profiles or train order are changed.
+
+Validate with `npm run test:vehicle-equipment`, `npm run test:wagon-variants`,
+freight, decoder, integration, speed-profile and authentication suites after building.
+Check passenger/freight and locomotive editing in both themes/narrow layouts,
+per-piece independence, copy defaults, mixed coupler ends, speaker-only wagons,
+weathering and the train picker/placement hint against a disposable database.

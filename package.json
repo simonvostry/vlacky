@@ -25,7 +25,9 @@
     "test:freight": "tsx --test tests/freight-http.test.ts",
     "db:migrate-wagon-variants": "node scripts/migrate-wagon-variants.mjs",
     "test:wagon-variants": "tsx --test tests/wagon-variants-http.test.ts",
-    "test:image-zoom": "tsx --test tests/image-zoom.test.ts"
+    "test:image-zoom": "tsx --test tests/image-zoom.test.ts",
+    "db:migrate-vehicle-equipment": "node scripts/migrate-vehicle-equipment.mjs",
+    "test:vehicle-equipment": "tsx --test tests/vehicle-equipment.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

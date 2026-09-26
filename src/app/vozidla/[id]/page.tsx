@@ -139,6 +139,7 @@ export default async function VehicleDetailPage({
               Parametry
             </h3>
             <dl className="space-y-2 text-sm">
+              <dt className="text-secondary">Patinováno</dt><dd>{vehicle.isWeathered ? "Ano" : "Ne"}</dd>
               {vehicle.dccAddress && (
                 <>
                   <dt className="text-secondary">DCC adresa</dt>

@@ -44,6 +44,7 @@ test("freight migration, separate collections, shared locomotives and preservati
   sqlite.exec(`INSERT INTO vehicle_catalog (id, designation, full_designation, operator, wagon_family, type, wagon_kind, scraped_at) VALUES (2, 'Catalog freight', 'Catalog freight', 'Test', 'freight', 'wagon', 'freight', '2026-09-26');
     INSERT INTO catalog_images VALUES (2, 2, '/img/test.gif', 100, 20, NULL, NULL, 0);`);
   execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   const origin = 'http://localhost:3113';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -105,7 +106,7 @@ test("freight migration, separate collections, shared locomotives and preservati
     assert.equal(preserved.catalogId,1); assert.equal(preserved.catalogImageId,1);
     assert.equal((await (await save(`/api/vlaky/${train.id}`,{name:train.name},'PUT')).json()).kind,'freight');
     const snapshot = await (await request('/api/integrations/v1/snapshot', {headers:{authorization:`Bearer ${secret}`}})).json();
-    assert.equal(snapshot.schemaVersion,'1.3');
+    assert.equal(snapshot.schemaVersion,'1.4');
     assert.equal(snapshot.vehicles.find((v:{id:number})=>v.id===wagon.id).wagonKind,'freight');
     assert.equal(snapshot.vehicles.find((v:{id:number})=>v.id===1).wagonKind,null);
     assert.equal(snapshot.trains.find((t:{id:number})=>t.id===train.id).kind,'freight');

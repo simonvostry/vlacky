@@ -190,8 +190,8 @@ Wagon collection tiles show one image per stable variant and an owned `N ks` bad
 Display filters affect identity labels, never the quantity. The detail route remains
 the physical vehicle URL for compatibility; its shared image is followed by “Moje
 kusy” and the selected piece's notes, DCC and appearances. Individual piece rows
-show stable IDs, optional running numbers, and three-state equipment values
-(Ano / Ne / Nezjištěno), with accessible pencil actions. Selection uses `bg-selected`.
+show stable IDs, optional running numbers and per-piece equipment/weathering values,
+with accessible pencil actions. General lighting retains Ano / Ne / Nezjištěno. Selection uses `bg-selected`.
 
 The edit form explicitly offers a single-piece or whole-variant scope for shared
 model/artwork fields. Its physical settings always affect only the selected piece.
@@ -290,3 +290,19 @@ SVG assets embed source descriptions, use self-contained paths, and contain no f
 scripts, external references or embedded raster images. Sudexpress stays a PNG rather
 than a raster wrapped in SVG; its 50 px source height covers the 24 px Retina rendering.
 Research PDFs, source downloads and review captures stay in ignored output/.
+
+### Physical equipment controls
+
+Wagon edit forms use checkboxes for magnetic couplers at fixed ends A/B, red tail
+lights, an installed sound decoder and a built-in speaker. Unchecked means No.
+General lighting remains a separate nullable field; it is not reinterpreted as tail
+lights. The independent “Patinováno” checkbox is available for both locomotives and
+wagons. These settings always describe the selected physical piece, not its siblings.
+
+Wagon piece lists show explicit Yes/No values; locomotive details show weathering.
+The train picker identifies variants containing a speaker and lists the equipment
+of each selectable piece. Active equipment appears under the vehicle in the ordering
+table and train side panel. A speaker wagon not directly behind a locomotive gets
+a quiet placement hint; the user chooses the order and no automatic reorder occurs.
+Equipment is not hidden by the four identity display toggles. Quantities and shared
+artwork keep their previous behavior.

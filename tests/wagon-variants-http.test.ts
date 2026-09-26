@@ -54,6 +54,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
   assert.deepEqual(grouped.map(r=>{const copy={...(r as Record<string,unknown>)};for(const key of ['wagon_variant_id','magnetic_couplers','has_lights','running_number']) delete copy[key];return copy;}),originalPieces);
   assert.equal((sqlite.prepare('SELECT count(DISTINCT wagon_variant_id) AS n FROM vehicles WHERE id BETWEEN 10 AND 18').get() as {n:number}).n,1);
   assert.equal((sqlite.prepare('SELECT count(DISTINCT wagon_variant_id) AS n FROM vehicles WHERE id IN (10,20,21)').get() as {n:number}).n,3);
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   const origin = 'http://localhost:3114';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -84,10 +85,23 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal(edit.status,200); assert.equal((await get(11)).wagonVariantId,variantId);
     assert.equal((await get(11)).dccAddress,44); assert.equal((await get(10)).magneticCouplers,null);
     assert.equal((await save('/api/vozidla/11',{hasLights:'yes'},'PUT')).status,400);
+    const flags = ['magneticCouplerA','magneticCouplerB','hasTailLights','hasSoundDecoder','hasSpeaker','isWeathered'];
+    for (const key of flags) assert.equal(a[key],false);
+    assert.equal((await get(11)).magneticCouplerA,true);assert.equal((await get(11)).magneticCouplerB,true); // legacy API compatibility
+    assert.equal((await save('/api/vozidla/11',{editScope:'variant',magneticCouplerB:false,hasTailLights:true,hasSoundDecoder:false,hasSpeaker:true,isWeathered:true},'PUT')).status,200);
+    const equipped=await get(11);
+    assert.equal(equipped.magneticCouplerA,true);assert.equal(equipped.magneticCouplerB,false);assert.equal(equipped.magneticCouplers,null);
+    assert.equal(equipped.hasSpeaker,true);assert.equal(equipped.hasSoundDecoder,false);assert.equal(equipped.wagonVariantId,variantId);
+    for(const key of flags) assert.equal((await get(10))[key],false); // whole-variant scope must never copy physical equipment
+    for(const key of flags) for(const invalid of [null,'yes',1]) assert.equal((await save('/api/vozidla/11',{[key]:invalid},'PUT')).status,400);
+    await save('/api/vozidla/11',{notes:'Only notes changed'},'PUT');assert.equal((await get(11)).hasSpeaker,true);
+    assert.equal((await save('/api/vozidla/1',{isWeathered:true},'PUT')).status,200);assert.equal((await get(1)).isWeathered,true);
+    assert.equal((await get(1)).dccAddress,3);
     const resize = (body:unknown) => save(`/api/varianty-vozu/${variantId}`,body,'PUT');
     assert.equal((await resize({quantity:10,expectedQuantity:9})).status,200);
     const extra = sqlite.prepare('SELECT * FROM vehicles WHERE wagon_variant_id=? ORDER BY id DESC LIMIT 1').get(variantId) as {id:number;dcc_address:number|null;magnetic_couplers:number|null;notes:string|null};
     assert.equal(extra.dcc_address,null);assert.equal(extra.magnetic_couplers,null);assert.equal(extra.notes,null);
+    for(const key of flags) assert.equal((await get(extra.id))[key],false);
     assert.equal((await resize({quantity:11,expectedQuantity:9})).status,409);
     assert.equal((await resize({quantity:9,expectedQuantity:10})).status,400);
     assert.equal((await resize({quantity:9,expectedQuantity:10,removeVehicleIds:[10]})).status,409);
@@ -111,15 +125,22 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     const assignment = sqlite.prepare('SELECT id FROM train_vehicles WHERE train_id=? LIMIT 1').get(train.id) as {id:number};
     assert.equal((await save('/api/vlaky/1/vozidla',{trainVehicleId:assignment.id},'DELETE')).status,404);
     assert.equal((await save('/api/vlaky/1/vozidla',{trainVehicleId:assignment.id,action:'move',direction:'up'},'PUT')).status,404);
-    const made = await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png',quantity:3,dccAddress:99,magneticCouplers:true});
+    const made = await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png',quantity:3,dccAddress:99,magneticCouplers:true,hasSoundDecoder:true,hasSpeaker:true,hasTailLights:true,isWeathered:true});
     assert.equal(made.status,201);const first = await made.json();
     const copies = sqlite.prepare('SELECT * FROM vehicles WHERE wagon_variant_id=? ORDER BY id').all(first.wagonVariantId) as {dcc_address:number|null;magnetic_couplers:number|null}[];
     assert.equal(copies.length,3);assert.equal(copies[0].dcc_address,99);assert.equal(copies[1].dcc_address,null);assert.equal(copies[1].magnetic_couplers,null);
+    for(const key of ['hasSoundDecoder','hasSpeaker','hasTailLights','isWeathered']) assert.equal(first[key],true);
+    const newIds=sqlite.prepare('SELECT id FROM vehicles WHERE wagon_variant_id=? ORDER BY id').all(first.wagonVariantId) as {id:number}[];
+    for(const key of flags) assert.equal((await get(newIds[1].id))[key],false);
     const another = await (await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png'})).json();
     assert.equal(another.wagonVariantId,first.wagonVariantId);
     const snapshot = await (await request('/api/integrations/v1/snapshot',{headers:{authorization:`Bearer ${secret}`}})).json();
     const exported = snapshot.vehicles.find((v:{id:number})=>v.id===11);
-    assert.equal(exported.sourceId,'vlacky:vehicle:11');assert.equal(exported.referenceOnly.magneticCouplers,true);assert.equal(exported.referenceOnly.hasLights,false);assert.equal(exported.referenceOnly.wagonVariantId,variantId);
+    assert.equal(exported.sourceId,'vlacky:vehicle:11');assert.equal(exported.referenceOnly.magneticCouplers,null);assert.equal(exported.referenceOnly.hasLights,false);assert.equal(exported.referenceOnly.wagonVariantId,variantId);
+    for(const key of flags) assert.equal(exported.referenceOnly[key],(await get(11))[key]);
+    assert.equal(exported.referenceOnly.hasLights,false); // general lighting is independent of red tail lights
+    assert.equal(exported.referenceOnly.hasTailLights,true);
+    assert.equal(snapshot.schemaVersion,'1.4');
     assert.equal((await request(`/api/varianty-vozu/${variantId}`,{method:'PUT',headers:{authorization:`Bearer ${secret}`},body:JSON.stringify({quantity:1,expectedQuantity:8})})).status,401);
     assert.equal((await request(`/nakladni-vozy/11`)).status,200);
     assert.ok(parse(await (await request(`/soupravy/${train.id}`)).text()).text.includes('0/8'));

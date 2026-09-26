@@ -105,3 +105,18 @@ vehicle's `referenceOnly` object additionally contains `wagonVariantId`,
 These are backup/reference metadata, outside the synchronization field allowlist;
 a future adapter must explicitly support them. DCC and decoder definitions remain
 per physical piece. Group/image changes do not remap any iTrain identity.
+
+## End-specific equipment and weathering
+
+Snapshot schema `1.4` adds `referenceOnly.magneticCouplerA`, `magneticCouplerB`,
+`hasTailLights`, `hasSoundDecoder`, `hasSpeaker` and `isWeathered`, all booleans.
+General `hasLights` remains independent and nullable. The deprecated aggregate
+`magneticCouplers` is true/false when both ends agree and null for mixed ends;
+consumers should read the two explicit ends. A/B are fixed physical ends, not an
+instruction to change iTrain orientation. Weathering applies to locos and wagons.
+
+All are backup/reference metadata outside `allowedSourceFields`. Speaker placement
+hints in Vlacky do not reorder saved compositions or program decoder hardware.
+Sound equipment flags do not create/delete decoder definitions. Existing IDs,
+calibration, measured profiles and unknown iTrain fields retain the preservation
+contract above.

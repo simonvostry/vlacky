@@ -37,6 +37,13 @@ export default async function TrainsPage({ searchParams }: {
         imageWidth: schema.vehicles.imageWidth,
         imageHeight: schema.vehicles.imageHeight,
         manufacturer: schema.vehicles.manufacturer,
+        magneticCouplerA: schema.vehicles.magneticCouplerA,
+        magneticCouplerB: schema.vehicles.magneticCouplerB,
+        hasTailLights: schema.vehicles.hasTailLights,
+        hasSoundDecoder: schema.vehicles.hasSoundDecoder,
+        hasSpeaker: schema.vehicles.hasSpeaker,
+        isWeathered: schema.vehicles.isWeathered,
+
         catalogNumber: schema.vehicles.catalogNumber,
         dccAddress: schema.vehicles.dccAddress,
       },

@@ -37,7 +37,7 @@ Nine active tables are defined in [the schema](../src/db/schema.ts).
 | Table | Purpose and relationships |
 | --- | --- |
 | `wagon_variants` | Stable identity for a group of visually identical wagon models |
-| `vehicles` | Owned physical pieces; nullable variant link, individual running number, magnetic couplers and lighting; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
+| `vehicles` | Owned physical pieces; nullable variant link, individual running number, end-specific magnetic couplers, lighting, sound equipment and weathering; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
 | `vehicle_catalog` | Reference vehicle types and prototype specifications |
 | `catalog_images` | Ordered livery variants belonging to a catalog type |
 | `trains` | Named compositions with category, number, route, era and notes |
@@ -145,15 +145,16 @@ SKU and catalog/livery links. `wagon-storage.ts` is the write boundary: a varian
 edit updates these fields on every member in one transaction. A piece edit that
 changes shared fields splits that piece when it has siblings; changing artwork for
 a single-piece variant keeps its group ID. Physical fields are never propagated:
-DCC, notes, template status, running number, nullable magnetic couplers and lighting.
+DCC, notes, template status, running number, general lighting, couplers at ends A/B,
+tail lights, sound decoder, speaker and weathering.
 Use this service/API for maintenance edits rather than changing shared SQL columns
 in place. Existing direct-import scripts predate grouping: run the additive variant
 migration after such imports, or migrate the importer to this write boundary.
 
 Creating a wagon reuses an exact pictured model/catalog match, or creates a new
 variant. Quantity creates separate physical rows; only the first new row receives
-explicit individual configuration. Additional copies have unknown equipment and
-blank DCC, running number and notes, and no decoder/profile cloning. The quantity
+explicit individual configuration. Additional copies default the new equipment/weathering flags to false, retain unknown
+general lighting, and have blank DCC, running number and notes, and no decoder/profile cloning. The quantity
 editor also uses actual rows, requires an expected count and explicit IDs for a
 reduction, and refuses to delete any piece still used in a composition. Explicit
 piece deletion has the same membership guard; deleting an unassigned piece removes
@@ -167,3 +168,24 @@ alternative saved compositions. Allocation, deletion and reorder operations use
 one interactive write transaction, including their validation reads. The raw helper
 uses libSQL for both Turso and local SQLite to avoid asynchronous callbacks inside
 better-sqlite3 transactions. API edits to a membership must match its parent train.
+
+## Physical equipment and weathering
+
+`vehicles.magneticCouplerA` and `magneticCouplerB` describe fixed physical ends A/B,
+not current train direction. `hasTailLights` records red tail lights separately from
+the existing nullable `hasLights` general-lighting field. `hasSoundDecoder` and
+`hasSpeaker` are independent inventory flags: a wagon speaker can be wired to a
+locomotive decoder. These flags neither create decoder configurations nor infer them
+from sound-project names/functions. `isWeathered` records applied weathering for
+both locomotives and wagons, without changing shared artwork or variant grouping.
+
+All six new fields are non-null booleans, default false. They are validated and saved
+only on the edited physical piece, even with whole-variant edit scope. Additional
+copies receive defaults rather than copying equipment/weathering. Omitted fields
+preserve existing values; explicit null/string/number values are rejected.
+
+The legacy `magnetic_couplers` column remains for compatibility. The additive equipment
+migration initializes each new end from its old whole-wagon value (null becomes false)
+and never resets existing end columns on repeat. Legacy non-null API edits set both
+ends only if neither explicit end is supplied. End edits refresh the old projection:
+same values produce true/false; mixed ends produce null. The UI uses only end fields.

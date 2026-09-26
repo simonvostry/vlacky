@@ -41,6 +41,7 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
   assert.equal((sqlite.prepare('SELECT decoder_id FROM decoder_functions').get() as {decoder_id: string}).decoder_id, 'legacy-1');
   execFileSync(process.execPath, ['scripts/migrate-speed-profiles.mjs'], { env: { ...process.env, SPEED_PROFILE_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-wagon-variants.mjs'], { env: { ...process.env, WAGON_VARIANTS_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   const origin = 'http://localhost:3108';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'decoder-test@example.com';

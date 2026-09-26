@@ -72,6 +72,7 @@ export default async function VehicleDetailPage({
             <EditAction href={`/lokomotivy/${vehicle.id}/upravit`} label="Upravit lokomotivu" />
           </div>
           <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+            <div><dt className="text-secondary">Patinováno</dt><dd>{vehicle.isWeathered ? "Ano" : "Ne"}</dd></div>
             <div><dt className="text-secondary">DCC adresa</dt><dd className="font-mono font-medium">{vehicle.dccAddress ?? "Nevyplněna"}</dd></div>
             {vehicle.manufacturer && <div><dt className="text-secondary">Výrobce</dt><dd className="flex min-h-6 items-center"><ManufacturerLogo manufacturer={vehicle.manufacturer} /></dd></div>}
             {vehicle.catalogNumber && <div><dt className="text-secondary">Katalogové číslo</dt><dd className="break-all font-mono">{vehicle.catalogNumber}</dd></div>}

@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EditAction } from '@/components/ui-actions';
+import { equipmentFields, type VehicleEquipment } from '@/lib/vehicle-equipment';
 import { equipmentLabel } from '@/lib/wagon-variants';
 
-type Piece = {id:number; runningNumber:string|null; magneticCouplers:boolean|null; hasLights:boolean|null; dccAddress:number|null; isTemplate:boolean; notes:string|null};
+type Piece = VehicleEquipment & {id:number; runningNumber:string|null; hasLights:boolean|null; dccAddress:number|null; isTemplate:boolean; notes:string|null};
 export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:number|null;pieces:Piece[];selectedId:number;section:string}) {
   const router = useRouter();
   const [quantity,setQuantity] = useState(pieces.length);
@@ -44,7 +45,7 @@ export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:nu
           <Link aria-current={p.id===selectedId ? 'page' : undefined} href={`/${section}/${p.id}`} className="text-sm font-semibold hover:text-accent">Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}</Link>
           {p.isTemplate && <span className="ml-2 text-xs text-warning">Předloha</span>}
           <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-secondary">
-            <div><dt className="inline">Magnetická spřáhla: </dt><dd className="inline">{equipmentLabel(p.magneticCouplers)}</dd></div>
+            {equipmentFields.map(([key,label]) => <div key={key}><dt className="inline">{label}: </dt><dd className="inline">{equipmentLabel(p[key])}</dd></div>)}
             <div><dt className="inline">Osvětlení: </dt><dd className="inline">{equipmentLabel(p.hasLights)}</dd></div>
             <div><dt className="inline">DCC: </dt><dd className="inline">{p.dccAddress ?? '—'}</dd></div>
           </dl>
