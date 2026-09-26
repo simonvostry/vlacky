@@ -174,3 +174,12 @@ At the shared scale these become 264, 176 and 342 native pixels respectively.
 These are model-length conversions, not independently verified prototype dimensions.
 The exporter resolves integer resize rounding with transparent bottom rows, retaining
 width-only artwork proportions and exact 4× canvases; the edge check still applies.
+
+`scripts/prepare-covered-freight-images.mjs` exports the three individual Minitrix
+15116 liveries, Fleischmann 837703/837715/826251 and REE NW-089 from local
+`output/freight-covered/` masters. Each has its own artwork and owned record.
+The REE scale is provisional: 213 mm model length gives 341 native pixels; listings
+also quote 217 mm and an inconsistent 121 mm. Preserve this uncertainty in its
+vehicle notes until the physical model is measured. Its loads are road semitrailers,
+including their wheels, rather than containers. Transparent rounding rows may be
+split between top/bottom to satisfy the unchanged alpha-bound checks without stretching.
