@@ -385,3 +385,10 @@ Bmo #1650 from the private photograph/master in `output/catalog-1650/`, retainin
 the original 268 × 46 catalog canvas and registering 4×/zoom derivatives. Original
 GIFs and all identity/equipment data remain intact. Use this opaque-glass treatment
 for future side elevations when interiors cannot be reconstructed accurately.
+
+`scripts/prepare-bmo-turquoise-image.mjs` exports the photographed turquoise/cream
+Bmo with blue doors as a separate livery of catalog #1650. It retains the same
+268 px length, width-only proportions, opaque glazing and transparent previews/zoom.
+Its private photo, prompt and master are in `output/doubledeck-photo-210608/`.
+Keep it distinct from the solid-blue Bmo and blue/grey coaches with red doors.
+Do not infer a manufacturer, SKU or running number from the generated lettering.
