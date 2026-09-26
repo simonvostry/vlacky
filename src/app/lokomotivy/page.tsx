@@ -1,3 +1,5 @@
+import { CollectionFilters } from "@/components/collection-filters";
+import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { requireUser } from "@/lib/auth-guards";
 import Image from "@/components/vehicle-image";
 import { db, schema } from "@/db";
@@ -9,7 +11,7 @@ const SCALE = 0.75;
 
 export const dynamic = "force-dynamic";
 
-export default async function LokomotivyPage() {
+export default async function LokomotivyPage({ searchParams }: { searchParams: Promise<CollectionSearch> }) {
   await requireUser();
   const allVehicles = await db
     .select()
@@ -18,15 +20,27 @@ export default async function LokomotivyPage() {
     .orderBy(schema.vehicles.designation)
     .all();
 
+  const selected = selectedFilters(await searchParams);
+  const keys: FilterKey[] = ["op", "pohon", "rada"];
+  const facets = allVehicles.map(v => vehicleFacets(v));
+  const visible = allVehicles.filter((_, index) => matchesFilters(facets[index], selected, keys));
+
   return (
     <div>
+      <CollectionFilters count={visible.length} total={allVehicles.length} filters={[
+        { key: "op", label: "Dopravce", options: facetOptions(facets, "op") },
+        { key: "pohon", label: "Pohon", options: facetOptions(facets, "pohon") },
+        { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+      ]} />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">
           Zatím žádné lokomotivy. Přidejte první!
         </p>
+      ) : visible.length === 0 ? (
+        <p className="py-12 text-center text-secondary">Žádné lokomotivy neodpovídají vybraným filtrům.</p>
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
-          {allVehicles.map((v) => {
+          {visible.map((v) => {
             const scaledW = Math.round((v.imageWidth || 169) * SCALE);
             const tileWidth = scaledW + 24;
             return (

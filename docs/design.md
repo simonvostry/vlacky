@@ -339,3 +339,18 @@ table and train side panel. A speaker wagon not directly behind a locomotive get
 a quiet placement hint; the user chooses the order and no automatic reorder occurs.
 Equipment is not hidden by the four identity display toggles. Quantities and shared
 artwork keep their previous behavior.
+
+### Collection filtering
+
+Locomotive and wagon galleries have a compact wrapping row above their tiles:
+Dopravce + Řada everywhere, Pohon for locomotives, Konstrukční skupina for passenger
+wagons. Use shared themed native selects with visible labels, a result count and
+“Zrušit filtry” only when a filter is active. Wagon counts describe variants; each
+tile retains its owned-piece count. Traction always offers electric/diesel/steam,
+including an empty category. Unclassified records use “Nezařazeno”. The passenger
+Y/Z labels explicitly include related designs and source-section lengths.
+
+These controls filter records and are separate from the top navigation's four
+show/hide-label preferences. Choices combine, live in the page URL, and remain
+usable by keyboard. Pending navigation disables controls to avoid conflicting
+updates. On narrow screens the fields wrap; no horizontal page overflow is allowed.

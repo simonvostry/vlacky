@@ -27,6 +27,7 @@ npm run build
 npm run test:theme
 npm run test:train-display
 npm run test:freight
+npm run test:collection-filters
 npm run test:auth
 npm run test:auth-http
 npm run test:decoders

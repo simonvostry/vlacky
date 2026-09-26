@@ -1,3 +1,5 @@
+import { CollectionFilters } from "@/components/collection-filters";
+import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { groupVehicles } from "@/lib/wagon-variants";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
@@ -12,7 +14,7 @@ const SCALE = 0.75;
 
 
 
-export async function WagonCollection({ kind }: { kind: "passenger" | "freight" }) {
+export async function WagonCollection({ kind, searchParams }: { kind: "passenger" | "freight"; searchParams: Promise<CollectionSearch> }) {
   await requireUser();
   const allVehicles = await db
     .select()
@@ -21,15 +23,33 @@ export async function WagonCollection({ kind }: { kind: "passenger" | "freight" 
     .orderBy(schema.vehicles.designation)
     .all();
 
+  const catalog = kind === "passenger" ? await db.select({
+    id: schema.vehicleCatalog.id, designation: schema.vehicleCatalog.designation,
+    code: schema.vehicleCatalog.code, operator: schema.vehicleCatalog.operator,
+    wagonFamily: schema.vehicleCatalog.wagonFamily,
+  }).from(schema.vehicleCatalog).where(eq(schema.vehicleCatalog.type, "wagon")).all() : [];
+  const selected = selectedFilters(await searchParams);
+  const keys: FilterKey[] = kind === "passenger" ? ["op", "skupina", "rada"] : ["op", "rada"];
+  const groups = groupVehicles(allVehicles);
+  const facets = groups.map(g => vehicleFacets(g.vehicle, catalog));
+  const visible = groups.filter((_, index) => matchesFilters(facets[index], selected, keys));
+
   return (
     <div>
+      <CollectionFilters count={visible.length} total={groups.length} wagons filters={[
+        { key: "op", label: "Dopravce", options: facetOptions(facets, "op") },
+        ...(kind === "passenger" ? [{ key: "skupina" as const, label: "Konstrukční skupina", options: facetOptions(facets, "skupina") }] : []),
+        { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+      ]} />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">
           Zatím žádné {kind === "freight" ? "nákladní" : "osobní"} vozy. Přidejte první!
         </p>
+      ) : visible.length === 0 ? (
+        <p className="py-12 text-center text-secondary">Žádné vozy neodpovídají vybraným filtrům.</p>
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
-          {groupVehicles(allVehicles).map(({ vehicle: v, pieces, key }) => {
+          {visible.map(({ vehicle: v, pieces, key }) => {
             const scaledW = Math.round((v.imageWidth || 264) * SCALE);
             const tileWidth = scaledW + 24;
             return (
