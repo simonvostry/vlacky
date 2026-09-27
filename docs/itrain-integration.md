@@ -131,3 +131,10 @@ unknown. This field is backup/reference data outside `allowedSourceFields`: addi
 it does not authorize automatic changes to iTrain length, detector offsets or
 calibration. A future explicitly supported adapter must handle units and missing
 values under the existing preservation contract.
+
+## Epoch reference metadata
+
+Snapshot schema `1.6` adds `referenceOnly.epochs` (integer array, unknown `[]`) and
+`referenceOnly.epochNotes` (nullable provenance). These fields are informational
+and do not extend any iTrain write allowlist. Calibration and layout ownership are
+unchanged. See [epochs](epochs.md) for the assignment contract.

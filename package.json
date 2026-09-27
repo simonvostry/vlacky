@@ -33,7 +33,9 @@
     "test:gallery-size": "tsx --test tests/gallery-size.test.ts",
     "test:filter-dropdown": "tsx --test tests/filter-dropdown.test.ts",
     "db:migrate-vehicle-length": "node scripts/migrate-vehicle-length.mjs",
-    "test:vehicle-length": "tsx --test tests/vehicle-length.test.ts"
+    "test:vehicle-length": "tsx --test tests/vehicle-length.test.ts",
+    "db:migrate-epochs": "node scripts/migrate-epochs.mjs",
+    "test:epochs": "tsx --test tests/epochs.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

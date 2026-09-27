@@ -1,3 +1,4 @@
+import { VehicleEpochs } from "@/components/vehicle-epochs";
 import { VehicleLength } from "@/components/vehicle-length";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { EditAction } from "@/components/ui-actions";
@@ -79,6 +80,7 @@ export default async function VehicleDetailPage({
             {vehicle.catalogNumber && <div><dt className="text-secondary">Katalogové číslo</dt><dd className="break-all font-mono">{vehicle.catalogNumber}</dd></div>}
           </dl>
           <VehicleLength value={vehicle.lengthOverBuffersMm} />
+            <VehicleEpochs epochs={vehicle.epochs} notes={vehicle.epochNotes} />
           {vehicle.isTemplate && <p className="mt-3 text-xs font-medium text-warning">Ukázka / předloha · vynecháno z běžné synchronizace</p>}
           {vehicle.notes && <p className="mt-3 whitespace-pre-wrap break-words text-sm text-secondary">{vehicle.notes}</p>}
         </div>

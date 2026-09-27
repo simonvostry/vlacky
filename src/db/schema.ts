@@ -11,6 +11,8 @@ export const vehicles = sqliteTable("vehicles", {
   type: text("type").notNull(), // "loco" | "wagon"
   wagonKind: text("wagon_kind").notNull().default("passenger"), // used only for wagons: passenger | freight
   classType: text("class_type"), // "1" | "2" | "restaurant" | null
+  epochs: text("epochs", { mode: "json" }).$type<number[]>().notNull().default([]),
+  epochNotes: text("epoch_notes"), // source URLs and assignment rationale
   imagePath: text("image_path"), // "/img/loco-362.gif"
   imageWidth: integer("image_width"), // px
   imageHeight: integer("image_height"), // px
@@ -119,6 +121,8 @@ export const vehicleCatalog = sqliteTable("vehicle_catalog", {
   yearRetired: text("year_retired"),
   maxSpeed: text("max_speed"), // "160 km/h"
   vehicleCode: text("vehicle_code"),
+  epochs: text("epochs", { mode: "json" }).$type<number[]>().notNull().default([]),
+  epochNotes: text("epoch_notes"), // source URLs and assignment rationale
   imagePath: text("image_path"),
   imageWidth: integer("image_width"),
   imageHeight: integer("image_height"),
@@ -133,6 +137,8 @@ export const catalogImages = sqliteTable("catalog_images", {
   catalogId: integer("catalog_id")
     .notNull()
     .references(() => vehicleCatalog.id, { onDelete: "cascade" }),
+  epochs: text("epochs", { mode: "json" }).$type<number[]>().notNull().default([]),
+  epochNotes: text("epoch_notes"), // source URLs and assignment rationale
   imagePath: text("image_path").notNull(), // "/img/catalog/a150-a.gif"
   imageWidth: integer("image_width"),
   imageHeight: integer("image_height"),

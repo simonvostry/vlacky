@@ -44,6 +44,7 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
   execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
   const origin = 'http://localhost:3108';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'decoder-test@example.com';

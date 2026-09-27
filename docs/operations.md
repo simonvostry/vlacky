@@ -184,3 +184,17 @@ Run `npm run test:vehicle-length` and `npm run test:wagon-variants` after buildi
 the latter covers decimal API round-trips, null/omission, validation, variant edits,
 copy inheritance, per-piece splits and snapshot export. Check detail/edit pages in
 both themes and a narrow viewport against a disposable collection.
+
+## Epoch migration
+
+Back up the intended database, then run `npm run db:migrate-epochs` before deploying
+dependent code. `EPOCH_MIGRATION_URL=file:/absolute/test.db` selects a disposable
+copy. The additive, transactional migration adds `epochs` and `epoch_notes` to
+vehicles, catalog types and liveries; it is idempotent and makes no assignments.
+Backfill is a separate reviewed operation following [the source policy](epochs.md).
+Verify only these new fields changed, preserving all existing collection data.
+
+Run `npm run test:epochs`, collection-filter and wagon-variant tests, plus the
+integration/decoder/speed/freight HTTP suites after building. Browser review covers
+multi-selection, source notes, catalog prefill, filtered liveries, remembered filters
+and reset in light/dark and narrow layouts against a disposable database.

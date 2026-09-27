@@ -289,3 +289,10 @@ per-vehicle evidence; do not mistake a whole set's length for one wagon or promo
 provisional/conflicting dimensions to facts. A permanently coupled unit has one
 total length. The reference catalog describes prototypes, so this model-specific
 measurement belongs to owned models, not a generic catalog type.
+
+## Railway epochs
+
+See [epochs](epochs.md) for the data contract and source policy. Owned vehicles,
+catalog base artwork and individual liveries each store independent epoch lists
+and provenance. Epoch filters use membership rather than scalar equality; catalog
+results show matching liveries. Epochs never come from automatic class/year guesses.

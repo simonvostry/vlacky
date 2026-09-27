@@ -22,7 +22,7 @@ export default async function LokomotivyPage({ searchParams }: { searchParams: P
     .all();
 
   const selected = selectedFilters(await searchParams);
-  const keys: FilterKey[] = ["op", "pohon", "rada"];
+  const keys: FilterKey[] = ["op", "pohon", "rada", "epocha"];
   const facets = allVehicles.map(v => vehicleFacets(v));
   const visible = allVehicles.filter((_, index) => matchesFilters(facets[index], selected, keys));
 
@@ -32,6 +32,7 @@ export default async function LokomotivyPage({ searchParams }: { searchParams: P
         { key: "op", label: "Dopravce", options: facetOptions(facets, "op") },
         { key: "pohon", label: "Pohon", options: facetOptions(facets, "pohon") },
         { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+        { key: "epocha", label: "Epocha", options: facetOptions(facets, "epocha") },
       ]} />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">

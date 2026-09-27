@@ -57,6 +57,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
   execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
   const origin = 'http://localhost:3114';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -99,6 +100,14 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     await save('/api/vozidla/11',{notes:'Only notes changed'},'PUT');assert.equal((await get(11)).hasSpeaker,true);
     assert.equal((await save('/api/vozidla/1',{isWeathered:true},'PUT')).status,200);assert.equal((await get(1)).isWeathered,true);
     assert.equal((await get(1)).dccAddress,3);
+    assert.deepEqual(a.epochs,[]);
+    for(const invalid of [[0],[7],[1.5],['5'],[5,5],null,'V',5]) assert.equal((await save('/api/vozidla/10',{epochs:invalid},'PUT')).status,400);
+    assert.equal((await save('/api/vozidla/10',{epochs:[6,5],epochNotes:'Manufacturer: V-VI',editScope:'variant'},'PUT')).status,200);
+    assert.deepEqual((await get(11)).epochs,[5,6]);assert.equal((await get(11)).epochNotes,'Manufacturer: V-VI');
+    await save('/api/vozidla/11',{notes:'Epoch preserved'},'PUT');assert.deepEqual((await get(11)).epochs,[5,6]);
+    await save('/api/vozidla/1',{epochs:[4],epochNotes:'Old source'},'PUT');
+    await save('/api/vozidla/1',{epochs:[5]},'PUT');assert.equal((await get(1)).epochNotes,null);
+    await save('/api/vozidla/1',{epochs:[]},'PUT');assert.deepEqual((await get(1)).epochs,[]);
     // Length is a shared model specification, with explicit per-piece splitting.
     assert.equal(a.lengthOverBuffersMm,null);
     for (const invalid of [0,-1,10001,'165',true]) assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:invalid},'PUT')).status,400);
@@ -115,6 +124,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await resize({quantity:10,expectedQuantity:9})).status,200);
     const extra = sqlite.prepare('SELECT * FROM vehicles WHERE wagon_variant_id=? ORDER BY id DESC LIMIT 1').get(variantId) as {id:number;dcc_address:number|null;magnetic_couplers:number|null;notes:string|null};
     assert.equal((await get(extra.id)).lengthOverBuffersMm,165.25);
+    assert.deepEqual((await get(extra.id)).epochs,[5,6]);assert.equal((await get(extra.id)).epochNotes,'Manufacturer: V-VI');
     assert.equal(extra.dcc_address,null);assert.equal(extra.magnetic_couplers,null);assert.equal(extra.notes,null);
     for(const key of flags) assert.equal((await get(extra.id))[key],false);
     assert.equal((await resize({quantity:11,expectedQuantity:9})).status,409);
@@ -124,10 +134,12 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await resize({quantity:9,expectedQuantity:10,removeVehicleIds:[extra.id]})).status,200);
     assert.equal((await save('/api/vozidla/10',{imagePath:'/img/owned/uacs-improved.png',editScope:'variant'},'PUT')).status,200);
     assert.equal((await get(11)).imagePath,'/img/owned/uacs-improved.png');assert.equal((await get(10)).wagonVariantId,variantId);
-    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png',lengthOverBuffersMm:166.125},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png',lengthOverBuffersMm:166.125,epochs:[4]},'PUT')).status,200);
     assert.notEqual((await get(18)).wagonVariantId,variantId); assert.equal((await get(10)).imagePath,'/img/owned/uacs-improved.png');
     assert.equal((await get(18)).notes,'Original piece 18');
     assert.equal((await get(18)).lengthOverBuffersMm,166.125);
+    assert.deepEqual((await get(18)).epochs,[4]);assert.equal((await get(18)).epochNotes,null);
+    assert.deepEqual((await get(10)).epochs,[5,6]);
     assert.equal((await get(10)).lengthOverBuffersMm,165.25);
     const train = await (await save('/api/vlaky',{name:'Nine pieces',kind:'freight'})).json();
     const trainPath = `/api/vlaky/${train.id}/vozidla`;
@@ -161,7 +173,28 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     for(const key of flags) assert.equal(exported.referenceOnly[key],(await get(11))[key]);
     assert.equal(exported.referenceOnly.hasLights,false); // general lighting is independent of red tail lights
     assert.equal(exported.referenceOnly.hasTailLights,true);
-    assert.equal(snapshot.schemaVersion,'1.5');
+    assert.equal(snapshot.schemaVersion,'1.6');
+    assert.deepEqual(exported.referenceOnly.epochs,[5,6]);assert.equal(exported.referenceOnly.epochNotes,'Manufacturer: V-VI');
+    const filtered = parse(await (await request('/nakladni-vozy?epocha=5')).text());
+    assert.ok(filtered.querySelector('a[href="/nakladni-vozy/10"]'));
+    assert.equal(filtered.querySelector('a[href="/nakladni-vozy/18"]'),null);
+    // A catalog type can contain differently dated liveries. A filtered card
+    // must show matching artwork with either color-display preference.
+    sqlite.exec(`UPDATE vehicle_catalog SET epochs='[4]', image_path='/img/base-iv.png' WHERE id=2;
+      UPDATE catalog_images SET epochs='[5]', epoch_notes='Exact livery V', image_path='/img/livery-v.png' WHERE id=2;
+      INSERT INTO catalog_images (id,catalog_id,image_path,sort_order,epochs,epoch_notes) VALUES (3,2,'/img/livery-vi.png',1,'[6]','Exact livery VI');`);
+    for (const barvy of ['0','1']) {
+      const catalog = parse(await (await request(`/katalog?typ=freight&epocha=5&barvy=${barvy}`)).text());
+      const card = catalog.querySelector('a[href="/katalog/2"]');
+      assert.ok(card?.querySelector('img[src="/img/livery-v.png"]'));
+      assert.equal(card?.querySelector('img[src="/img/livery-vi.png"]'),null);
+      assert.equal(card?.querySelector('img[src="/img/base-iv.png"]'),null);
+    }
+    const epochChecks = (html: string) => parse(html).querySelectorAll('input[type="checkbox"][checked]').map(n=>n.getAttribute('aria-label')).filter(n=>n?.startsWith('Epocha '));
+    assert.deepEqual(epochChecks(await (await request('/nakladni-vozy/novy?catalogId=2&catalogImageId=2&epochs=6')).text()),['Epocha V']);
+    assert.deepEqual(epochChecks(await (await request('/nakladni-vozy/novy?catalogId=2&catalogImageId=3')).text()),['Epocha VI']);
+    assert.deepEqual(epochChecks(await (await request('/nakladni-vozy/novy?catalogId=1&catalogImageId=3')).text()),[]);
+    assert.deepEqual(epochChecks(await (await request('/nakladni-vozy/novy?catalogId=2')).text()),['Epocha IV']);
     assert.equal(exported.referenceOnly.lengthOverBuffersMm,165.25);
     assert.equal((await request('/vozy/'+first.id+'/upravit')).status,200);
     assert.ok(parse(await (await request('/nakladni-vozy/11')).text()).text.includes('165,25 mm'));

@@ -2,7 +2,7 @@
 export const COLLECTION_FILTER_ROUTES = ["/lokomotivy", "/vozy", "/nakladni-vozy", "/katalog"] as const;
 export const COLLECTION_FILTER_STORAGE_KEY = "vlacky-collection-filters-v1";
 export const FILTER_STATE_MARKER = "filtry";
-const commonKeys = ["op", "rada", "pohon", "skupina"];
+const commonKeys = ["op", "rada", "pohon", "skupina", "epocha"];
 export function isFilterCollection(path: string): boolean {
   return (COLLECTION_FILTER_ROUTES as readonly string[]).includes(path);
 }

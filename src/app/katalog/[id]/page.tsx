@@ -1,3 +1,4 @@
+import { VehicleEpochs } from "@/components/vehicle-epochs";
 import { OperatorLogo } from "@/components/operator-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
@@ -36,6 +37,7 @@ export default async function CatalogDetailPage({
     imageHeight: number | null;
     label: string | null;
     sortOrder: number;
+    epochs: number[]; epochNotes: string | null;
   }[] = await db
     .select()
     .from(schema.catalogImages)
@@ -106,6 +108,7 @@ export default async function CatalogDetailPage({
                   {img.label && (
                     <span className="text-xs text-secondary">{img.label}</span>
                   )}
+                  <VehicleEpochs epochs={img.epochs} notes={img.epochNotes} />
                   <Link
                     href={`/${section}/novy?${addParams.toString()}`}
                     className="ui-button ui-button-primary"
@@ -120,6 +123,8 @@ export default async function CatalogDetailPage({
 
         <h1 className="text-2xl font-bold">{entry.fullDesignation}</h1>
         <div data-vehicle-label="operator" className="mt-1"><OperatorLogo operator={entry.operator} height={16} /></div>
+
+        <VehicleEpochs epochs={entry.epochs} notes={entry.epochNotes} />
 
         <div data-vehicle-label="type" className="mt-4 rounded-lg bg-subtle p-4">
           <h3 className="mb-2 text-xs font-semibold uppercase text-secondary">

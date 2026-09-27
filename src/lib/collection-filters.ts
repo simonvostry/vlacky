@@ -1,12 +1,13 @@
+import { EPOCHS, epochLabels } from "./epochs";
 import { locomotiveNickname } from "./locomotive-nicknames";
 
 /** Read-only presentation facets. Never write inferred classifications to owned models. */
 export const UNKNOWN = "nezarazeno";
-export type FilterKey = "op" | "rada" | "pohon" | "skupina";
+export type FilterKey = "op" | "rada" | "pohon" | "skupina" | "epocha";
 export type CollectionSearch = Partial<Record<FilterKey, string | string[]>>;
 export type Facets = Record<FilterKey, string> & { radaLabel?: string };
 export type FilterOption = { value: string; label: string };
-type Vehicle = { designation: string; operator: string | null; type: string; catalogId?: number | null };
+type Vehicle = { designation: string; operator: string | null; type: string; catalogId?: number | null; epochs?: number[] };
 type Catalog = { id: number; designation: string; code: string | null; operator: string; wagonFamily: string };
 
 export const tractionLabels: Record<string, string> = {
@@ -77,18 +78,19 @@ export function wagonFamily(v: Vehicle, catalog: Catalog[]): string {
 export function vehicleFacets(v: Vehicle, catalog: Catalog[] = []): Facets {
   const rada = vehicleClass(v.designation, v.type === "loco");
   const nickname = v.type === "loco" ? locomotiveNickname(rada, v.operator) : undefined;
-  return { op: v.operator?.trim() || UNKNOWN, rada,
+  return { op: v.operator?.trim() || UNKNOWN, rada, epocha: v.epochs?.length ? v.epochs.join(",") : UNKNOWN,
     ...(nickname ? { radaLabel: `${nickname} (${rada})` } : {}),
     pohon: v.type === "loco" ? traction(v) : UNKNOWN,
     skupina: v.type === "wagon" ? wagonFamily(v, catalog) : UNKNOWN };
 }
 export function selectedFilters(search: CollectionSearch): Facets {
-  return Object.fromEntries((["op", "rada", "pohon", "skupina"] as const).map(key => [key, Array.isArray(search[key]) ? search[key][0] || "" : search[key] || ""])) as Facets;
+  return Object.fromEntries((["op", "rada", "pohon", "skupina", "epocha"] as const).map(key => [key, Array.isArray(search[key]) ? search[key][0] || "" : search[key] || ""])) as Facets;
 }
 export function matchesFilters(facets: Facets, selected: Facets, keys: FilterKey[]): boolean {
-  return keys.every(key => !selected[key] || facets[key] === selected[key]);
+  return keys.every(key => !selected[key] || (key === "epocha" ? facets.epocha.split(",").includes(selected.epocha) : facets[key] === selected[key]));
 }
 export function facetOptions(facets: Facets[], key: FilterKey): FilterOption[] {
+  if (key === "epocha") return [...EPOCHS.map(epoch => ({value: String(epoch), label: `Epocha ${epochLabels[epoch]}`})), {value: UNKNOWN, label: "Nevyplněna"}];
   const labels = key === "pohon" ? tractionLabels : key === "skupina" ? familyLabels : {};
   const values = new Set(facets.map(f => f[key]));
   // Keep all three requested traction choices discoverable, even with no owned steam engine.

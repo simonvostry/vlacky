@@ -1,5 +1,7 @@
 "use client";
 
+import { EPOCHS, epochLabels } from "@/lib/epochs";
+
 import { hasVehicleSound, soundEquipmentPatch } from "@/lib/vehicle-equipment";
 import { EquipmentGlyph } from "@/components/equipment-icons";
 import { manufacturerKey, manufacturerName, manufacturerOptions } from "@/lib/model-manufacturers";
@@ -30,6 +32,8 @@ type Vehicle = {
   manufacturer: string;
   catalogNumber: string;
   lengthOverBuffersMm?: number | null;
+  epochs?: number[];
+  epochNotes?: string | null;
   dccAddress: number | null;
   notes: string;
   catalogId?: number | null;
@@ -51,6 +55,7 @@ const defaults: Vehicle = {
   manufacturer: "",
   catalogNumber: "",
   lengthOverBuffersMm: null,
+  epochs: [], epochNotes: null,
   dccAddress: null,
   notes: "",
 };
@@ -287,6 +292,24 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
           />
         </div>
       </div>
+
+      <fieldset className="rounded-lg border border-divider p-4">
+        <legend className="px-2 text-sm font-semibold">Epocha</legend>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {EPOCHS.map(epoch => <label key={epoch} className={`flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm ${form.epochs?.includes(epoch) ? 'border-accent bg-accent-soft text-accent' : 'border-control'}`}>
+            <input type="checkbox" checked={form.epochs?.includes(epoch) ?? false} aria-label={`Epocha ${epochLabels[epoch]}`}
+              onChange={e => setForm(f => ({...f, epochs: e.target.checked ? [...(f.epochs ?? []),epoch].sort((a,b)=>a-b) : (f.epochs ?? []).filter(n=>n!==epoch), epochNotes: null}))} />
+            {epochLabels[epoch]}
+          </label>)}
+        </div>
+        <p className="mt-2 text-xs text-secondary">Lze vybrat více epoch podle nátěru a označení modelu. Bez výběru = nevyplněno. Hranice epoch se liší podle země.</p>
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-secondary">Zdroj a upřesnění epochy</summary>
+          <label htmlFor="epoch-notes" className="sr-only">Zdroj a upřesnění epochy</label>
+          <textarea id="epoch-notes" rows={3} maxLength={5000} value={form.epochNotes ?? ''} onChange={e=>set('epochNotes',e.target.value || null)} className="mt-2 w-full rounded-md border border-control px-3 py-2 text-sm" />
+          <p className="mt-1 text-xs text-secondary">Odkaz na výrobce nebo zdůvodnění. Změna výběru původní zdroj vymaže, aby se nevztahoval k jinému zařazení.</p>
+        </details>
+      </fieldset>
 
       <div>
         <label htmlFor="vehicle-length" className="mb-1 block text-sm font-medium">Délka přes nárazníky (mm)</label>

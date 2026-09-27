@@ -65,6 +65,7 @@ export default async function EditVehiclePage({
           manufacturer: vehicle.manufacturer || "",
           catalogNumber: vehicle.catalogNumber || "",
           lengthOverBuffersMm: vehicle.lengthOverBuffersMm,
+          epochs: vehicle.epochs, epochNotes: vehicle.epochNotes,
           dccAddress: vehicle.dccAddress,
           isTemplate: vehicle.isTemplate,
           notes: vehicle.notes || "",

@@ -7,10 +7,12 @@ export class CollectionError extends Error {
 }
 const nullableText = z.string().nullable().transform(v => v || null);
 const nullableId = z.number().int().positive().nullable();
+const epochsSchema = z.array(z.number().int().min(1).max(6)).max(6).refine(v => new Set(v).size === v.length).transform(v => [...v].sort((a,b) => a-b));
 const patchSchema = z.object({
   designation: z.string().trim().min(1), operator: nullableText, type: z.enum(['wagon', 'loco']),
   wagonKind: z.enum(['passenger', 'freight']), classType: nullableText,
   imagePath: nullableText, imageWidth: nullableId, imageHeight: nullableId,
+  epochs: epochsSchema, epochNotes: z.string().max(5000).nullable().transform(v => v?.trim() || null),
   lengthOverBuffersMm: z.number().finite().positive().max(10000).nullable(),
   manufacturer: nullableText, catalogNumber: nullableText, catalogId: nullableId, catalogImageId: nullableId,
   dccAddress: z.number().int().min(1).max(10239).nullable(), isTemplate: z.boolean(), notes: nullableText,
@@ -21,13 +23,14 @@ const patchSchema = z.object({
 const shared = {
   designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
   imagePath: 'image_path', imageWidth: 'image_width', imageHeight: 'image_height', manufacturer: 'manufacturer',
+  epochs: 'epochs', epochNotes: 'epoch_notes',
   lengthOverBuffersMm: 'length_over_buffers_mm',
   catalogNumber: 'catalog_number', catalogId: 'catalog_id', catalogImageId: 'catalog_image_id',
 };
 const physical = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
 type Row = Record<string, unknown>;
 function values(patch: Record<string, unknown>, mapping: Record<string, string>) {
-  return Object.entries(mapping).filter(([key]) => patch[key] !== undefined).map(([key, column]) => [column, typeof patch[key] === 'boolean' ? Number(patch[key]) : patch[key]] as [string, InValue]);
+  return Object.entries(mapping).filter(([key]) => patch[key] !== undefined).map(([key, column]) => [column, Array.isArray(patch[key]) ? JSON.stringify(patch[key]) : typeof patch[key] === 'boolean' ? Number(patch[key]) : patch[key]] as [string, InValue]);
 }
 async function update(tx: Transaction, entries: [string, InValue][], where: string, id: number) {
   if (entries.length) await tx.execute({ sql: `UPDATE vehicles SET ${entries.map(([k]) => `${k} = ?`).join(', ')} WHERE ${where} = ?`, args: [...entries.map(([,v]) => v), id] });
@@ -65,6 +68,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
   return withWriteTransaction(async tx => {
     if (id === undefined) {
       patch.hasLights ??= false;
+      patch.epochs ??= [];
       if (!patch.designation || !patch.type) throw new CollectionError('Vyplňte označení a typ vozidla.');
       const quantity = body.quantity ?? 1;
       if (!Number.isInteger(quantity) || Number(quantity) < 1 || Number(quantity) > 1000 || (patch.type !== 'wagon' && quantity !== 1)) throw new CollectionError('Počet kusů musí být 1–1000; lokomotivy přidávejte jednotlivě.');
@@ -87,6 +91,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     }
     const old = (await tx.execute({sql:'SELECT * FROM vehicles WHERE id = ?',args:[id]})).rows[0];
     if (!old) throw new CollectionError('Vozidlo nenalezeno.',404);
+    if (patch.epochs !== undefined && JSON.stringify(patch.epochs) !== old.epochs && patch.epochNotes === undefined) patch.epochNotes = null;
     const entries = values(patch,shared);
     const changed = entries.some(([k,v]) => old[k] !== v);
     const nextType = patch.type ?? old.type;

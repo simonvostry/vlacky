@@ -488,3 +488,8 @@ prototype length and explains individual wagons versus permanently coupled units
 Locomotive, passenger/freight wagon and legacy vehicle details show the value in mm
 with a Czech decimal comma, or **Nevyplněna**. Gallery tiles stay compact. The field
 does not alter artwork sizing or gallery scale.
+
+Epochs use six compact, independent Roman-numeral checkboxes in vehicle editing.
+Show their joined label in detail views with source notes collapsed by default.
+Use the shared Epocha dropdown in collection/catalog toolbars; do not add badges
+to every gallery image. Unknown is displayed as Nevyplněna. See [epochs](epochs.md).

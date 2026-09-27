@@ -37,47 +37,33 @@ export default async function CatalogPage({
     if (typ === "loco") return e.type === "loco";
     return true;
   });
-  const keys: FilterKey[] = ["op", "rada"];
+  // Epochs describe the pictured livery. Do not borrow an epoch from a different
+  // owned paint variant or infer it from the vehicle's construction date.
+  const allCatalogImages = await db.select().from(schema.catalogImages)
+    .orderBy(schema.catalogImages.catalogId, schema.catalogImages.sortOrder).all();
+  const imagesByCatalog = new Map<number, typeof allCatalogImages>();
+  for (const image of allCatalogImages) {
+    const images = imagesByCatalog.get(image.catalogId) ?? [];
+    images.push(image); imagesByCatalog.set(image.catalogId, images);
+  }
+  const keys: FilterKey[] = ["op", "rada", "epocha"];
   if (!typ || typ === "loco") keys.push("pohon");
   if (!typ || typ === "wagon") keys.push("skupina");
-  const facets = categoryEntries.map(e => vehicleFacets({
-    ...e, catalogId: e.id,
-    designation: e.code ? `${e.designation} ${e.code}` : e.designation,
-  }, allEntries));
+  const facets = categoryEntries.map(e => {
+    const images = imagesByCatalog.get(e.id) ?? [];
+    const facet = vehicleFacets({ ...e, catalogId: e.id,
+      designation: e.code ? `${e.designation} ${e.code}` : e.designation }, allEntries);
+    // Include unknown liveries explicitly, even on a type with known ones.
+    const epochValues = [e.epochs, ...images.map(i => i.epochs)]
+      .flatMap(epochs => epochs.length ? epochs.map(String) : ["nezarazeno"]);
+    return { ...facet, epocha: [...new Set(epochValues)].join(",") };
+  });
   const entries = categoryEntries.filter((e, index) => {
     if (keys.includes("pohon") && selected.pohon && e.type !== "loco") return false;
     if (keys.includes("skupina") && selected.skupina && (e.type !== "wagon" || e.wagonKind !== "passenger")) return false;
-    // Preserve the existing ČSD catalog filter's inclusion of shared ČSD/ČD entries.
     const facet = selected.op === "ČSD" && facets[index].op === "ČSD/ČD" ? { ...facets[index], op: "ČSD" } : facets[index];
     return matchesFilters(facet, selected, keys);
   });
-
-  // Load catalog images grouped by catalogId (only when showing colors)
-  const imagesByCatalog = new Map<number, typeof allCatalogImages>();
-  let allCatalogImages: {
-    id: number;
-    catalogId: number;
-    imagePath: string;
-    imageWidth: number | null;
-    imageHeight: number | null;
-    label: string | null;
-    sortOrder: number;
-    sourceUrl: string | null;
-  }[] = [];
-
-  if (showColors) {
-    allCatalogImages = await db
-      .select()
-      .from(schema.catalogImages)
-      .orderBy(schema.catalogImages.catalogId, schema.catalogImages.sortOrder)
-      .all();
-
-    for (const img of allCatalogImages) {
-      const existing = imagesByCatalog.get(img.catalogId) || [];
-      existing.push(img);
-      imagesByCatalog.set(img.catalogId, existing);
-    }
-  }
 
   return (
     <div>
@@ -86,6 +72,7 @@ export default async function CatalogPage({
         ...(keys.includes("pohon") ? [{ key: "pohon" as const, label: "Pohon", options: facetOptions(facets.filter((_, i) => categoryEntries[i].type === "loco"), "pohon") }] : []),
         ...(keys.includes("skupina") ? [{ key: "skupina" as const, label: "Konstrukční skupina", options: facetOptions(facets.filter((_, i) => categoryEntries[i].type === "wagon" && categoryEntries[i].wagonKind === "passenger"), "skupina") }] : []),
         { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+        { key: "epocha", label: "Epocha", options: facetOptions(facets, "epocha") },
       ]} />
 
       {entries.length === 0 ? (
@@ -95,7 +82,11 @@ export default async function CatalogPage({
       ) : (
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
           {entries.map((e) => {
-            const images = imagesByCatalog.get(e.id) || [];
+            const candidates = imagesByCatalog.get(e.id) || [];
+            const matchingImages = selected.epocha ? candidates.filter(i => matchesFilters(vehicleFacets({ ...e, epochs: i.epochs }), selected, ["epocha"])) : candidates;
+            const baseMatches = matchesFilters(vehicleFacets(e), selected, ["epocha"]);
+            // A filtered type must display a matching livery, even with colors off.
+            const images = showColors ? matchingImages : selected.epocha && !baseMatches ? matchingImages.slice(0,1) : [];
             const scaledW = Math.round((e.imageWidth || 264) * SCALE);
             const tileWidth = galleryDimension(Math.max(scaledW, ...images.map(img => Math.round((img.imageWidth || 264) * SCALE))), 24);
             return (

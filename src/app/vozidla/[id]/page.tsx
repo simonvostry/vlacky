@@ -1,3 +1,4 @@
+import { VehicleEpochs } from "@/components/vehicle-epochs";
 import { VehicleLength } from "@/components/vehicle-length";
 import { OperatorLogo } from "@/components/operator-logo";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
@@ -91,6 +92,7 @@ export default async function VehicleDetailPage({
             )}
 
             <VehicleLength value={vehicle.lengthOverBuffersMm} />
+            <VehicleEpochs epochs={vehicle.epochs} notes={vehicle.epochNotes} />
 
             <div className="mt-4">
               <EditAction href={`/vozidla/${vehicle.id}/upravit`} label="Upravit vozidlo" />

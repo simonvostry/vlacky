@@ -1,3 +1,4 @@
+import { catalogEpochPrefill } from "@/lib/catalog-epochs";
 import { modelManufacturerOptions } from "@/lib/manufacturer-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { VehicleForm } from "@/components/vehicle-form";
@@ -9,9 +10,11 @@ export default async function NewLocoPage({
 }) {
   await requireUser();
   const params = await searchParams;
+  const epochPrefill = await catalogEpochPrefill(params.catalogId, params.catalogImageId);
 
   const prefill = params.catalogId
     ? {
+        ...epochPrefill,
         designation: params.designation || "",
         operator: params.operator || "",
         type: params.type || "loco",

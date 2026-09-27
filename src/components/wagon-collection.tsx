@@ -30,7 +30,7 @@ export async function WagonCollection({ kind, searchParams }: { kind: "passenger
     wagonFamily: schema.vehicleCatalog.wagonFamily,
   }).from(schema.vehicleCatalog).where(eq(schema.vehicleCatalog.type, "wagon")).all() : [];
   const selected = selectedFilters(await searchParams);
-  const keys: FilterKey[] = kind === "passenger" ? ["op", "skupina", "rada"] : ["op", "rada"];
+  const keys: FilterKey[] = kind === "passenger" ? ["op", "skupina", "rada"] : ["op", "rada", "epocha"];
   const groups = groupVehicles(allVehicles);
   const facets = groups.map(g => vehicleFacets(g.vehicle, catalog));
   const visible = groups.filter((_, index) => matchesFilters(facets[index], selected, keys));
@@ -41,6 +41,7 @@ export async function WagonCollection({ kind, searchParams }: { kind: "passenger
         { key: "op", label: "Dopravce", options: facetOptions(facets, "op") },
         ...(kind === "passenger" ? [{ key: "skupina" as const, label: "Konstrukční skupina", options: facetOptions(facets, "skupina") }] : []),
         { key: "rada", label: "Řada", options: facetOptions(facets, "rada") },
+        { key: "epocha", label: "Epocha", options: facetOptions(facets, "epocha") },
       ]} />
       {allVehicles.length === 0 ? (
         <p className="py-12 text-center text-secondary">
