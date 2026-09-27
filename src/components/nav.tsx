@@ -11,7 +11,6 @@ import { DisplaySettings } from "./display-settings";
 import { CollectionToolbarSlot } from "./collection-toolbar";
 import { useCollectionFilterMemory } from "./collection-filter-memory";
 import { FILTER_STATE_MARKER } from "@/lib/collection-filter-memory";
-import { ThemeToggle } from "./theme-toggle";
 import { hasGallerySizeControls } from "@/lib/gallery-size";
 
 const links = [
@@ -98,8 +97,8 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
         <CollectionToolbarSlot />
         <div className="relative order-2 ml-auto flex items-center gap-2 py-2 2xl:order-3">
           {addAction && <CollectionActions {...addAction} />}
-          <DisplaySettings key={pathname} visible={showDisplayControls} gallery={hasGallerySizeControls(pathname)} />
-          <ThemeToggle />{accountMenu}
+          <DisplaySettings key={pathname} vehicleLabels={showDisplayControls} gallery={hasGallerySizeControls(pathname)} />
+          {accountMenu}
         </div>
         {isKatalog && <div className="order-6 flex w-full flex-wrap items-center gap-3 pb-3">
           {isKatalog && (

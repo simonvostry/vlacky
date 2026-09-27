@@ -29,6 +29,7 @@ npm run test:train-display
 npm run test:gallery-size
 npm run test:freight
 npm run test:collection-filters
+npm run test:filter-dropdown
 npm run test:auth
 npm run test:auth-http
 npm run test:decoders

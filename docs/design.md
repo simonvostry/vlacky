@@ -12,7 +12,7 @@ Tune those shared roles instead of adding page-specific gray/blue values.
 
 Global navigation stays at the top, with concise labels: Soupravy, Loko, Osobní,
 Nákladní, Katalog and DCC. A future contextual sidebar may supplement it.
-Collection add actions live in the top bar beside the theme/account controls: a
+Collection add actions live in the top bar beside the settings/account controls: a
 compact plus and “Přidat” in blue with a transparent background and neutral hover.
 Use `CollectionActions` on Soupravy, Lokomotivy and Vozy with contextual accessible
 labels and standard target sizes. Do not add a separate row above the lists.
@@ -21,12 +21,14 @@ no enclosing border or left accent; hover uses a lighter fill. The list hides ge
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain
 available in details.
 
-A gear button beside the theme control opens **Nastavení zobrazení**. Its submenu
-contains image size choices followed by four independent display toggles: Dopravce
+A gear button beside the account control opens **Nastavení zobrazení** on every
+authenticated page. Its submenu contains image size choices, four independent
+display toggles and the **Světlý / Tmavý** theme choice. The display toggles are Dopravce
 (logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge) and Typ
 (designation, e.g. Bmz 61 or 642). They share one selection across Soupravy,
 Lokomotivy, Vozy and Katalog, including read-only detail pages and train side panels.
-DCC and creation/edit forms have no display controls and retain all information.
+DCC and creation/edit forms offer only the theme choice in Settings; they retain
+all vehicle information.
 Page titles, form fields, image alt text, DCC addresses, model catalog numbers and
 freeform notes remain visible/accessible; filters affect only explicitly marked
 presentation labels. A field absent from a page has nothing to toggle there.
@@ -42,11 +44,12 @@ separate from these display settings.
 ## Themes and controls
 
 `src/lib/theme.ts` defines the `vlacky-theme` localStorage key and defensive inline
-head bootstrap. `ThemeToggle` restores the explicit choice before paint, persists
+head bootstrap. The shared theme preference restores the explicit choice before paint, persists
 it per browser/origin and synchronizes changes across tabs. Light is the default;
 there is no OS auto-selection or database preference. If storage is unavailable,
 switching still works in-page and a later reload defaults to light. Preserve the
-hydration handling when changing the root layout. Login also has the toggle.
+hydration handling when changing the root layout. `ThemeChoices` lives inside Settings;
+the login page retains its standalone `ThemeToggle`.
 
 - Use `EditAction` for pencil-only edits with contextual localized accessible names
   and hover/focus tooltips. Keep text for Save, Cancel and Add.
@@ -373,10 +376,24 @@ artwork keep their previous behavior.
 Locomotive/wagon galleries and the reference catalog place compact wrapping filters
 in the top navigation, beside the section links on sufficiently wide screens:
 Dopravce + Řada everywhere, Pohon for locomotives, Konstrukční skupina for passenger
-wagons. Use shared themed native selects with accessible labels and “Dopravce: vše”-style
+wagons. Use shared `FilterDropdown` controls with accessible labels and “Dopravce: vše”-style
 empty choices, a compact result count and an always-visible reset icon named
 “Resetovat filtry”. The controls wrap within the navigation on smaller screens;
-there is no separate filter strip above the tiles. Wagon counts describe variants; each
+there is no separate filter strip above the tiles. The popup is an app-rendered
+list with theme surfaces, a selected checkmark and an internal thin scrollbar only
+when needed. Its portal is positioned within the visible browser viewport; it
+opens below the trigger unless space requires opening above, at most 320 px tall.
+Text wraps within options. Native form dropdowns elsewhere are unchanged.
+
+The [select-only combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/)
+keeps focus on its trigger and exposes the active option
+through `aria-activedescendant`. Arrows, Home/End, Page Up/Down and accent-insensitive
+typeahead move through choices; Enter/Space or a click selects. Escape, Tab,
+outside clicks and page scrolling close without applying an unconfirmed choice.
+Opening another dropdown closes the first. Scrolling the list never scrolls the
+page. Pending navigation guards activation while retaining keyboard focus.
+
+Wagon counts describe variants; each
 tile retains its owned-piece count. Traction always offers electric/diesel/steam,
 including an empty category. Unclassified records use “Nezařazeno”. The passenger
 Y/Z labels explicitly include related designs and source-section lengths.

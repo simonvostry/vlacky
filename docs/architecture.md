@@ -208,7 +208,10 @@ The three owned collection pages and the reference catalog compose URL filters: 
 and matching; the shared `CollectionFilters` control changes URLs without writes.
 Pages authorize before queries. `CollectionToolbarProvider` exposes a navigation
 slot; the page-owned `CollectionFilters` portals its controls there after hydration.
-No duplicate data query or persistent filter configuration is introduced. Unmounting
+`FilterDropdown` renders the shared custom combobox/listbox; pure viewport placement
+and Czech typeahead helpers live in `filter-dropdown.ts`. Its presentation does not
+change filter keys, values or remembered URLs. No duplicate data query or persistent
+filter configuration is introduced. Unmounting
 a page removes its controls, so DCC/detail pages cannot retain stale filters.
 Options come from the whole current collection,
 so changing one filter does not hide the other available choices. Unsupported URL

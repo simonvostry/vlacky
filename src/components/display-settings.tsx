@@ -2,10 +2,11 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { ThemeChoices } from "./theme-toggle";
 import { GallerySizeControls } from "./gallery-size-controls";
 import { TrainDisplayControls } from "./train-display-controls";
 
-export function DisplaySettings({ visible, gallery }: { visible: boolean; gallery: boolean }) {
+export function DisplaySettings({ vehicleLabels, gallery }: { vehicleLabels: boolean; gallery: boolean }) {
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -32,23 +33,27 @@ export function DisplaySettings({ visible, gallery }: { visible: boolean; galler
   }, [open]);
 
   // The positioned parent is the entire nav action group, keeping the panel inside
-  // the viewport even when the gear has theme/account buttons to its right.
-  return <div ref={container} hidden={!visible} onBlur={event => {
+  // the viewport even when the gear has an account button to its right.
+  return <div ref={container} onBlur={event => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
   }}>
-    {visible && <button ref={trigger} type="button" aria-label="Nastavení zobrazení"
+    <button ref={trigger} type="button" aria-label="Nastavení zobrazení"
       title="Nastavení zobrazení" aria-haspopup="dialog" aria-expanded={open} aria-controls={panelId}
       className={`ui-icon-button ${open ? "bg-muted" : ""}`}
       onClick={() => setOpen(value => !value)}
       onKeyDown={event => { if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); } }}>
       <Cog6ToothIcon className="size-5" aria-hidden="true" />
-    </button>}
-    <div ref={panel} id={panelId} hidden={!visible || !open} role="dialog" aria-label="Nastavení zobrazení"
-      className="absolute right-0 top-full z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-divider bg-surface p-4 shadow-lg">
+    </button>
+    <div ref={panel} id={panelId} hidden={!open} role="dialog" aria-label="Nastavení zobrazení"
+      className="absolute right-0 top-full z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-divider bg-surface p-4 shadow-lg max-h-[calc(100dvh-5rem)] overflow-y-auto">
       {gallery && <p className="mb-2 text-sm font-medium">Velikost obrázků</p>}
       <GallerySizeControls visible={gallery} />
-      {visible && <p className={`${gallery ? "mt-4" : ""} mb-2 text-sm font-medium`}>Údaje u vozidel</p>}
-      <TrainDisplayControls visible={visible} />
+      {vehicleLabels && <p className={`${gallery ? "mt-4" : ""} mb-2 text-sm font-medium`}>Údaje u vozidel</p>}
+      <TrainDisplayControls visible={vehicleLabels} />
+      <div className={vehicleLabels || gallery ? "mt-4 border-t border-divider pt-4" : ""}>
+        <p className="mb-2 text-sm font-medium">Vzhled</p>
+        <ThemeChoices />
+      </div>
     </div>
   </div>;
 }

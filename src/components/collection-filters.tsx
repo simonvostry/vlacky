@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { FilterDropdown } from "./filter-dropdown";
 import { CollectionToolbar } from "./collection-toolbar";
 import { FILTER_STATE_MARKER, resetFilterQuery } from "@/lib/collection-filter-memory";
 import { rememberCollectionFilters } from "./collection-filter-memory";
@@ -28,14 +29,11 @@ export function CollectionFilters({ filters, count, total, wagons = false, catal
       <section aria-label="Filtry sbírky" aria-busy={pending} className="flex flex-wrap items-center gap-2 py-2">
         {filters.map(filter => {
           const value = search.get(filter.key) || "";
-          return <label key={filter.key} className="min-w-32 flex-[1_1_8rem] sm:flex-none">
-            <span className="sr-only">{filter.label}</span>
-            <select aria-label={filter.label} title={filter.label} value={value} disabled={pending} onChange={e => update(filter.key, e.target.value)} className={`w-full ${filter.key === "rada" ? "sm:w-44" : filter.key === "skupina" ? "sm:w-48" : "sm:w-36"}`}>
-              <option value="">{filter.key === "skupina" ? "Konstrukce" : filter.label}: vše</option>
-              {value && !filter.options.some(o => o.value === value) && <option value={value}>Nedostupná volba</option>}
-              {filter.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>;
+          return <FilterDropdown key={filter.key} label={filter.label}
+            emptyLabel={`${filter.key === "skupina" ? "Konstrukce" : filter.label}: vše`}
+            value={value} options={filter.options} disabled={pending}
+            onChange={next => update(filter.key, next)}
+            className={filter.key === "rada" ? "sm:w-44" : filter.key === "skupina" ? "sm:w-48" : "sm:w-36"} />;
         })}
         <button type="button" onClick={() => update()} disabled={pending} aria-label="Resetovat filtry" title="Resetovat filtry" className="ui-icon-button">
           <ArrowPathIcon className="size-4" aria-hidden="true" />
