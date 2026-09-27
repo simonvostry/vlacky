@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { dropdownPosition, typeaheadIndex } from "@/lib/filter-dropdown";
@@ -8,10 +8,11 @@ import type { FilterOption } from "@/lib/collection-filters";
 
 type Props = {
   label: string; emptyLabel: string; value: string; options: FilterOption[];
+  renderOption?: (option: FilterOption, location: "trigger" | "option") => ReactNode;
   disabled?: boolean; className?: string; onChange: (value: string) => void;
 };
 
-export function FilterDropdown({ label, emptyLabel, value, options, disabled, className = "", onChange }: Props) {
+export function FilterDropdown({ label, emptyLabel, value, options, disabled, className = "", onChange, renderOption }: Props) {
   const choices = [{ value: "", label: emptyLabel },
     ...(value && !options.some(option => option.value === value) ? [{ value, label: "Nedostupná volba" }] : []), ...options];
   const selected = Math.max(0, choices.findIndex(option => option.value === value));
@@ -24,15 +25,19 @@ export function FilterDropdown({ label, emptyLabel, value, options, disabled, cl
   const listId = useId();
   const activeIndex = Math.min(active, choices.length - 1);
 
-  function measure() {
+  const measure = useCallback(() => {
     if (!trigger.current) return;
     const viewport = window.visualViewport;
-    setPosition(dropdownPosition(trigger.current.getBoundingClientRect(), {
+    const next = dropdownPosition(trigger.current.getBoundingClientRect(), {
       left: viewport?.offsetLeft || 0, top: viewport?.offsetTop || 0,
       width: viewport?.width || window.innerWidth, height: viewport?.height || window.innerHeight,
       layoutHeight: window.innerHeight,
-    }));
-  }
+    }, list.current ? list.current.scrollHeight + 2 : choices.length * 36 + 10);
+    setPosition(previous => previous && JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+  }, [choices.length]);
+
+  useLayoutEffect(() => { if (open) measure(); }, [open, measure]);
+
   function show(index = selected) {
     if (disabled) return;
     measure();
@@ -69,7 +74,7 @@ export function FilterDropdown({ label, emptyLabel, value, options, disabled, cl
       window.visualViewport?.removeEventListener("resize", measure);
       window.visualViewport?.removeEventListener("scroll", close);
     };
-  }, [open]);
+  }, [open, measure]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -115,17 +120,17 @@ export function FilterDropdown({ label, emptyLabel, value, options, disabled, cl
       className={`flex min-h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-sm ${disabled ? "cursor-wait opacity-55" : "hover:border-accent"} ${open ? "border-accent bg-accent-soft" : "border-control bg-surface"}`}
       onClick={() => { if (!disabled) { if (open) setOpen(false); else show(); } }}
       onBlur={() => setOpen(false)} onKeyDown={onKeyDown}>
-      <span className="min-w-0 flex-1 truncate">{choices[selected].label}</span>
+      <span className="min-w-0 flex-1 truncate">{renderOption ? renderOption(choices[selected], "trigger") : choices[selected].label}</span>
       <ChevronDownIcon className={`size-4 shrink-0 text-secondary ${open ? "rotate-180" : ""}`} aria-hidden="true" />
     </button>
     {open && position && createPortal(<div ref={list} id={listId} role="listbox" aria-label={label}
       style={{ ...position, scrollbarWidth: "thin", scrollbarColor: "var(--control-border) transparent" }}
       className="fixed z-[70] overflow-y-auto overscroll-contain rounded-lg border border-divider bg-surface p-1 shadow-lg"
       onMouseDown={event => event.preventDefault()}>
-      {choices.map((option, index) => <div key={option.value} id={`${listId}-${index}`} role="option" aria-selected={option.value === value}
+      {choices.map((option, index) => <div key={option.value} id={`${listId}-${index}`} role="option" aria-label={option.label} title={option.label} aria-selected={option.value === value}
         className={`flex min-h-9 cursor-pointer items-center gap-2 rounded px-3 py-2 text-sm [overflow-wrap:anywhere] ${index === activeIndex ? "bg-muted" : ""} ${option.value === value ? "font-medium text-accent" : "text-foreground"}`}
         onPointerMove={event => { if (event.pointerType === "mouse") setActive(index); }} onClick={() => choose(index)}>
-        <span className="min-w-0 flex-1">{option.label}</span>
+        <span className="min-w-0 flex-1">{renderOption ? renderOption(option, "option") : option.label}</span>
         {option.value === value && <CheckIcon className="size-4 shrink-0" aria-hidden="true" />}
       </div>)}
     </div>, document.body)}

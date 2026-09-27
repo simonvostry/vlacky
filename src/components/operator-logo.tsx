@@ -22,22 +22,24 @@ type Props = {
   operator: string | null;
   height?: number;
   inverted?: boolean;
+  maxWidth?: number;
 };
 
-export function OperatorLogo({ operator, height = 14, inverted = false }: Props) {
+export function OperatorLogo({ operator, height = 14, inverted = false, maxWidth }: Props) {
   if (!operator) return null;
 
   const logo = operatorLogos[operator];
   if (logo) {
+    const displayHeight = maxWidth ? Math.min(height, maxWidth * logo.height / logo.width) : height;
     return (
       <Image
         unoptimized
         src={logo.src}
         alt={operator}
-        width={Math.round(height * logo.width / logo.height)}
-        height={height}
+        width={Math.round(displayHeight * logo.width / logo.height)}
+        height={Math.round(displayHeight)}
         className={`shrink-0 operator-logo ${inverted ? "operator-logo-inverted" : ""}`}
-        style={{ height, width: "auto", filter: inverted ? "brightness(10)" : "none" }}
+        style={{ height: displayHeight, width: "auto", ...(maxWidth ? { maxWidth: "100%", objectFit: "contain" as const, objectPosition: "left" } : {}), filter: inverted ? "brightness(10)" : "none" }}
       />
     );
   }

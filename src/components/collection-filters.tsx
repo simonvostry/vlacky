@@ -3,11 +3,22 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { OperatorLogo, operatorLogos } from "./operator-logo";
 import { FilterDropdown } from "./filter-dropdown";
 import { CollectionToolbar } from "./collection-toolbar";
 import { FILTER_STATE_MARKER, resetFilterQuery } from "@/lib/collection-filter-memory";
 import { rememberCollectionFilters } from "./collection-filter-memory";
 import type { FilterKey, FilterOption } from "@/lib/collection-filters";
+
+function operatorOption(option: FilterOption, location: "trigger" | "option") {
+  // Keep "all", unavailable values and unknown operators readable. Full operator
+  // names also remain the option's accessible name, tooltip and typeahead text.
+  if (option.label !== option.value || !operatorLogos[option.value]) return option.label;
+  if (option.value === "ČSD/ČD") return <span className="flex items-center gap-2">
+    <OperatorLogo operator="ČSD" height={18} /><span aria-hidden="true">/</span><OperatorLogo operator="ČD" height={18} />
+  </span>;
+  return <OperatorLogo operator={option.value} height={18} maxWidth={location === "trigger" ? 96 : 160} />;
+}
 
 export function CollectionFilters({ filters, count, total, wagons = false, catalog = false }: {
   filters: { key: FilterKey; label: string; options: FilterOption[] }[];
@@ -32,6 +43,7 @@ export function CollectionFilters({ filters, count, total, wagons = false, catal
           return <FilterDropdown key={filter.key} label={filter.label}
             emptyLabel={`${filter.key === "skupina" ? "Konstrukce" : filter.label}: vše`}
             value={value} options={filter.options} disabled={pending}
+            renderOption={filter.key === "op" ? operatorOption : undefined}
             onChange={next => update(filter.key, next)}
             className={filter.key === "rada" ? "sm:w-44" : filter.key === "skupina" ? "sm:w-48" : "sm:w-36"} />;
         })}

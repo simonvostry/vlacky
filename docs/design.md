@@ -385,8 +385,18 @@ empty choices, a compact result count and an always-visible reset icon named
 there is no separate filter strip above the tiles. The popup is an app-rendered
 list with theme surfaces, a selected checkmark and an internal thin scrollbar only
 when needed. Its portal is positioned within the visible browser viewport; it
-opens below the trigger unless space requires opening above, at most 320 px tall.
+opens below the trigger unless the measured list fits better above. It grows to
+its content height, up to 640 px or the available viewport space. Short and medium
+lists open fully; only longer lists or constrained viewports need internal scrolling.
 Text wraps within options. Native form dropdowns elsewhere are unchanged.
+
+Dopravce uses existing operator logos in both options and the selected field. Logos
+retain their proportions, with bounded widths for long wordmarks and the shared
+light backing in dark mode. ČSD/ČD shows both marks to distinguish it from ČSD.
+Missing logos, unavailable values and the all-selection retain text. Operator names
+stay available to screen readers, hover tooltips and keyboard typeahead; filter
+values and stored collection data remain unchanged. These controls are independent
+of the show/hide operator preference for vehicle artwork.
 
 The [select-only combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/)
 keeps focus on its trigger and exposes the active option
