@@ -398,6 +398,13 @@ Its private photo, prompt and master are in `output/doubledeck-photo-210608/`.
 Keep it distinct from the solid-blue Bmo and blue/grey coaches with red doors.
 Do not infer a manufacturer, SKU or running number from the generated lettering.
 
+`scripts/prepare-bmo-cd-blue-image.mjs` exports the photographed medium-blue ČD
+Bmo with light doors, warm-grey roof and a small cream ČD mark at upper center.
+It is a separate livery of catalog #1650, retaining the 268 px length, true side
+elevation and opaque glazing. Its source photo, prompt and master stay in private
+`output/bmo-cd-blue-20260927/`. Keep this distinct from the brighter-blue ČD coach
+with a low-left emblem, the turquoise/cream version and the ČSD-lettered coach.
+
 `scripts/prepare-845414-image.mjs` exports the brown DB Tadgs (Fleischmann 845414)
 from private `output/freight-845414/` references and masters. The
 [manufacturer](https://www.fleischmann.de/fen/products/coaches-and-wagons/freight-wagons/845414-swing-roof-wagon-type-tadgs-db-ag.html)

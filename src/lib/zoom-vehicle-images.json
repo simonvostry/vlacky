@@ -358,5 +358,10 @@
     "src": "/img/zoom/vehicle-117-cd-v1.webp",
     "width": 2055,
     "height": 410
+  },
+  "/img/catalog/cd-bmo-blue-center-logo-v1.png": {
+    "src": "/img/zoom/cd-bmo-blue-center-logo-v1.webp",
+    "width": 2139,
+    "height": 376
   }
 }
