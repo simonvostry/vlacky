@@ -12,7 +12,7 @@ Tune those shared roles instead of adding page-specific gray/blue values.
 
 Global navigation stays at the top, with concise labels: Soupravy, Loko, Osobní,
 Nákladní, Katalog and DCC. A future contextual sidebar may supplement it.
-Collection add actions live in the top bar beside the settings/account controls: a
+Collection add actions live in the top bar beside the account control: a
 compact plus and “Přidat” in blue with a transparent background and neutral hover.
 Use `CollectionActions` on Soupravy, Lokomotivy and Vozy with contextual accessible
 labels and standard target sizes. Do not add a separate row above the lists.
@@ -21,9 +21,11 @@ no enclosing border or left accent; hover uses a lighter fill. The list hides ge
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain
 available in details.
 
-A gear button beside the account control opens **Nastavení zobrazení** on every
-authenticated page. Its submenu contains image size choices, four independent
-display toggles and the **Světlý / Tmavý** theme choice. The display toggles are Dopravce
+The round Google profile picture (initials fallback) opens **Nastavení a účet** on
+every authenticated page. There is no separate gear button. Its panel contains
+image size choices, four independent
+display toggles and the **Světlý / Tmavý** theme choice, followed by **Odhlásit se**
+as the final action below a divider. The display toggles are Dopravce
 (logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge) and Typ
 (designation, e.g. Bmz 61 or 642). They share one selection across Soupravy,
 Lokomotivy, Vozy and Katalog, including read-only detail pages and train side panels.
@@ -37,7 +39,8 @@ All default on. Keep the existing `vlacky-train-labels-hidden` browser/origin st
 key to preserve saved choices; restore before paint and synchronize across tabs,
 even while a tab is on DCC or a form. Turning everything off removes pure label
 rows, while preserving descriptions. The submenu fits the viewport in both themes, closes on Escape/outside click or
-focus leaving it, and restores focus to the trigger on Escape. Its preference
+focus leaving it, or changing pages, and restores focus to the profile picture on
+Escape. Opening it focuses the first setting. Its preference
 listeners stay mounted while closed or hidden. Catalog content filters remain
 separate from these display settings.
 
@@ -149,8 +152,8 @@ authenticated browser or through the authorized image integration.
 
 The app icon is a transparent close crop of Brejlovec cab glazing. Native icon assets
 live in `src/app/`; `scripts/prepare-app-icon.mjs` rebuilds them from the local master.
-The top-left home link reuses `src/app/icon.png` at 44px instead of a text wordmark,
-with a transparent background in both themes and an accessible “Vláčky — Soupravy” label.
+It remains the browser/favicon asset. The top navigation starts with Soupravy and
+has no app logo or separate home link.
 
 ## Verification
 

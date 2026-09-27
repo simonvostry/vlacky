@@ -16,7 +16,7 @@ export function CollectionToolbarProvider({ children }: { children: ReactNode })
 
 export function CollectionToolbarSlot() {
   const toolbar = useContext(ToolbarContext);
-  return <div ref={toolbar?.setTarget} className="order-4 min-w-0 w-full empty:hidden 2xl:order-2 2xl:ml-auto 2xl:w-auto" />;
+  return <div ref={toolbar?.setTarget} className="order-4 min-w-0 w-full empty:hidden xl:order-2 xl:ml-auto xl:w-auto" />;
 }
 
 export function CollectionToolbar({ children }: { children: ReactNode }) {

@@ -115,7 +115,7 @@ export default async function TrainsPage({ searchParams }: {
           })}
         </div>
         {selectedTrain && (
-          <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block 2xl:top-16 2xl:max-h-[calc(100dvh-5rem)]">
+          <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
             <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} closeHref={druh ? `/soupravy?druh=${druh}` : "/soupravy"} />
           </aside>
         )}

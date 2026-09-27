@@ -1,17 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import appIcon from "@/app/icon.png";
-import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
-import { DisplaySettings } from "./display-settings";
 import { CollectionToolbarSlot } from "./collection-toolbar";
 import { useCollectionFilterMemory } from "./collection-filter-memory";
 import { FILTER_STATE_MARKER } from "@/lib/collection-filter-memory";
-import { hasGallerySizeControls } from "@/lib/gallery-size";
 
 const links = [
   { href: "/soupravy", label: "Soupravy" },
@@ -52,7 +47,6 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   const addAction = pathname === "/soupravy" && searchParams.get("druh") === "freight"
     ? { href: "/soupravy/novy?druh=freight", label: "Přidat nákladní soupravu" }
     : collectionActions[pathname];
-  const showDisplayControls = hasVehicleDisplayControls(pathname);
   const isKatalog = pathname === "/katalog";
   const currentTyp = searchParams.get("typ") || "";
   const showColors = searchParams.get("barvy") === "1";
@@ -74,11 +68,7 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
   return (
     <nav className="app-nav sticky top-0 z-50 border-b border-divider">
       <div className="flex flex-wrap items-center gap-x-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/soupravy" aria-label="Vláčky — Soupravy" title="Vláčky — Soupravy"
-          className="order-1 mr-2 flex h-12 w-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-          <Image src={appIcon} alt="" width={44} height={44} sizes="44px" className="size-11" />
-        </Link>
-        <div className="order-4 flex w-full flex-wrap gap-x-3 gap-y-0 sm:order-1 sm:w-auto sm:justify-start sm:gap-4">
+        <div className="order-1 flex min-w-0 flex-1 flex-wrap gap-x-3 gap-y-0 sm:flex-none sm:gap-4">
           {links.map((link) => {
             const isActive =
               pathname.startsWith(link.href);
@@ -95,9 +85,8 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
           })}
         </div>
         <CollectionToolbarSlot />
-        <div className="relative order-2 ml-auto flex items-center gap-2 py-2 2xl:order-3">
+        <div className="relative order-2 ml-auto flex items-center gap-2 py-2 xl:order-3">
           {addAction && <CollectionActions {...addAction} />}
-          <DisplaySettings key={pathname} vehicleLabels={showDisplayControls} gallery={hasGallerySizeControls(pathname)} />
           {accountMenu}
         </div>
         {isKatalog && <div className="order-6 flex w-full flex-wrap items-center gap-3 pb-3">
