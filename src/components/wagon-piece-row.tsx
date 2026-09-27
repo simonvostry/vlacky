@@ -1,8 +1,7 @@
 'use client';
 
-import { useId, useLayoutEffect, useRef, useState, useTransition } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { EditAction } from '@/components/ui-actions';
 import { EquipmentGlyph, EquipmentIcons } from '@/components/equipment-icons';
 import { FilterDropdown } from '@/components/filter-dropdown';
@@ -15,9 +14,9 @@ export type WagonPiece = VehicleEquipment & {
 const input = 'w-full min-w-0 rounded-md border border-control bg-surface px-3 py-2 text-sm';
 const fields = ['runningNumber', 'dccAddress', 'magneticCouplerA', 'magneticCouplerB', 'hasTailLights', 'hasLights', 'hasSoundDecoder', 'hasSpeaker', 'isWeathered', 'isTemplate', 'notes'] as const;
 
-export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange }: {
+export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved }: {
   piece: WagonPiece; selected: boolean; section: string; disabled: boolean;
-  onEditingChange: (editing: boolean) => void;
+  onEditingChange: (editing: boolean) => void; onSelect: () => void; onSaved: (piece: WagonPiece) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -30,33 +29,35 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
   function close(wasSaved: boolean) {
     setEditing(false); setSaved(wasSaved); onEditingChange(false);
   }
-  return <div className="min-w-0 flex-1">
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <Link aria-current={selected ? 'page' : undefined} href={`/${section}/${piece.id}`} className="text-sm font-semibold hover:text-accent">Kus #{piece.id}{piece.runningNumber ? ` · ${piece.runningNumber}` : ''}</Link>
+  return <div className="edit-reveal-scope min-w-0 flex-1">
+    <div className="relative">
+      <Link aria-current={selected ? 'page' : undefined} aria-controls={`piece-details-${piece.id}`} aria-expanded={selected}
+        href={`/${section}/${piece.id}`} scroll={false} onClick={e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault(); if (!disabled) onSelect();
+        }} className="block rounded-md px-4 py-3 pr-16 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
+        <span className="text-sm font-semibold">Kus #{piece.id}{piece.runningNumber ? ` · ${piece.runningNumber}` : ''}</span>
         {piece.isTemplate && <span className="ml-2 text-xs text-warning">Předloha</span>}
-        {!editing && <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <EquipmentIcons value={piece} />
+        {!editing && <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <EquipmentIcons value={piece} focusable={false} />
           {piece.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {piece.dccAddress}</span>}
           {saved && <span role="status" className="text-xs text-success">Uloženo.</span>}
-        </div>}
-      </div>
-      <div ref={trigger}>{!editing && <EditAction label={`Upravit kus #${piece.id}`} disabled={disabled} onClick={() => { setEditing(true); setSaved(false); onEditingChange(true); }} />}</div>
+        </span>}
+      </Link>
+      <div ref={trigger} className="edit-reveal absolute right-4 top-3">{!editing && <EditAction label={`Upravit kus #${piece.id}`} disabled={disabled} onClick={() => { setEditing(true); setSaved(false); onEditingChange(true); }} />}</div>
     </div>
-    {editing && <PieceEditor piece={piece} onClose={close} />}
+    {editing && <div className="px-4 pb-4"><PieceEditor piece={piece} onClose={close} onSaved={onSaved} /></div>}
   </div>;
 }
 
-function PieceEditor({ piece, onClose }: { piece: WagonPiece; onClose: (saved: boolean) => void }) {
-  const router = useRouter();
+function PieceEditor({ piece, onClose, onSaved }: { piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece) => void }) {
   const notesId = useId();
   // Capture only this piece's editable values; later refreshes must not reset a draft.
   const [base] = useState(piece);
   const [draft, setDraft] = useState(piece);
   const [busy, setBusy] = useState(false);
-  const [refreshing, startTransition] = useTransition();
   const [error, setError] = useState('');
-  const locked = busy || refreshing;
+  const locked = busy;
   function patch(value: Partial<WagonPiece>) { setDraft(d => ({ ...d, ...value })); }
   const couplers = draft.magneticCouplerA && draft.magneticCouplerB ? 'both' : draft.magneticCouplerA || draft.magneticCouplerB ? 'one' : '';
   async function save(e: React.FormEvent) {
@@ -69,7 +70,7 @@ function PieceEditor({ piece, onClose }: { piece: WagonPiece; onClose: (saved: b
       const response = await fetch(`/api/vozidla/${piece.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...changes, editMode: 'piece' }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Uložení se nezdařilo.');
-      startTransition(() => { router.refresh(); onClose(true); });
+      onSaved(data); onClose(true);
     } catch (err) { setError(err instanceof Error ? err.message : 'Spojení se nezdařilo. Zkuste to znovu.'); }
     finally { setBusy(false); }
   }

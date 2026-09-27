@@ -82,7 +82,7 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     assert.equal((await (await request('/api/vozidla/1/dekodery')).json()).decoders.length, 2);
     for (const page of ['/lokomotivy/1', '/vozy/2', '/dcc', '/soupravy?souprava=1', '/soupravy/1']) {
       const response = await request(page); assert.equal(response.status, 200, `${page}\n${logs}`);
-      const html = await response.text(); assert.ok(html.includes(page === '/dcc' ? '55' : page.startsWith('/soupravy') ? 'Test wagon' : 'Dekodéry a DCC funkce'));
+      const html = await response.text(); assert.ok(html.includes(page === '/dcc' ? '55' : page.startsWith('/soupravy') ? 'Test wagon' : page.startsWith('/vozy') ? 'Dekodér a funkce' : 'Dekodéry a DCC funkce'));
     }
     assert.equal((await request('/api/vlaky/1/vozidla', { method: 'PUT', headers, body: JSON.stringify({ action: 'update', trainVehicleId: 1, lightingDecoderAddress: 8 }) })).status, 400);
     assert.equal((await save(1, { dccAddress: null, decoders: [] })).status, 200);

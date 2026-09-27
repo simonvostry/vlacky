@@ -42,7 +42,7 @@ Nine active tables are defined in [the schema](../src/db/schema.ts).
 | `catalog_images` | Ordered livery variants belonging to a catalog type |
 | `trains` | Named compositions with category, number, route, era and notes |
 | `train_vehicles` | Ordered vehicle membership and notes; the same vehicle may belong to several saved compositions |
-| `vehicle_decoders` | Installed decoders belonging to a physical vehicle; nullable own address inherits the vehicle default |
+| `vehicle_decoders` | Installed decoders belonging to a physical vehicle; nullable own address inherits the physical piece’s DCC address |
 | `decoder_functions` | Functions linked to vehicle and installed decoder; category, behavior and description |
 | `vehicle_speed_profiles` | One current JSON profile per locomotive with an optimistic-concurrency token |
 
@@ -150,7 +150,13 @@ API value `editScope: "new-variant"` and a shared-field change. This intentional
 operation preserves the physical ID and creates a new group. The ordinary form
 never offers implicit splitting. `/[id]/upravit` edits shared model fields. Physical
 fields are edited inline in each detail row, with `/[id]/kus/upravit` retained as a
-dedicated fallback, in both passenger and freight sections. Legacy wagon edit URLs redirect to the shared editor.
+dedicated fallback, in both passenger and freight sections. The authorized detail
+loader supplies all group members’ decoder configurations and train appearances;
+client-side selection uses the physical ID in browser history. Per-piece editors
+stay mounted when hidden so selecting another row preserves drafts. Inline piece
+and decoder saves update local state from successful API responses instead of
+refreshing a different route segment and remounting other open editors. No schema or
+ownership change is involved. Legacy wagon edit URLs redirect to the shared editor.
 `vehicle-edit-fields.ts` defines their field allowlists; the form sends `editMode`
 (`model` or `piece`) and the server rejects cross-editor fields atomically. These
 modes apply only to existing wagons. Unscoped maintenance clients retain the shared

@@ -14,12 +14,14 @@ function NumberField({ label, value, onChange, min = 0, max = 255, required = fa
   return <Field label={label}><input className={input} type="number" min={min} max={max} step={1} required={required} value={value !== null && Number.isFinite(value) ? value : ""} onChange={e => onChange(e.target.value === "" ? null : Number(e.target.value))} /></Field>;
 }
 
-export function DecoderEditor({ vehicleId, initial, templates }: {
+export function DecoderEditor({ vehicleId, initial, templates, compact = false, onEditingChange, onSaved }: {
+  compact?: boolean; onEditingChange?: (editing: boolean) => void; onSaved?: (config: VehicleDccConfig) => void;
   vehicleId: number; initial: VehicleDccConfig; templates: { label: string; decoder: DecoderConfig }[];
 }) {
   const router = useRouter();
   const [config, setConfig] = useState(initial);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditingState] = useState(false);
+  function setEditing(value: boolean) { setEditingState(value); onEditingChange?.(value); }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -48,21 +50,22 @@ export function DecoderEditor({ vehicleId, initial, templates }: {
       const response = await fetch(`/api/vozidla/${vehicleId}/dekodery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Uložení se nezdařilo.");
-      setConfig(data); setEditing(false); setSaved(true); router.refresh();
+      setConfig(data); setEditing(false); setSaved(true);
+      if (onSaved) onSaved(data); else router.refresh();
     } catch (e) { setError(e instanceof Error ? e.message : "Uložení se nezdařilo."); }
     finally { setBusy(false); }
   }
-  return <section id="dekodery" className="config-section @container mt-6">
-    <header className="flex items-center justify-between gap-3 border-b border-divider pb-4">
-      <h2 className="font-semibold">Dekodéry a DCC funkce</h2>
-      {!editing && <EditAction label="Upravit DCC" onClick={() => { setEditing(true); setSaved(false); setError(""); }} />}
-    </header>
+  return <section id={compact ? `dekodery-${vehicleId}` : "dekodery"} aria-label={compact ? `Dekodér kusu #${vehicleId}` : undefined} className={compact ? "edit-reveal-scope @container mt-3" : "config-section @container mt-6"}>
+    {(!compact || config.decoders.length > 0) && <header className="flex items-center justify-between gap-3 border-b border-divider pb-4">
+      <h2 className="font-semibold">{compact ? "Nastavení dekodéru" : "Dekodéry a DCC funkce"}</h2>
+      {!editing && <span className={compact ? "edit-reveal" : ""}><EditAction label={compact ? `Upravit dekodér kusu #${vehicleId}` : "Upravit DCC"} onClick={() => { setEditing(true); setSaved(false); setError(""); }} /></span>}
+    </header>}
     {saved && <p role="status" className="px-4 pt-3 text-sm text-success">Konfigurace uložena.</p>}
     {!editing ? <div className="space-y-4 pt-5">
-      <p className="text-sm text-secondary">DCC adresa: <strong className="font-mono text-foreground">{config.dccAddress ?? "nevyplněna"}</strong></p>
-      {!config.decoders.length && <div className="space-y-3"><p className="text-sm text-secondary">Zatím bez dekodéru. Přidejte jeho nastavení a funkce.</p><button type="button" className="ui-button ui-button-primary" onClick={() => { setEditing(true); setSaved(false); setError(""); add(); }}>Přidat dekodér</button></div>}
+      {!compact && <p className="text-sm text-secondary">DCC adresa: <strong className="font-mono text-foreground">{config.dccAddress ?? "nevyplněna"}</strong></p>}
+      {!config.decoders.length && <div className="space-y-3"><p className="text-sm text-secondary">Podrobnosti dekodéru nejsou vyplněné.</p><button type="button" className="ui-button ui-button-quiet" onClick={() => { setEditing(true); setSaved(false); setError(""); add(); }}>Doplnit údaje</button></div>}
       {config.decoders.map(d => <article key={d.id} className="rounded-lg bg-subtle p-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="font-semibold">{d.name}</h3><span className="text-xs text-secondary">DCC {d.address ?? config.dccAddress ?? "—"}</span></div>
+        <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="font-semibold">{d.name}</h3>{(!compact || (d.address !== null && d.address !== config.dccAddress)) && <span className="text-xs text-secondary">DCC {d.address ?? config.dccAddress ?? "—"}</span>}</div>
         {(d.manufacturer || d.model) && <p className="text-xs text-secondary">{[d.manufacturer, d.model].filter(Boolean).join(" · ")}</p>}
         {d.soundProject && <p className="mt-1 text-xs text-secondary">Zvukový projekt: {d.soundProject}</p>}
         {d.manualUrl && <a className="text-xs text-accent hover:underline" href={d.manualUrl} target="_blank" rel="noreferrer">Manuál ↗</a>}

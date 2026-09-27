@@ -1,15 +1,15 @@
-import { VehicleEpochs } from "@/components/vehicle-epochs";
-import { VehicleLength } from "@/components/vehicle-length";
+import { EpochBadges } from "@/components/vehicle-epochs";
+import { formatVehicleLength } from "@/components/vehicle-length";
 import { OperatorLogo } from "@/components/operator-logo";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { WagonPieces } from "@/components/wagon-pieces";
 import { EditAction } from "@/components/ui-actions";
-import { VehicleDecoders } from "@/components/vehicle-decoders";
+import { getDecoders } from "@/lib/decoder-storage";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
 import { VehicleDetailImage } from "@/components/vehicle-detail-image";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { ClassBadge } from "@/components/class-badge";
 import Link from "next/link";
@@ -40,6 +40,7 @@ export default async function VehicleDetailPage({
   // Trains this vehicle appears in
   const appearances = await db
     .select({
+      vehicleId: schema.trainVehicles.vehicleId,
       trainId: schema.trains.id,
       trainNumber: schema.trains.number,
       trainName: schema.trains.name,
@@ -48,128 +49,37 @@ export default async function VehicleDetailPage({
     })
     .from(schema.trainVehicles)
     .innerJoin(schema.trains, eq(schema.trainVehicles.trainId, schema.trains.id))
-    .where(eq(schema.trainVehicles.vehicleId, vehicleId))
+    .where(inArray(schema.trainVehicles.vehicleId, pieces.map(p => p.id)))
     .all();
 
-  return (
-    <div className="mx-auto max-w-7xl">
-      <Link
-        href={`/${vehicleSection(vehicle)}`}
-        className="mb-4 inline-block text-sm text-secondary hover:text-secondary"
-      >
-        &larr; Zpět na vozidla
-      </Link>
+  const [decoders, allVehicles] = await Promise.all([
+    getDecoders(),
+    db.select({ id: schema.vehicles.id, designation: schema.vehicles.designation }).from(schema.vehicles).all(),
+  ]);
+  const templates = decoders.map(decoder => ({ decoder, label: `${allVehicles.find(v => v.id === decoder.vehicleId)?.designation || "Vozidlo"} · ${decoder.name}${decoder.model ? ` (${decoder.model})` : ""}` }));
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-        {/* Main info */}
-        <div className="min-w-0">
-          <div className="rounded-lg border border-divider p-6">
-            {vehicle.imagePath && (
-              <div className="mb-6 overflow-x-auto rounded-lg bg-subtle p-6">
-                <VehicleDetailImage src={vehicle.imagePath} alt={vehicle.designation}
-                  width={(vehicle.imageWidth || 264) * 2} height={(vehicle.imageHeight || 41) * 2} center responsive={false} />
-              </div>
-            )}
-
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">{vehicle.designation}</h1>
-                <div data-vehicle-label="operator" className="mt-1"><OperatorLogo operator={vehicle.operator} height={16} /></div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span
-                  className="rounded bg-muted px-2 py-0.5 text-xs font-medium uppercase text-secondary"
-                >
-                  {vehicle.wagonKind === "freight" ? "Nákladní vůz" : "Osobní vůz"}
-                </span>
-                <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={vehicle.classType} size="md" /></span>
-              </div>
-            </div>
-
-            <VehicleLength value={vehicle.lengthOverBuffersMm} />
-            <VehicleEpochs epochs={vehicle.epochs} notes={vehicle.epochNotes} />
-
-            <div className="mt-4">
-              <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit společné údaje varianty" />
-            </div>
-          </div>
-
-
-          <WagonPieces key={`${vehicle.wagonVariantId}-${pieces.map(p=>p.id).join(',')}`} variantId={vehicle.wagonVariantId} pieces={pieces} selectedId={vehicle.id} section={vehicleSection(vehicle)} />
-          <h2 className="mt-6 text-lg font-semibold">Kus #{vehicle.id}{vehicle.runningNumber ? ` · ${vehicle.runningNumber}` : ''}</h2>
-          {vehicle.isTemplate && <p className="mt-2 text-sm text-warning">Předloha · vynecháno z běžné synchronizace</p>}
-          {vehicle.notes && <p className="mt-2 whitespace-pre-line break-words text-sm text-secondary">{vehicle.notes}</p>}
-          <VehicleDecoders key={vehicleId} vehicleId={vehicleId} dccAddress={vehicle.dccAddress} />
-
-          {/* Train appearances */}
-          {appearances.length > 0 && (
-            <div className="mt-6 rounded-lg border border-divider">
-              <h2 className="border-b border-divider px-4 py-3 font-semibold">
-                Zařazení ve vlacích
-              </h2>
-              <ul className="divide-y divide-divider">
-                {appearances.map((a) => (
-                  <li key={a.trainId}>
-                    <Link
-                      href={`/soupravy/${a.trainId}`}
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-subtle"
-                    >
-                      {a.trainCategory && (
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-bold text-foreground">
-                          {a.trainCategory}
-                        </span>
-                      )}
-                      <span className="font-medium">{a.trainNumber}</span>
-                      {a.trainName && (
-                        <span className="italic text-secondary">
-                          {a.trainName}
-                        </span>
-                      )}
-                      <span className="ml-auto text-xs text-secondary">
-                        Pozice {a.position}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+  return <div className="mx-auto max-w-7xl">
+    <Link href={`/${vehicleSection(vehicle)}`} className="mb-4 inline-block text-sm text-secondary hover:text-accent">&larr; Zpět na vozidla</Link>
+    <section aria-label="Společné údaje vozu" className="edit-reveal-scope rounded-lg border border-divider p-4 sm:p-5">
+      {vehicle.imagePath && <div className="mb-4 rounded-lg bg-subtle px-4 py-5 sm:px-6">
+        <VehicleDetailImage src={vehicle.imagePath} alt={vehicle.designation}
+          width={(vehicle.imageWidth || 264) * 2} height={(vehicle.imageHeight || 41) * 2} center />
+      </div>}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+          <h1 className="text-2xl font-bold">{vehicle.designation}</h1>
+          <span data-vehicle-label="operator"><OperatorLogo operator={vehicle.operator} height={32} maxWidth={160} /></span>
+          <EpochBadges epochs={vehicle.epochs} />
+          <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={vehicle.classType} size="md" /></span>
+          {vehicle.lengthOverBuffersMm != null && <span title="Délka modelu přes nárazníky" aria-label={`Délka modelu přes nárazníky: ${formatVehicleLength(vehicle.lengthOverBuffersMm)}`} className="text-sm tabular-nums text-secondary">{formatVehicleLength(vehicle.lengthOverBuffersMm)}</span>}
+          {vehicle.manufacturer && <ManufacturerLogo manufacturer={vehicle.manufacturer} />}
+          {vehicle.catalogNumber && <span title="Katalogové číslo výrobce" className="text-sm text-secondary">{vehicle.catalogNumber}</span>}
         </div>
-
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-divider p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase text-secondary">
-              Parametry
-            </h3>
-            <dl className="space-y-2 text-sm">
-              {vehicle.dccAddress && (
-                <>
-                  <dt className="text-secondary">DCC adresa</dt>
-                  <dd className="font-mono font-bold">{vehicle.dccAddress}</dd>
-                </>
-              )}
-              {vehicle.manufacturer && (
-                <>
-                  <dt className="text-secondary">Výrobce</dt>
-                  <dd className="flex min-h-6 items-center"><ManufacturerLogo manufacturer={vehicle.manufacturer} /></dd>
-                </>
-              )}
-              {vehicle.catalogNumber && (
-                <>
-                  <dt className="text-secondary">Katalogové číslo</dt>
-                  <dd className="font-mono">{vehicle.catalogNumber}</dd>
-                </>
-              )}
-              {!vehicle.dccAddress &&
-                !vehicle.manufacturer &&
-                !vehicle.catalogNumber && (
-                  <dd className="text-secondary">Zatím nevyplněno</dd>
-                )}
-            </dl>
-          </div>
-        </div>
+        <span className="edit-reveal"><EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit společné údaje varianty" /></span>
       </div>
-    </div>
-  );
+      {vehicle.epochNotes && <details className="mt-3 text-xs text-secondary"><summary className="cursor-pointer">Zdroj a upřesnění epochy</summary><p className="mt-2 whitespace-pre-wrap break-words">{vehicle.epochNotes}</p></details>}
+    </section>
+    <WagonPieces key={`${vehicle.wagonVariantId}-${pieces.map(p=>p.id).join(',')}`} variantId={vehicle.wagonVariantId}
+      pieces={pieces} selectedId={vehicle.id} section={vehicleSection(vehicle)} decoders={decoders.filter(d => pieces.some(p => p.id === d.vehicleId))} templates={templates} appearances={appearances} />
+  </div>;
 }

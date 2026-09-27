@@ -240,17 +240,29 @@ split between top/bottom to satisfy the unchanged alpha-bound checks without str
 
 Wagon collection tiles show one image per stable variant and an owned `N ks` badge.
 Display filters affect identity labels, never the quantity. The detail route remains
-the physical vehicle URL for compatibility; its shared image is followed by “Moje
-kusy” and the selected piece's notes, DCC and appearances. Individual piece rows
+the physical vehicle URL for compatibility. The full-width shared header contains
+responsive artwork, an inline operator logo (up to 32 px high / 160 px wide), rounded
+Roman-numeral epoch badges and compact known model metadata. It has no DCC sidebar
+or empty length placeholder. Epoch source notes remain available in a disclosure.
+The header is followed by “Moje kusy”. Clicking a whole summary row selects that
+piece and updates browser history without navigation or losing open drafts; Back,
+Forward and direct URLs select the same piece. Notes, train appearances and a
+collapsed “Dekodér a funkce” section sit directly beneath the selected row.
+Each decoder editor remains bound to its own physical ID. Missing decoder details
+are described as unfilled information, never evidence that no hardware is installed.
+The piece address appears once in its row; decoder readouts show an address only
+when that decoder has a different explicit address. Individual piece rows
 show stable IDs, optional running numbers and per-piece equipment/weathering values,
-with accessible pencil actions. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
+with accessible pencil actions. Pencils reveal on row/header hover or keyboard
+focus; touch/coarse-pointer devices keep them visible. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
 The pencil beside the main wagon image opens **Upravit variantu**, containing only
 shared model/artwork fields, epoch, dimensions and catalog links. The pencil on a
 piece row opens an inline form for running number, DCC, couplers, lights, sound,
 weathering, template status and notes. Equipment uses labeled icon toggles; Save
-refreshes data without navigation, Cancel discards the draft. Errors retain the
-draft. Multiple rows may stay open; quantity changes are disabled while editing.
+updates the row from the saved response without route refresh, Cancel discards the draft. Errors retain the
+draft. Multiple rows may stay open; quantity changes are disabled while editing
+either piece equipment or decoder details. Switching selection retains both drafts.
 Only changed physical fields are sent. The field is named **DCC adresa**: it belongs
 to that piece, never to its variant. The dedicated piece URL remains available as
 a fallback, including “Smazat tento kus”; the shared form cannot delete a piece. Locomotive and

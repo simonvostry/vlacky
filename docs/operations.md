@@ -207,3 +207,9 @@ a shared edit. Inline row review also covers Save/Cancel without navigation,
 multiple open drafts surviving another save, failed-save retry, quantity locking,
 address validation/clearing and the DCC section updating without discarding its
 open decoder draft. This separation requires no schema migration or collection rewrite.
+
+Wagon-detail layout review additionally checks whole-row selection, Back/Forward,
+direct URLs, retained piece/decoder drafts, decoder saves targeting the selected
+physical ID, a single address readout, epoch badges, responsive artwork and edit
+pencils on mouse hover, keyboard focus and touch. Use a disposable collection for
+these writes; the layout change needs no production data migration.
