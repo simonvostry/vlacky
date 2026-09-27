@@ -1,3 +1,4 @@
+import type { WagonEditMode } from "@/lib/vehicle-edit-fields";
 import { modelManufacturerOptions } from "@/lib/manufacturer-storage";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
@@ -9,9 +10,10 @@ import Link from "next/link";
 
 
 export default async function EditVehiclePage({
-  params, kind,
+  params, kind, mode = "model",
 }: {
   kind: "passenger" | "freight";
+  mode?: WagonEditMode;
   params: Promise<{ id: string }>;
 }) {
   await requireUser();
@@ -26,7 +28,18 @@ export default async function EditVehiclePage({
     .get();
 
   if (!vehicle || vehicle.type !== "wagon") notFound();
-  if (vehicle.wagonKind !== kind) redirect(`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`);
+  if (vehicle.wagonKind !== kind) redirect(`/${vehicleSection(vehicle)}/${vehicle.id}/${mode === "piece" ? "kus/" : ""}upravit`);
+
+  const catalog = mode === 'model' ? await db.select({id: schema.vehicleCatalog.id, designation: schema.vehicleCatalog.fullDesignation, operator: schema.vehicleCatalog.operator}).from(schema.vehicleCatalog).orderBy(schema.vehicleCatalog.operator, schema.vehicleCatalog.fullDesignation).all() : [];
+  const images = mode === 'model' ? await db.select({id: schema.catalogImages.id, catalogId: schema.catalogImages.catalogId, label: schema.catalogImages.label}).from(schema.catalogImages).orderBy(schema.catalogImages.sortOrder).all() : [];
+  const imagesByCatalog = new Map<number, {id: number; label: string}[]>();
+  for (const image of images) {
+    const group = imagesByCatalog.get(image.catalogId) ?? [];
+    group.push({id: image.id, label: image.label || `Varianta #${image.id}`});
+    imagesByCatalog.set(image.catalogId, group);
+  }
+  const catalogReferences = catalog.map(c => ({ id: c.id, label: `${c.operator} · ${c.designation} (#${c.id})`,
+    images: imagesByCatalog.get(c.id) ?? [] }));
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -37,9 +50,9 @@ export default async function EditVehiclePage({
         &larr; Zpět
       </Link>
       <h1 className="mb-6 text-2xl font-bold">
-        Upravit: {vehicle.designation}
+        {mode === "model" ? `Upravit variantu: ${vehicle.designation}` : `Upravit kus #${vehicle.id} · ${vehicle.designation}`}
       </h1>
-      <VehicleForm manufacturers={await modelManufacturerOptions()}
+      <VehicleForm key={`${vehicle.id}-${mode}`} editMode={mode} catalogReferences={catalogReferences} manufacturers={mode === "model" ? await modelManufacturerOptions() : []}
         vehicle={{
           id: vehicle.id,
           magneticCouplerA: vehicle.magneticCouplerA,

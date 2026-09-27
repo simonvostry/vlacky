@@ -49,7 +49,7 @@ export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:nu
             {p.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {p.dccAddress}</span>}
           </div>
         </div>
-        <EditAction href={`/${section}/${p.id}/upravit`} label={`Upravit kus #${p.id}`} />
+        <EditAction href={`/${section}/${p.id}/kus/upravit`} label={`Upravit kus #${p.id}`} />
       </li>)}
     </ul>
     <p className="border-t border-divider px-4 py-3 text-xs text-secondary">Vybraný kus #{selectedId}: DCC nastavení, poznámky a zařazení v soupravách jsou uvedeny níže.</p>

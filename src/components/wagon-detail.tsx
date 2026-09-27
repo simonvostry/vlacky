@@ -90,7 +90,7 @@ export default async function VehicleDetailPage({
             <VehicleEpochs epochs={vehicle.epochs} notes={vehicle.epochNotes} />
 
             <div className="mt-4">
-              <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit vzhled a údaje vozu" />
+              <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit společné údaje varianty" />
             </div>
           </div>
 

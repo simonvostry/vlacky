@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { allowsVehicleEditField, type WagonEditMode, wagonModelFields, vehiclePieceFields } from './vehicle-edit-fields';
 import type { Transaction, InValue } from '@libsql/client';
 import { withWriteTransaction } from '@/db';
 
@@ -20,14 +21,14 @@ const patchSchema = z.object({
   hasSoundDecoder: z.boolean(), hasSpeaker: z.boolean(), isWeathered: z.boolean(),
   magneticCouplers: z.boolean().nullable(), hasLights: z.boolean().nullable().transform(v => v ?? false), runningNumber: nullableText,
 }).partial();
-const shared = {
+const shared: Record<(typeof wagonModelFields)[number], string> = {
   designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
   imagePath: 'image_path', imageWidth: 'image_width', imageHeight: 'image_height', manufacturer: 'manufacturer',
   epochs: 'epochs', epochNotes: 'epoch_notes',
   lengthOverBuffersMm: 'length_over_buffers_mm',
   catalogNumber: 'catalog_number', catalogId: 'catalog_id', catalogImageId: 'catalog_image_id',
 };
-const physical = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
+const physical: Record<(typeof vehiclePieceFields)[number], string> = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
 type Row = Record<string, unknown>;
 function values(patch: Record<string, unknown>, mapping: Record<string, string>) {
   return Object.entries(mapping).filter(([key]) => patch[key] !== undefined).map(([key, column]) => [column, Array.isArray(patch[key]) ? JSON.stringify(patch[key]) : typeof patch[key] === 'boolean' ? Number(patch[key]) : patch[key]] as [string, InValue]);
@@ -58,6 +59,15 @@ function parsePatch(body: unknown) {
 }
 export async function saveVehicle(body: Record<string, unknown>, id?: number) {
   const patch = parsePatch(body);
+  const mode = body.editMode;
+  if (mode !== undefined) {
+    if (id === undefined || (mode !== 'model' && mode !== 'piece') || body.editScope !== undefined) {
+      throw new CollectionError('Neplatný editor vozu.');
+    }
+    if (Object.keys(patch).some(key => !allowsVehicleEditField(mode as WagonEditMode, key))) {
+      throw new CollectionError(mode === 'piece' ? 'Editor kusu ukládá pouze jeho číslo, DCC a výbavu.' : 'Editor varianty ukládá pouze společné údaje modelu.');
+    }
+  }
   // Compatibility with older clients: a non-null whole-wagon setting sets both ends.
   // Explicit end settings take precedence; omitted/null legacy values never clear them.
   if (patch.magneticCouplerA === undefined && patch.magneticCouplerB === undefined && patch.magneticCouplers != null) {
@@ -91,6 +101,17 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     }
     const old = (await tx.execute({sql:'SELECT * FROM vehicles WHERE id = ?',args:[id]})).rows[0];
     if (!old) throw new CollectionError('Vozidlo nenalezeno.',404);
+    if (mode !== undefined && old.type !== 'wagon') throw new CollectionError('Tento editor je určen pro vozy.');
+    if (mode === 'model' && (patch.catalogId !== undefined || patch.catalogImageId !== undefined)) {
+      const catalogId = patch.catalogId === undefined ? old.catalog_id : patch.catalogId;
+      const imageId = patch.catalogImageId === undefined ? old.catalog_image_id : patch.catalogImageId;
+      if (catalogId != null && !(await tx.execute({sql:'SELECT id FROM vehicle_catalog WHERE id=?',args:[catalogId as InValue]})).rows.length) {
+        throw new CollectionError('Katalogová předloha neexistuje.');
+      }
+      if (imageId != null && (catalogId == null || !(await tx.execute({sql:'SELECT id FROM catalog_images WHERE id=? AND catalog_id=?',args:[imageId as InValue,catalogId as InValue]})).rows.length)) {
+        throw new CollectionError('Barevná varianta nepatří k vybrané katalogové předloze.');
+      }
+    }
     if (patch.epochs !== undefined && JSON.stringify(patch.epochs) !== old.epochs && patch.epochNotes === undefined) patch.epochNotes = null;
     const entries = values(patch,shared);
     const changed = entries.some(([k,v]) => old[k] !== v);

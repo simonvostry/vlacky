@@ -245,10 +245,13 @@ kusy” and the selected piece's notes, DCC and appearances. Individual piece ro
 show stable IDs, optional running numbers and per-piece equipment/weathering values,
 with accessible pencil actions. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
-The edit form explains that model/artwork fields are shared by all copies; there
-is no scope selector. A separate “Konkrétní kus” heading introduces DCC and physical
-settings, which always affect only the selected piece. Routine edits never split
-the group, including operator and epoch corrections.
+The pencil beside the main wagon image opens **Upravit variantu**, containing only
+shared model/artwork fields, epoch, dimensions and catalog links. The pencil on a
+piece row opens **Upravit kus #ID**, containing only running number, DCC, couplers,
+lights, sound, weathering, template status and notes. These are separate URLs and
+forms, not a mode selector inside one combined editor. Only the piece editor offers
+“Smazat tento kus”; the shared form cannot delete a physical piece. Locomotive and
+new-vehicle forms remain combined. Routine edits never split a wagon group.
 Quantity reductions require selecting the pieces and confirming configuration loss;
 assigned pieces cannot be deleted. The train picker shows grouped availability,
 a quantity control, selected artwork and an optional specific-piece checklist.

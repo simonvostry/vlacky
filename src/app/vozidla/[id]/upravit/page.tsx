@@ -2,7 +2,8 @@ import { modelManufacturerOptions } from "@/lib/manufacturer-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { vehicleSection } from "@/lib/vehicle-kind";
+import { notFound, redirect } from "next/navigation";
 import { VehicleForm } from "@/components/vehicle-form";
 import Link from "next/link";
 
@@ -25,6 +26,7 @@ export default async function EditVehiclePage({
     .get();
 
   if (!vehicle) notFound();
+  if (vehicle.type === "wagon") redirect(`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`);
 
   return (
     <div className="mx-auto max-w-2xl">

@@ -198,3 +198,9 @@ Run `npm run test:epochs`, collection-filter and wagon-variant tests, plus the
 integration/decoder/speed/freight HTTP suites after building. Browser review covers
 multi-selection, source notes, catalog prefill, filtered liveries, remembered filters
 and reset in light/dark and narrow layouts against a disposable database.
+
+For wagon editor changes, `test:wagon-variants` checks both route types, field
+isolation, shared propagation, catalog-link validation and rejection of mixed
+payloads. `test:auth-http` includes both piece-edit routes. Review light/dark and
+mobile editors through the actual pencils, including a stale piece form after
+a shared edit. This separation requires no schema migration or collection rewrite.

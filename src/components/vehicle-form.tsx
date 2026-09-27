@@ -1,5 +1,8 @@
 "use client";
 
+import { allowsVehicleEditField, type WagonEditMode } from "@/lib/vehicle-edit-fields";
+import { FilterDropdown } from "@/components/filter-dropdown";
+import Link from "next/link";
 import { EPOCHS, epochLabels } from "@/lib/epochs";
 
 import { hasVehicleSound, soundEquipmentPatch } from "@/lib/vehicle-equipment";
@@ -60,7 +63,12 @@ const defaults: Vehicle = {
   notes: "",
 };
 
-export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle; manufacturers?: string[] }) {
+export type CatalogReferenceOption = { id: number; label: string; images: { id: number; label: string }[] };
+
+export function VehicleForm({ vehicle, manufacturers = [], editMode, catalogReferences = [] }: {
+  vehicle?: Vehicle; manufacturers?: string[]; editMode?: WagonEditMode;
+  catalogReferences?: CatalogReferenceOption[];
+}) {
   const router = useRouter();
   const [form, setForm] = useState<Vehicle>({ ...defaults, ...vehicle, hasLights: vehicle?.hasLights ?? false });
   const [saving, setSaving] = useState(false);
@@ -72,6 +80,10 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
   const couplerMode = form.magneticCouplerA && form.magneticCouplerB ? 'both' : form.magneticCouplerA || form.magneticCouplerB ? 'one' : 'none';
 
   const isEdit = !!vehicle?.id;
+  const mode = isEdit && vehicle?.type === 'wagon' ? editMode ?? 'model' : undefined;
+  const showModel = mode !== 'piece';
+  const showPiece = mode !== 'model';
+  const catalogReference = catalogReferences.find(c => c.id === form.catalogId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,12 +108,12 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
       // Saving equipment from an older open form must not undo newer shared
       // details. Send only fields the user actually changed on edit.
       const payload = isEdit
-        ? Object.fromEntries(Object.entries(current).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(initial[key as keyof typeof initial])))
+        ? Object.fromEntries(Object.entries(current).filter(([key, value]) => (!mode || allowsVehicleEditField(mode, key)) && JSON.stringify(value) !== JSON.stringify(initial[key as keyof typeof initial])))
         : { ...current, quantity: form.type === "wagon" ? quantity : 1 };
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(mode ? { ...payload, editMode: mode } : payload),
       });
 
       if (res.ok) {
@@ -117,7 +129,7 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
   }
 
   async function handleDelete() {
-    if (!isEdit || !confirm("Opravdu smazat toto vozidlo?")) return;
+    if (!isEdit || !showPiece || !confirm(mode === "piece" ? `Opravdu smazat kus #${vehicle?.id} včetně jeho nastavení?` : "Opravdu smazat toto vozidlo?")) return;
     setSaving(true); setError("");
     try {
       const res = await fetch(`/api/vozidla/${vehicle!.id}`, { method: "DELETE" });
@@ -134,10 +146,10 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {form.type === 'wagon' && isEdit && <div className="rounded-lg bg-subtle p-4 text-sm">
-        <p className="font-medium">Společné údaje všech kusů této varianty</p>
-        <p className="mt-1 text-secondary">Dopravce, epocha, označení, obrázek a parametry modelu se uloží všem kusům. Číslo kusu, DCC, výbava, patina a poznámky se mění jen u kusu #{vehicle?.id}.</p>
-      </div>}
+      {mode && <p className="rounded-lg bg-subtle p-4 text-sm text-secondary">
+        {mode === 'model' ? 'Společné údaje se uloží všem kusům této varianty.' : `Nastavení se uloží pouze kusu #${vehicle?.id}.`}
+      </p>}
+      {showModel && <>
       {form.type === 'wagon' && !isEdit && <label className="block text-sm font-medium">Počet kusů
         <input type="number" min={1} max={1000} step={1} required value={quantity} onChange={e=>setQuantity(Number(e.target.value))} className="mt-1 block w-28 rounded-md border border-control px-3 py-2" />
         <span className="mt-1 block font-normal text-secondary">DCC a výbava se při vytvoření vyplní jen prvnímu kusu; u ostatních bude výbava nastavena na Ne a DCC zůstane prázdné.</span>
@@ -277,6 +289,22 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
 
       </div>
 
+      {mode === 'model' && <fieldset className="min-w-0 space-y-3 rounded-lg border border-divider p-4">
+        <legend className="px-2 text-sm font-semibold">Odkaz na katalog</legend>
+        <FilterDropdown label="Katalogová předloha" emptyLabel="Bez katalogové předlohy"
+          value={form.catalogId ? String(form.catalogId) : ''}
+          options={catalogReferences.map(c => ({ value: String(c.id), label: c.label }))}
+          onChange={value => setForm(f => ({ ...f, catalogId: value ? Number(value) : null, catalogImageId: null }))} />
+        {catalogReference && <>
+          <FilterDropdown label="Katalogová barevná varianta" emptyLabel="Bez konkrétní barevné varianty"
+            value={form.catalogImageId ? String(form.catalogImageId) : ''}
+            options={catalogReference.images.map(i => ({ value: String(i.id), label: i.label }))}
+            onChange={value => set('catalogImageId', value ? Number(value) : null)} />
+          <Link href={`/katalog/${catalogReference.id}`} className="inline-block text-sm text-accent underline">Otevřít katalogovou předlohu</Link>
+        </>}
+        <p className="text-xs text-secondary">Změna odkazu nepřepisuje obrázek ani další údaje modelu.</p>
+      </fieldset>}
+
       <fieldset className="rounded-lg border border-divider p-4">
         <legend className="px-2 text-sm font-semibold">Epocha</legend>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -306,14 +334,17 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
         <p id="vehicle-length-help" className="mt-1 text-xs text-secondary">Délka fyzického modelu, nikoli skutečného vozidla. U trvale spojené jednotky celková délka; u sady samostatných vozů délka jednoho vozu.</p>
       </div>
 
-      {form.type === 'wagon' && <h2 className="pt-4 text-lg font-semibold">Konkrétní kus{vehicle?.id ? ` #${vehicle.id}` : ''}</h2>}
+      </>}
+      {showPiece && <>
+      {form.type === 'wagon' && !mode && <h2 className="pt-4 text-lg font-semibold">Konkrétní kus{vehicle?.id ? ` #${vehicle.id}` : ''}</h2>}
         <div>
-          <label className="mb-1 block text-sm font-medium">Výchozí DCC adresa tohoto kusu</label>
+          <label htmlFor="piece-dcc-address" className="mb-1 block text-sm font-medium">Výchozí DCC adresa tohoto kusu</label>
           <input
             type="number"
             min={1}
             max={10239}
             step={1}
+            id="piece-dcc-address"
             value={form.dccAddress ?? ""}
             onChange={(e) =>
               set(
@@ -384,6 +415,8 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
         />
       </div>
 
+      </>}
+
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <div className="flex items-center gap-3 pt-2">
         <button
@@ -400,14 +433,14 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
         >
           Zrušit
         </button>
-        {isEdit && (
+        {isEdit && showPiece && (
           <button
             type="button"
             onClick={handleDelete}
             disabled={saving}
             className="ui-button ui-button-danger ml-auto"
           >
-            Smazat
+            {mode === 'piece' ? 'Smazat tento kus' : 'Smazat'}
           </button>
         )}
       </div>

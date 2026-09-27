@@ -148,11 +148,20 @@ Legacy `editScope: "piece"` and `"variant"` both follow this rule; neither split
 copy. Creating a genuinely different model/livery requires the explicit maintenance
 API value `editScope: "new-variant"` and a shared-field change. This intentional
 operation preserves the physical ID and creates a new group. The ordinary form
-never offers implicit splitting and sends only changed fields, so an equipment
+never offers implicit splitting. Wagon editing has two routes: `/[id]/upravit`
+for shared model fields and `/[id]/kus/upravit` for physical fields only, in both
+passenger and freight sections. Legacy wagon edit URLs redirect to the shared editor.
+`vehicle-edit-fields.ts` defines their field allowlists; the form sends `editMode`
+(`model` or `piece`) and the server rejects cross-editor fields atomically. These
+modes apply only to existing wagons. Unscoped maintenance clients retain the shared
+model/per-piece equipment write contract. Forms send only changed fields, so an equipment
 save from an older open form cannot undo newer shared data. A multi-piece wagon
 group cannot be converted to a locomotive. Physical fields are never propagated:
 DCC, notes, template status, running number, general lighting, couplers at ends A/B,
 tail lights, sound decoder, speaker and weathering.
+The shared editor can change catalog and livery links without replacing artwork or
+other model data. Scoped saves validate that a chosen livery belongs to its catalog
+reference. The model editor has no physical-piece deletion action.
 Use this service/API for maintenance edits rather than changing shared SQL columns
 in place. Existing direct-import scripts predate grouping: run the additive variant
 migration after such imports, or migrate the importer to this write boundary.

@@ -223,6 +223,40 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await get(four.id)).type,'wagon');
     assert.equal((await save(`/api/vozidla/${four.id}`,{hasLights:false,editScope:'new-variant'},'PUT')).status,400);
     assert.equal((await get(four.id)).hasLights,true); // failed detachment is atomic
+    // The two UI paths expose disjoint fields, and their API modes enforce it.
+    for(const [section,id] of [['vozy',four.id],['nakladni-vozy',10]] as const) {
+      const model=parse(await (await request(`/${section}/${id}/upravit`)).text());
+      const piece=parse(await (await request(`/${section}/${id}/kus/upravit`)).text());
+      assert.ok(model.querySelector('#vehicle-length'));assert.ok(model.querySelector('input[aria-label="Epocha IV"]'));
+      assert.equal(model.querySelector('#piece-dcc-address'),null);assert.equal(model.querySelector('#hasLights'),null);
+      assert.ok(!model.querySelectorAll('button').some(b=>b.text.includes('Smazat')));
+      assert.ok(piece.querySelector('#piece-dcc-address'));assert.ok(piece.querySelector('#hasLights'));
+      assert.equal(piece.querySelector('#vehicle-length'),null);assert.equal(piece.querySelector('input[aria-label="Epocha IV"]'),null);
+      assert.equal(piece.querySelector('#model-manufacturer'),null);
+      const details=parse(await (await request(`/${section}/${id}`)).text());
+      assert.ok(details.querySelector(`a[href="/${section}/${id}/upravit"]`));
+      assert.ok(details.querySelector(`a[href="/${section}/${id}/kus/upravit"]`));
+      const before=await get(id);
+      for(const fields of [{operator:'Wrong'},{epochs:[1]},{imagePath:'/img/wrong.png'},{catalogId:1}]) {
+        assert.equal((await save(`/api/vozidla/${id}`,{editMode:'piece',dccAddress:5,...fields},'PUT')).status,400);
+      }
+      for(const fields of [{dccAddress:5},{hasLights:true},{runningNumber:'Wrong'},{notes:'Wrong'},{isTemplate:true}]) {
+        assert.equal((await save(`/api/vozidla/${id}`,{editMode:'model',operator:'Wrong',...fields},'PUT')).status,400);
+      }
+      assert.deepEqual(await get(id),before); // rejected cross-editor writes are atomic
+    }
+    assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:'piece',dccAddress:70},'PUT')).status,200);
+    assert.equal((await get(four.id)).dccAddress,70);assert.equal((await get(fourIds[1])).dccAddress,null);
+    assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:'model',catalogId:1,catalogImageId:1},'PUT')).status,200);
+    for(const id of fourIds){assert.equal((await get(id)).catalogId,1);assert.equal((await get(id)).catalogImageId,1);}
+    for(const fields of [{catalogId:9999},{catalogId:1,catalogImageId:3},{catalogId:null}]) {
+      assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:'model',...fields},'PUT')).status,400);
+    }
+    assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:'model',catalogId:null,catalogImageId:null},'PUT')).status,200);
+    for(const id of fourIds){assert.equal((await get(id)).catalogId,null);assert.equal((await get(id)).catalogImageId,null);assert.equal((await get(id)).imagePath,'/img/four-bap.png');}
+    for(const mode of [null, ['piece'], {}, 'all', 1]) assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:mode,hasLights:false},'PUT')).status,400);
+    assert.equal((await save('/api/vozidla/1',{editMode:'piece',dccAddress:5},'PUT')).status,400);
+
 
   } finally {
     server.kill('SIGTERM');
