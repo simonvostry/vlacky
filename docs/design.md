@@ -10,7 +10,8 @@ Hluboká modř is the default light theme; Noční galerie is the dark theme. Th
 semantic palette lives in [globals.css](../src/app/globals.css), not in study images.
 Tune those shared roles instead of adding page-specific gray/blue values.
 
-Global navigation stays at the top. A future contextual sidebar may supplement it.
+Global navigation stays at the top, with concise labels: Soupravy, Loko, Osobní,
+Nákladní, Katalog and DCC. A future contextual sidebar may supplement it.
 Collection add actions live in the top bar beside the theme/account controls: a
 compact plus and “Přidat” in blue with a transparent background and neutral hover.
 Use `CollectionActions` on Soupravy, Lokomotivy and Vozy with contextual accessible
@@ -20,7 +21,8 @@ no enclosing border or left accent; hover uses a lighter fill. The list hides ge
 prose below vehicle images but keeps short `Číslo vozu:` labels. Full notes remain
 available in details.
 
-Four independent display toggles beside the theme control show/hide Dopravce
+A gear button beside the theme control opens **Nastavení zobrazení**. Its submenu
+contains image size choices followed by four independent display toggles: Dopravce
 (logo/name), Číslo (the `Číslo vozu:` service number), Třída (class badge) and Typ
 (designation, e.g. Bmz 61 or 642). They share one selection across Soupravy,
 Lokomotivy, Vozy and Katalog, including read-only detail pages and train side panels.
@@ -32,8 +34,10 @@ presentation labels. A field absent from a page has nothing to toggle there.
 All default on. Keep the existing `vlacky-train-labels-hidden` browser/origin storage
 key to preserve saved choices; restore before paint and synchronize across tabs,
 even while a tab is on DCC or a form. Turning everything off removes pure label
-rows, while preserving descriptions. On narrow screens the controls wrap below
-navigation. Catalog content filters remain separate from these display settings.
+rows, while preserving descriptions. The submenu fits the viewport in both themes, closes on Escape/outside click or
+focus leaving it, and restores focus to the trigger on Escape. Its preference
+listeners stay mounted while closed or hidden. Catalog content filters remain
+separate from these display settings.
 
 ## Themes and controls
 
@@ -70,7 +74,7 @@ behind the supplied PNG preview; keep its proportions and original colors.
 | Wagon and legacy vehicle detail | 2×, with local horizontal scrolling when needed |
 | Locomotive detail header | Up to 2×, shrinking proportionally to fit; no horizontal scroller |
 
-The top bar offers **Malé / Střední / Velké** on collection/catalog galleries and
+The display settings submenu offers **Malé / Střední / Velké** on collection/catalog galleries and
 train views. Small preserves the original size; medium and large scale artwork by
 125% and 150%. Text, logos, controls, gaps and card padding keep their normal size.
 Images and their allocated space scale together, retaining aspect ratios and the
@@ -153,9 +157,10 @@ records the implementation checks. Local image-generation boards are historical
 explorations; do not reintroduce their placeholder data or abandoned palette options.
 
 Passenger and freight wagon libraries use the same gallery tiles and shared editors.
-Top navigation names them **Osobní vozy** and **Nákladní vozy** and wraps on narrow
+Top navigation names them **Osobní** and **Nákladní** and wraps on narrow
 screens. Both retain the compact top-bar add action and shared display preferences.
-Soupravy uses quiet Vše / Osobní / Nákladní filter buttons with the selected semantic
+Soupravy uses quiet Vše / Osobní / Nákladní filter buttons in the same navigation
+toolbar, with the selected semantic
 surface. Freight forms omit passenger class controls; shared locomotives have no
 passenger/freight restriction.
 
@@ -365,10 +370,13 @@ artwork keep their previous behavior.
 
 ### Collection filtering
 
-Locomotive/wagon galleries and the reference catalog have a compact wrapping row above their tiles:
+Locomotive/wagon galleries and the reference catalog place compact wrapping filters
+in the top navigation, beside the section links on sufficiently wide screens:
 Dopravce + Řada everywhere, Pohon for locomotives, Konstrukční skupina for passenger
-wagons. Use shared themed native selects with visible labels, a result count and
-an always-visible “Resetovat filtry” action. Wagon counts describe variants; each
+wagons. Use shared themed native selects with accessible labels and “Dopravce: vše”-style
+empty choices, a compact result count and an always-visible reset icon named
+“Resetovat filtry”. The controls wrap within the navigation on smaller screens;
+there is no separate filter strip above the tiles. Wagon counts describe variants; each
 tile retains its owned-piece count. Traction always offers electric/diesel/steam,
 including an empty category. Unclassified records use “Nezařazeno”. The passenger
 Y/Z labels explicitly include related designs and source-section lengths.

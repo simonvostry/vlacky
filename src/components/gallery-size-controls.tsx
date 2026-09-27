@@ -26,7 +26,7 @@ const serverSnapshot = (): GallerySize => "small";
 export function GallerySizeControls({ visible }: { visible: boolean }) {
   const size = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   if (!visible) return null;
-  return <div role="group" aria-label="Velikost obrázků" className="flex items-center gap-1">
+  return <div role="group" aria-label="Velikost obrázků" className="grid grid-cols-3 gap-1">
     {GALLERY_SIZES.map(value => <button key={value} type="button" aria-pressed={size === value}
       title={`Velikost obrázků: ${options[value].percent} %`}
       className={`ui-button px-2 ${size === value ? "bg-muted text-accent" : "text-secondary hover:bg-muted"}`}

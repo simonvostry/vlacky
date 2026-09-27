@@ -1,3 +1,4 @@
+import { CollectionToolbar } from "@/components/collection-toolbar";
 import { getDecoders } from "@/lib/decoder-storage";
 import { requireUser } from "@/lib/auth-guards";
 import { db, schema } from "@/db";
@@ -70,11 +71,13 @@ export default async function TrainsPage({ searchParams }: {
 
   return (
     <div>
-      <div aria-label="Druh soupravy" className="mb-4 flex flex-wrap gap-1">
+      <CollectionToolbar>
+      <div role="group" aria-label="Druh soupravy" className="flex flex-wrap gap-1 py-2">
         {[["", "Vše"], ["passenger", "Osobní"], ["freight", "Nákladní"]].map(([value, label]) => (
           <Link key={value} href={value ? `/soupravy?druh=${value}` : "/soupravy"} aria-current={(druh || "") === value ? "page" : undefined} className={`ui-button ${(druh || "") === value ? "bg-selected text-foreground" : "ui-button-quiet"}`}>{label}</Link>
         ))}
       </div>
+      </CollectionToolbar>
       <div className={selectedTrain ? "grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]" : "min-w-0"}>
         <div className="min-w-0">
           {visibleTrains.length === 0 ? (
@@ -112,7 +115,7 @@ export default async function TrainsPage({ searchParams }: {
           })}
         </div>
         {selectedTrain && (
-          <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block xl:top-16 xl:max-h-[calc(100dvh-5rem)]">
+          <aside key={selectedTrain.id} className="sticky top-32 hidden max-h-[calc(100dvh-9rem)] min-w-0 overflow-y-auto overscroll-contain pb-1 md:block 2xl:top-16 2xl:max-h-[calc(100dvh-5rem)]">
             <TrainDetailsPanel decoders={decoders} train={selectedTrain} vehicles={selectedVehicles} closeHref={druh ? `/soupravy?druh=${druh}` : "/soupravy"} />
           </aside>
         )}

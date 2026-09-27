@@ -206,7 +206,11 @@ The three owned collection pages and the reference catalog compose URL filters: 
 `rada` (vehicle series/designation), `pohon` (locomotive traction) and `skupina`
 (passenger construction group). `collection-filters.ts` owns pure classification
 and matching; the shared `CollectionFilters` control changes URLs without writes.
-Pages authorize before queries. Options come from the whole current collection,
+Pages authorize before queries. `CollectionToolbarProvider` exposes a navigation
+slot; the page-owned `CollectionFilters` portals its controls there after hydration.
+No duplicate data query or persistent filter configuration is introduced. Unmounting
+a page removes its controls, so DCC/detail pages cannot retain stale filters.
+Options come from the whole current collection,
 so changing one filter does not hide the other available choices. Unsupported URL
 values produce an empty result with a reset action. Filters are remembered per
 collection in browser localStorage (`vlacky-collection-filters-v1:<route>`), including

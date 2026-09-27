@@ -7,18 +7,18 @@ import { Suspense, type ReactNode } from "react";
 import appIcon from "@/app/icon.png";
 import { hasVehicleDisplayControls } from "@/lib/train-display";
 import { CollectionActions } from "./collection-actions";
-import { TrainDisplayControls } from "./train-display-controls";
+import { DisplaySettings } from "./display-settings";
+import { CollectionToolbarSlot } from "./collection-toolbar";
 import { useCollectionFilterMemory } from "./collection-filter-memory";
 import { FILTER_STATE_MARKER } from "@/lib/collection-filter-memory";
 import { ThemeToggle } from "./theme-toggle";
-import { GallerySizeControls } from "./gallery-size-controls";
 import { hasGallerySizeControls } from "@/lib/gallery-size";
 
 const links = [
   { href: "/soupravy", label: "Soupravy" },
-  { href: "/lokomotivy", label: "Lokomotivy" },
-  { href: "/vozy", label: "Osobní vozy" },
-  { href: "/nakladni-vozy", label: "Nákladní vozy" },
+  { href: "/lokomotivy", label: "Loko" },
+  { href: "/vozy", label: "Osobní" },
+  { href: "/nakladni-vozy", label: "Nákladní" },
   { href: "/katalog", label: "Katalog" },
   { href: "/dcc", label: "DCC" },
 ];
@@ -74,12 +74,12 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
 
   return (
     <nav className="app-nav sticky top-0 z-50 border-b border-divider">
-      <div className="flex flex-wrap items-center gap-x-6 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center gap-x-4 px-4 sm:px-6 lg:px-8">
         <Link href="/soupravy" aria-label="Vláčky — Soupravy" title="Vláčky — Soupravy"
           className="order-1 mr-2 flex h-12 w-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
           <Image src={appIcon} alt="" width={44} height={44} sizes="44px" className="size-11" />
         </Link>
-        <div className="order-4 flex w-full flex-wrap gap-x-4 gap-y-0 sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
+        <div className="order-4 flex w-full flex-wrap gap-x-3 gap-y-0 sm:order-1 sm:w-auto sm:justify-start sm:gap-4">
           {links.map((link) => {
             const isActive =
               pathname.startsWith(link.href);
@@ -94,6 +94,12 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
               </Link>
             );
           })}
+        </div>
+        <CollectionToolbarSlot />
+        <div className="relative order-2 ml-auto flex items-center gap-2 py-2 2xl:order-3">
+          {addAction && <CollectionActions {...addAction} />}
+          <DisplaySettings key={pathname} visible={showDisplayControls} gallery={hasGallerySizeControls(pathname)} />
+          <ThemeToggle />{accountMenu}
         </div>
         {isKatalog && <div className="order-6 flex w-full flex-wrap items-center gap-3 pb-3">
           {isKatalog && (
@@ -135,14 +141,6 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             </>
           )}
         </div>}
-        <div className={showDisplayControls ? "order-5 flex w-full flex-wrap items-center justify-end gap-3 pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2" : "contents"}>
-          <TrainDisplayControls visible={showDisplayControls} />
-          <GallerySizeControls visible={hasGallerySizeControls(pathname)} />
-        </div>
-        <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${showDisplayControls ? "xl:ml-0" : ""}`}>
-          {addAction && <CollectionActions {...addAction} />}
-          <ThemeToggle />{accountMenu}
-        </div>
       </div>
     </nav>
   );

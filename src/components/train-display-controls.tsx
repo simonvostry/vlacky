@@ -33,12 +33,12 @@ export function TrainDisplayControls({ visible = true }: { visible?: boolean }) 
   const hidden = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   if (!visible) return null;
   return (
-    <div role="group" aria-label="Zobrazení údajů vozidel" className="flex flex-wrap items-center justify-end gap-1">
+    <div role="group" aria-label="Zobrazení údajů vozidel" className="grid grid-cols-2 gap-2">
       {options.map(({ key, label, description }) => {
         const enabled = !hidden.split(" ").includes(key);
         return (
           <button key={key} type="button" aria-pressed={enabled} title={description}
-            className={`ui-button gap-1 px-2 ${enabled ? "bg-muted text-accent" : "text-secondary hover:bg-muted"}`}
+            className={`ui-button justify-start gap-1 px-2 ${enabled ? "bg-muted text-accent" : "text-secondary hover:bg-muted"}`}
             onClick={() => {
               const next = parseHiddenTrainLabels(enabled ? `${hidden} ${key}` : hidden.split(" ").filter(item => item !== key).join(" "));
               apply(next);
