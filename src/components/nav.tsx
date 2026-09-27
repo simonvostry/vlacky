@@ -11,6 +11,8 @@ import { TrainDisplayControls } from "./train-display-controls";
 import { useCollectionFilterMemory } from "./collection-filter-memory";
 import { FILTER_STATE_MARKER } from "@/lib/collection-filter-memory";
 import { ThemeToggle } from "./theme-toggle";
+import { GallerySizeControls } from "./gallery-size-controls";
+import { hasGallerySizeControls } from "@/lib/gallery-size";
 
 const links = [
   { href: "/soupravy", label: "Soupravy" },
@@ -133,8 +135,9 @@ function NavInner({ accountMenu }: { accountMenu: ReactNode }) {
             </>
           )}
         </div>}
-        <div className={showDisplayControls ? "order-5 flex w-full justify-end pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2" : "contents"}>
+        <div className={showDisplayControls ? "order-5 flex w-full flex-wrap items-center justify-end gap-3 pb-2 xl:order-2 xl:ml-auto xl:w-auto xl:py-2" : "contents"}>
           <TrainDisplayControls visible={showDisplayControls} />
+          <GallerySizeControls visible={hasGallerySizeControls(pathname)} />
         </div>
         <div className={`order-2 ml-auto flex items-center gap-2 py-2 xl:order-3 ${showDisplayControls ? "xl:ml-0" : ""}`}>
           {addAction && <CollectionActions {...addAction} />}

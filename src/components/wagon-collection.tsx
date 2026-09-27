@@ -1,3 +1,4 @@
+import { galleryDimension } from "@/lib/gallery-size";
 import { CollectionFilters } from "@/components/collection-filters";
 import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { groupVehicles } from "@/lib/wagon-variants";
@@ -51,7 +52,7 @@ export async function WagonCollection({ kind, searchParams }: { kind: "passenger
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
           {visible.map(({ vehicle: v, pieces, key }) => {
             const scaledW = Math.round((v.imageWidth || 264) * SCALE);
-            const tileWidth = scaledW + 24;
+            const tileWidth = galleryDimension(scaledW, 24);
             return (
               <Link
                 key={key}
@@ -69,8 +70,8 @@ export async function WagonCollection({ kind, searchParams }: { kind: "passenger
                       height={v.imageHeight || 41}
                       className="block shrink-0"
                       style={{
-                        width: scaledW,
-                        height: Math.round((v.imageHeight || 41) * SCALE),
+                        width: galleryDimension(scaledW),
+                        height: galleryDimension(Math.round((v.imageHeight || 41) * SCALE)),
                         maxWidth: "none",
                       }}
                     />

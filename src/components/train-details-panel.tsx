@@ -1,3 +1,4 @@
+import { galleryDimension } from "@/lib/gallery-size";
 import { EquipmentIcons } from "./equipment-icons";
 import { ManufacturerLogo } from "./manufacturer-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
@@ -93,7 +94,7 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [],
                       <div className="mt-1 overflow-x-auto">
                         <Image unoptimized src={vehicle.imagePath} alt={vehicle.designation}
                           width={imageWidth} height={imageHeight}
-                          style={{ width: Math.round(imageWidth * 0.75), height: Math.round(imageHeight * 0.75), maxWidth: "none" }} />
+                          style={{ width: galleryDimension(Math.round(imageWidth * 0.75)), height: galleryDimension(Math.round(imageHeight * 0.75)), maxWidth: "none" }} />
                       </div>
                     )}
                     {row.notes && !/^Číslo vozu:/.test(row.notes) && (

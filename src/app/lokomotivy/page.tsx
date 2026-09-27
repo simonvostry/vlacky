@@ -1,3 +1,4 @@
+import { galleryDimension } from "@/lib/gallery-size";
 import { CollectionFilters } from "@/components/collection-filters";
 import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { requireUser } from "@/lib/auth-guards";
@@ -42,7 +43,7 @@ export default async function LokomotivyPage({ searchParams }: { searchParams: P
         <div className="flex flex-wrap gap-2" style={{ overflow: "auto" }}>
           {visible.map((v) => {
             const scaledW = Math.round((v.imageWidth || 169) * SCALE);
-            const tileWidth = scaledW + 24;
+            const tileWidth = galleryDimension(scaledW, 24);
             return (
               <Link
                 key={v.id}
@@ -60,8 +61,8 @@ export default async function LokomotivyPage({ searchParams }: { searchParams: P
                       height={v.imageHeight || 58}
                       className="block shrink-0"
                       style={{
-                        width: scaledW,
-                        height: Math.round((v.imageHeight || 58) * SCALE),
+                        width: galleryDimension(scaledW),
+                        height: galleryDimension(Math.round((v.imageHeight || 58) * SCALE)),
                         maxWidth: "none",
                       }}
                     />

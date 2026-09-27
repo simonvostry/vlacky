@@ -43,3 +43,35 @@ test('composed filters retain entire variant quantities and exclude no unrelated
   assert.equal(facetOptions(vehicles.map(v => vehicleFacets(v)), 'rada').length, 1);
   assert.ok(facetOptions([], 'pohon').some(o => o.value === 'steam'));
 });
+
+test('locomotive series choices use Czech names while preserving numeric URLs and matching', () => {
+  const rows = ['754 061-0', '751', '750', '363', '362', '193', '388.2', '642', 'VZOR'].map(designation =>
+    vehicleFacets({ designation, operator: 'ČD', type: 'loco' }));
+  const options = facetOptions(rows, 'rada');
+  const label = (value: string) => options.find(o => o.value === value)?.label;
+  assert.equal(label('754'), 'Brejlovec (754)');
+  assert.equal(label('750'), 'Brejlovec (750)');
+  assert.equal(label('751'), 'Bardotka (751)');
+  assert.equal(label('363'), 'Eso (363)');
+  assert.equal(label('193'), 'Vectron (193)');
+  assert.equal(label('388.2'), 'Traxx (388.2)');
+  assert.equal(label('642'), 'Desiro (642)');
+  assert.equal(label('VZOR'), 'VZOR');
+  assert.deepEqual(options.slice(0, 3).map(o => o.value), ['751', '750', '754']);
+  assert.equal(rows.filter(f => matchesFilters(f, selectedFilters({ rada: '754' }), ['rada'])).length, 1);
+  assert.equal(facetOptions([vehicleFacets({ designation: 'T 478.1', operator: 'ČSD', type: 'loco' })], 'rada')[0].label, 'Bardotka (T478.1)');
+});
+
+test('nickname scope avoids foreign class and mixed wagon collisions', () => {
+  const row = (designation: string, operator: string, type = 'loco') => vehicleFacets({ designation, operator, type });
+  const label = (...facets: ReturnType<typeof row>[]) => facetOptions(facets, 'rada')[0].label;
+  assert.equal(label(row('754', 'DB')), '754');
+  assert.equal(label(row('754', 'ČD', 'wagon')), '754');
+  assert.equal(label(row('754', 'ČD'), row('754', 'DB')), '754');
+  assert.equal(label(row('754', 'ČD'), row('754', 'ČSD')), 'Brejlovec (754)');
+  assert.equal(label(row('642', 'Vogtlandbahn')), 'Desiro (642)');
+  assert.equal(label(row('840', 'ZSSK')), '840');
+  assert.equal(label(row('811', 'ZSSK')), '811');
+  assert.equal(label(row('060', 'ČD')), '060');
+  assert.equal(label(row('660', 'ČD')), 'InterPanter (660)');
+});

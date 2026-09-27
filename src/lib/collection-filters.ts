@@ -1,8 +1,10 @@
+import { locomotiveNickname } from "./locomotive-nicknames";
+
 /** Read-only presentation facets. Never write inferred classifications to owned models. */
 export const UNKNOWN = "nezarazeno";
 export type FilterKey = "op" | "rada" | "pohon" | "skupina";
 export type CollectionSearch = Partial<Record<FilterKey, string | string[]>>;
-export type Facets = Record<FilterKey, string>;
+export type Facets = Record<FilterKey, string> & { radaLabel?: string };
 export type FilterOption = { value: string; label: string };
 type Vehicle = { designation: string; operator: string | null; type: string; catalogId?: number | null };
 type Catalog = { id: number; designation: string; code: string | null; operator: string; wagonFamily: string };
@@ -73,7 +75,10 @@ export function wagonFamily(v: Vehicle, catalog: Catalog[]): string {
 }
 
 export function vehicleFacets(v: Vehicle, catalog: Catalog[] = []): Facets {
-  return { op: v.operator?.trim() || UNKNOWN, rada: vehicleClass(v.designation, v.type === "loco"),
+  const rada = vehicleClass(v.designation, v.type === "loco");
+  const nickname = v.type === "loco" ? locomotiveNickname(rada, v.operator) : undefined;
+  return { op: v.operator?.trim() || UNKNOWN, rada,
+    ...(nickname ? { radaLabel: `${nickname} (${rada})` } : {}),
     pohon: v.type === "loco" ? traction(v) : UNKNOWN,
     skupina: v.type === "wagon" ? wagonFamily(v, catalog) : UNKNOWN };
 }
@@ -88,6 +93,11 @@ export function facetOptions(facets: Facets[], key: FilterKey): FilterOption[] {
   const values = new Set(facets.map(f => f[key]));
   // Keep all three requested traction choices discoverable, even with no owned steam engine.
   if (key === "pohon") for (const value of ["electric", "diesel", "steam"]) values.add(value);
-  return [...values].sort((a,b) => a === UNKNOWN ? 1 : b === UNKNOWN ? -1 : a.localeCompare(b, "cs", { numeric: true }))
-    .map(value => ({ value, label: value === UNKNOWN ? "Nezařazeno" : labels[value] || value }));
+  return [...values].map(value => {
+    // Mixed catalog/foreign entries may share a number. Only name an option when
+    // every entry with that value agrees, so a nickname never labels unrelated stock.
+    const seriesLabels = key === "rada" ? new Set(facets.filter(f => f.rada === value).map(f => f.radaLabel || value)) : new Set<string>();
+    const seriesLabel = seriesLabels.size === 1 ? [...seriesLabels][0] : undefined;
+    return { value, label: value === UNKNOWN ? "Nezařazeno" : seriesLabel || labels[value] || value };
+  }).sort((a,b) => a.value === UNKNOWN ? 1 : b.value === UNKNOWN ? -1 : a.label.localeCompare(b.label, "cs", { numeric: true }));
 }

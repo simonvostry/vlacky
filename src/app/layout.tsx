@@ -7,6 +7,7 @@ import { getAuthorizedSession } from "@/lib/auth-guards";
 import { themeBootstrap } from "@/lib/theme";
 import { trainDisplayBootstrap } from "@/lib/train-display";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { gallerySizeBootstrap } from "@/lib/gallery-size";
 
 export const metadata: Metadata = {
   title: "Vlacky — Sbírka modelů",
@@ -21,7 +22,7 @@ export default async function RootLayout({
   const session = await getAuthorizedSession();
   return (
     <html lang="cs" data-theme="light" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: themeBootstrap + trainDisplayBootstrap }} /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: themeBootstrap + trainDisplayBootstrap + gallerySizeBootstrap }} /></head>
       <body className="bg-canvas text-foreground antialiased">
         {session && <Nav accountMenu={
           <AccountMenu name={session.user?.name} image={session.user?.image}>

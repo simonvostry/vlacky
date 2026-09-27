@@ -65,10 +65,23 @@ behind the supplied PNG preview; keep its proportions and original colors.
 
 | Surface | Display size relative to stored native dimensions |
 | --- | --- |
-| Catalog/vehicle overview, train composition and compact details panel | 0.75× |
+| Catalog/vehicle overview, train composition and compact details panel | Small: 0.75×; medium: 0.9375×; large: 1.125× |
 | Catalog detail | 1× |
 | Wagon and legacy vehicle detail | 2×, with local horizontal scrolling when needed |
 | Locomotive detail header | Up to 2×, shrinking proportionally to fit; no horizontal scroller |
+
+The top bar offers **Malé / Střední / Velké** on collection/catalog galleries and
+train views. Small preserves the original size; medium and large scale artwork by
+125% and 150%. Text, logos, controls, gaps and card padding keep their normal size.
+Images and their allocated space scale together, retaining aspect ratios and the
+relative lengths of different vehicles. Tiles wrap; train strips scroll locally.
+Vehicle/catalog detail magnifiers, forms and DCC remain unchanged.
+
+`gallery-size.ts` owns the `vlacky-gallery-size` browser preference, default small.
+The root bootstrap restores it before paint; `GallerySizeControls` synchronizes it
+across tabs, even while its controls are hidden on a detail or DCC page. Storage
+failure still allows in-page switching. The shared `--gallery-image-scale` variable
+and `galleryDimension` helper apply the multiplier without browser/CSS zoom.
 
 The locomotive image occupies a full-width left-aligned row above identity and
 metadata. Below it are equal desktop columns: DCC and train appearances left, speed
@@ -81,7 +94,7 @@ Tailwind's image reset. The locomotive header deliberately uses a responsive wid
 expression. Long train compositions may scroll locally; the page must not overflow.
 
 Catalog color variants pair each image with a wrapping caption directly below it.
-Card width accommodates the widest displayed livery at the common 0.75× scale;
+Card width accommodates the widest displayed livery at the selected common scale;
 long headings wrap within the card. Never place unbounded, non-wrapping descriptions
 beside the artwork, where they can spill over neighboring cards.
 
@@ -359,6 +372,12 @@ an always-visible “Resetovat filtry” action. Wagon counts describe variants;
 tile retains its owned-piece count. Traction always offers electric/diesel/steam,
 including an empty category. Unclassified records use “Nezařazeno”. The passenger
 Y/Z labels explicitly include related designs and source-section lengths.
+
+Locomotive Řada choices show the verified nickname or product name followed by the
+unchanged series in parentheses, e.g. **Brejlovec (754)**. Sort by the displayed Czech
+name; keep distinct series as separate choices even if they share a nickname.
+Unknown or ambiguous entries retain their series. The [reference table](locomotive-nicknames.md)
+records sources and operator scope; wagon series labels retain their existing wording.
 
 These controls filter records and are separate from the top navigation's four
 show/hide-label preferences. Choices combine, live in the page URL, and are remembered

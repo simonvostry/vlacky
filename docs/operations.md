@@ -26,6 +26,7 @@ Neither is required to build the app from Git.
 npm run build
 npm run test:theme
 npm run test:train-display
+npm run test:gallery-size
 npm run test:freight
 npm run test:collection-filters
 npm run test:auth

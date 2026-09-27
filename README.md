@@ -28,6 +28,7 @@ Turso in production and a local SQLite fallback. Exact versions are in
 | [Architecture](docs/architecture.md) | Current structure, data model, routes and components |
 | [Operations](docs/operations.md) | Local setup, validation, migrations and deployment |
 | [Design and images](docs/design.md) | Approved appearance and image handling |
+| [Locomotive names](docs/locomotive-nicknames.md) | Source-backed nickname/class table for filters |
 | [Authentication](docs/authentication.md) | Google configuration and access enforcement |
 | [iTrain integration](docs/itrain-integration.md) | Read-only MCP, exports and preservation rules |
 | [Decisions](docs/decisions.md) | Durable decisions and unresolved collection research |

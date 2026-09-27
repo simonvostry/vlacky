@@ -2,6 +2,7 @@
 
 /* Hluboká modř / Noční galerie. Roles, not individual pages, own colors. */
 :root {
+  --gallery-image-scale: 1;
   color-scheme: light;
   --canvas: #ffffff; --surface: #ffffff; --subtle: #f6f8fb;
   --muted: #edf1f5; --selected: #e5ebf2;
@@ -15,6 +16,8 @@
   --warning: #85500e; --warning-soft: #fff7e6;
   --image-stage: #f6f8fb;
 }
+:root[data-gallery-size="medium"] { --gallery-image-scale: 1.25; }
+:root[data-gallery-size="large"] { --gallery-image-scale: 1.5; }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --canvas: #101b2d; --surface: #17263c; --subtle: #1a2c44;

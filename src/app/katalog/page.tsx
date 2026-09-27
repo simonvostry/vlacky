@@ -1,3 +1,4 @@
+import { galleryDimension } from "@/lib/gallery-size";
 import { CollectionFilters } from "@/components/collection-filters";
 import { facetOptions, matchesFilters, selectedFilters, vehicleFacets, type CollectionSearch, type FilterKey } from "@/lib/collection-filters";
 import { requireUser } from "@/lib/auth-guards";
@@ -96,7 +97,7 @@ export default async function CatalogPage({
           {entries.map((e) => {
             const images = imagesByCatalog.get(e.id) || [];
             const scaledW = Math.round((e.imageWidth || 264) * SCALE);
-            const tileWidth = Math.max(scaledW, ...images.map(img => Math.round((img.imageWidth || 264) * SCALE))) + 24;
+            const tileWidth = galleryDimension(Math.max(scaledW, ...images.map(img => Math.round((img.imageWidth || 264) * SCALE))), 24);
             return (
               <Link
                 key={e.id}
@@ -151,7 +152,7 @@ export default async function CatalogPage({
                             width={img.imageWidth || 264}
                             height={img.imageHeight || 41}
                             className="block shrink-0"
-                            style={{ width: w, height: h, minWidth: w, maxWidth: "none" }}
+                            style={{ width: galleryDimension(w), height: galleryDimension(h), minWidth: galleryDimension(w), maxWidth: "none" }}
                           />
                           {img.label && (
                             <figcaption className="w-full text-center text-[10px] leading-snug text-secondary [overflow-wrap:anywhere]">
@@ -163,7 +164,7 @@ export default async function CatalogPage({
                     })}
                   </div>
                 ) : e.imagePath ? (
-                  <div className="flex h-10 items-end justify-center">
+                  <div className="flex min-h-10 items-end justify-center">
                     <Image unoptimized
                       src={e.imagePath}
                       alt={e.fullDesignation}
@@ -171,9 +172,9 @@ export default async function CatalogPage({
                       height={e.imageHeight || 41}
                       className="block shrink-0"
                       style={{
-                        width: scaledW,
-                        height: Math.round((e.imageHeight || 41) * SCALE),
-                        minWidth: scaledW,
+                        width: galleryDimension(scaledW),
+                        height: galleryDimension(Math.round((e.imageHeight || 41) * SCALE)),
+                        minWidth: galleryDimension(scaledW),
                         maxWidth: "none",
                       }}
                     />

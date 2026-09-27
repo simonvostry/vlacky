@@ -1,3 +1,4 @@
+import { galleryDimension } from "@/lib/gallery-size";
 import Image from "@/components/vehicle-image";
 import { ClassBadge } from "./class-badge";
 import { OperatorLogo } from "./operator-logo";
@@ -24,7 +25,7 @@ type Props = {
   showDescriptions?: boolean;
 };
 
-// Display at 75% native size — compromise between sharpness and readability
+// Small uses 75% native size; the shared preference scales artwork and columns.
 const SCALE = 0.75;
 
 export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
@@ -47,7 +48,7 @@ export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
             const w = Math.round(nw * SCALE);
             const h = Math.round(nh * SCALE);
             return (
-              <div key={tv.position} className="shrink-0" style={{ width: w }}>
+              <div key={tv.position} className="shrink-0" style={{ width: galleryDimension(w) }}>
                 {tv.vehicle.imagePath ? (
                   <Image unoptimized
                     src={tv.vehicle.imagePath}
@@ -55,12 +56,12 @@ export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
                     width={nw}
                     height={nh}
                     className="block"
-                    style={{ width: w, height: h }}
+                    style={{ width: galleryDimension(w), height: galleryDimension(h) }}
                   />
                 ) : (
                   <div
                     className="flex items-end justify-center bg-selected text-[8px] text-secondary"
-                    style={{ width: w, height: h }}
+                    style={{ width: galleryDimension(w), height: galleryDimension(h) }}
                   >
                     {tv.vehicle.designation}
                   </div>
@@ -82,7 +83,7 @@ export function TrainComposition({ vehicles, showDescriptions = true }: Props) {
               <div
                 key={tv.position}
                 className="shrink-0 pt-1 flex items-center justify-center gap-1 whitespace-nowrap overflow-hidden"
-                style={{ width: w }}
+                style={{ width: galleryDimension(w) }}
               >
                 <span className="inline-flex" data-vehicle-label="operator"><OperatorLogo operator={tv.vehicle.operator} /></span>
                 {tv.vehicle.classType && (

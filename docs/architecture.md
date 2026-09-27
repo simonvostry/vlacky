@@ -220,6 +220,14 @@ events refresh links in other browser tabs without overriding their current expl
 URL. These are per-section filters, separate from global display preferences.
 Wagons are grouped before filtering, preserving full variant quantities and IDs.
 
+Locomotive display names come from the operator-scoped, source-backed
+[`locomotive-nicknames.ts`](../src/lib/locomotive-nicknames.ts) reference table; see
+[the readable table and extension policy](locomotive-nicknames.md). `radaLabel` is
+optional presentation metadata, while `rada` stays the original filter value.
+Both owned and catalog filters reuse this mapping. If entries sharing a value
+have conflicting names (including an unknown foreign class), show the number only.
+No database migration, catalog/owned renaming or iTrain export change is involved.
+
 Traction uses an explicit operator-scoped class registry, not the first digit of
 arbitrary foreign numbers. It covers the current Czech catalog fleet and owned series, including electric
 193/362/363/371/388, diesel Desiro 642 and GTW 646, and steam 498.0/1.
