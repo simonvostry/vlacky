@@ -64,7 +64,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     patch.magneticCouplerA = patch.magneticCouplers;
     patch.magneticCouplerB = patch.magneticCouplers;
   }
-  if (body.editScope !== undefined && !['piece','variant'].includes(String(body.editScope))) throw new CollectionError('Neplatný rozsah úpravy.');
+  if (body.editScope !== undefined && !['piece','variant','new-variant'].includes(String(body.editScope))) throw new CollectionError('Neplatný rozsah úpravy.');
   return withWriteTransaction(async tx => {
     if (id === undefined) {
       patch.hasLights ??= false;
@@ -95,14 +95,21 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     const entries = values(patch,shared);
     const changed = entries.some(([k,v]) => old[k] !== v);
     const nextType = patch.type ?? old.type;
-    if (body.editScope === 'variant' && old.wagon_variant_id != null && nextType !== 'wagon') throw new CollectionError('Celou variantu nelze změnit na lokomotivu.');
-    if (body.editScope === 'variant' && old.wagon_variant_id != null) {
-      await update(tx,entries,'wagon_variant_id',Number(old.wagon_variant_id));
+    // Shared model fields always belong to the variant, including edits from
+    // older clients that still send editScope:"piece". Never split implicitly.
+    const detach = body.editScope === 'new-variant';
+    const variantId = old.wagon_variant_id as number | null;
+    if (detach && (old.type !== 'wagon' || nextType !== 'wagon' || !changed)) {
+      throw new CollectionError('Nová varianta vyžaduje změnu údajů nebo vzhledu vozu.');
+    }
+    if (variantId && nextType !== 'wagon' && Number((await tx.execute({sql:'SELECT count(*) AS n FROM vehicles WHERE wagon_variant_id = ?',args:[variantId]})).rows[0].n) > 1) {
+      throw new CollectionError('Skupinu více vozů nelze změnit na lokomotivu.');
+    }
+    if (variantId && nextType === 'wagon' && !detach) {
+      await update(tx,entries,'wagon_variant_id',variantId);
     } else {
-      let variantId = old.wagon_variant_id as number | null;
-      if (nextType !== 'wagon') variantId = null;
-      else if (!variantId || (changed && Number((await tx.execute({sql:'SELECT count(*) AS n FROM vehicles WHERE wagon_variant_id = ?',args:[variantId]})).rows[0].n) > 1)) variantId = await newVariant(tx);
-      await update(tx,[...entries,['wagon_variant_id',variantId]],'id',id);
+      const nextVariantId = nextType === 'wagon' ? await newVariant(tx) : null;
+      await update(tx,[...entries,['wagon_variant_id',nextVariantId]],'id',id);
     }
     if (patch.magneticCouplerA !== undefined || patch.magneticCouplerB !== undefined) {
       const a = patch.magneticCouplerA ?? Boolean(old.magnetic_coupler_a), b = patch.magneticCouplerB ?? Boolean(old.magnetic_coupler_b);

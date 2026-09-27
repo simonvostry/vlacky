@@ -245,8 +245,10 @@ kusy” and the selected piece's notes, DCC and appearances. Individual piece ro
 show stable IDs, optional running numbers and per-piece equipment/weathering values,
 with accessible pencil actions. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
-The edit form explicitly offers a single-piece or whole-variant scope for shared
-model/artwork fields. Its physical settings always affect only the selected piece.
+The edit form explains that model/artwork fields are shared by all copies; there
+is no scope selector. A separate “Konkrétní kus” heading introduces DCC and physical
+settings, which always affect only the selected piece. Routine edits never split
+the group, including operator and epoch corrections.
 Quantity reductions require selecting the pieces and confirming configuration loss;
 assigned pieces cannot be deleted. The train picker shows grouped availability,
 a quantity control, selected artwork and an optional specific-piece checklist.

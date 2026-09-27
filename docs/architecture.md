@@ -141,10 +141,16 @@ An ungrouped legacy record is displayed individually until migrated.
 `wagon_variants` provides stable group identity. Shared model/artwork fields remain
 on each vehicle as a compatibility projection for existing queries and integrations:
 designation, operator, type/kind, class, image path/dimensions, model manufacturer,
-SKU, model length over buffers and catalog/livery links. `wagon-storage.ts` is the write boundary: a variant
-edit updates these fields on every member in one transaction. A piece edit that
-changes shared fields splits that piece when it has siblings; changing artwork for
-a single-piece variant keeps its group ID. Physical fields are never propagated:
+SKU, epochs/provenance, model length over buffers and catalog/livery links.
+`wagon-storage.ts` is the write boundary: every normal edit updates shared fields
+on all variant members in one transaction, regardless of the edited piece URL.
+Legacy `editScope: "piece"` and `"variant"` both follow this rule; neither splits a
+copy. Creating a genuinely different model/livery requires the explicit maintenance
+API value `editScope: "new-variant"` and a shared-field change. This intentional
+operation preserves the physical ID and creates a new group. The ordinary form
+never offers implicit splitting and sends only changed fields, so an equipment
+save from an older open form cannot undo newer shared data. A multi-piece wagon
+group cannot be converted to a locomotive. Physical fields are never propagated:
 DCC, notes, template status, running number, general lighting, couplers at ends A/B,
 tail lights, sound decoder, speaker and weathering.
 Use this service/API for maintenance edits rather than changing shared SQL columns
@@ -281,9 +287,8 @@ kinds. It is not prototype length or image width. Unknown is null; positive fini
 decimal values up to 10,000 mm are accepted. Omitted API fields preserve the current
 value; explicit null clears it. Never derive this value from artwork dimensions.
 
-It is a shared model specification under the existing wagon edit scope: editing
-all copies updates the variant, editing only one differing copy splits it, and new
-quantity copies inherit the length. IDs, DCC and individual equipment remain intact.
+It is a shared model specification: editing from any copy updates the whole
+variant, and new quantity copies inherit the length. IDs, DCC and individual equipment remain intact.
 Source notes stay as provenance. Populate existing lengths only from reviewed,
 per-vehicle evidence; do not mistake a whole set's length for one wagon or promote
 provisional/conflicting dimensions to facts. A permanently coupled unit has one

@@ -182,7 +182,7 @@ sources retained in notes and uncertain/set-only measurements left unknown.
 
 Run `npm run test:vehicle-length` and `npm run test:wagon-variants` after building;
 the latter covers decimal API round-trips, null/omission, validation, variant edits,
-copy inheritance, per-piece splits and snapshot export. Check detail/edit pages in
+copy inheritance, explicit new-variant creation and snapshot export. Check detail/edit pages in
 both themes and a narrow viewport against a disposable collection.
 
 ## Epoch migration

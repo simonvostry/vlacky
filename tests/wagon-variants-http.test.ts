@@ -102,16 +102,16 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await get(1)).dccAddress,3);
     assert.deepEqual(a.epochs,[]);
     for(const invalid of [[0],[7],[1.5],['5'],[5,5],null,'V',5]) assert.equal((await save('/api/vozidla/10',{epochs:invalid},'PUT')).status,400);
-    assert.equal((await save('/api/vozidla/10',{epochs:[6,5],epochNotes:'Manufacturer: V-VI',editScope:'variant'},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/10',{epochs:[6,5],epochNotes:'Manufacturer: V-VI'},'PUT')).status,200);
     assert.deepEqual((await get(11)).epochs,[5,6]);assert.equal((await get(11)).epochNotes,'Manufacturer: V-VI');
     await save('/api/vozidla/11',{notes:'Epoch preserved'},'PUT');assert.deepEqual((await get(11)).epochs,[5,6]);
     await save('/api/vozidla/1',{epochs:[4],epochNotes:'Old source'},'PUT');
     await save('/api/vozidla/1',{epochs:[5]},'PUT');assert.equal((await get(1)).epochNotes,null);
     await save('/api/vozidla/1',{epochs:[]},'PUT');assert.deepEqual((await get(1)).epochs,[]);
-    // Length is a shared model specification, with explicit per-piece splitting.
+    // Length is a shared model specification; normal edits never split copies.
     assert.equal(a.lengthOverBuffersMm,null);
     for (const invalid of [0,-1,10001,'165',true]) assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:invalid},'PUT')).status,400);
-    assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:165.25,editScope:'variant'},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:165.25},'PUT')).status,200);
     assert.equal((await get(11)).lengthOverBuffersMm,165.25);
     await save('/api/vozidla/11',{notes:'Length preserved'},'PUT');
     assert.equal((await get(11)).lengthOverBuffersMm,165.25);
@@ -132,9 +132,9 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await resize({quantity:9,expectedQuantity:10,removeVehicleIds:[10]})).status,409);
     assert.equal((await request('/api/vozidla/10',{method:'DELETE'})).status,409);
     assert.equal((await resize({quantity:9,expectedQuantity:10,removeVehicleIds:[extra.id]})).status,200);
-    assert.equal((await save('/api/vozidla/10',{imagePath:'/img/owned/uacs-improved.png',editScope:'variant'},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/10',{imagePath:'/img/owned/uacs-improved.png'},'PUT')).status,200);
     assert.equal((await get(11)).imagePath,'/img/owned/uacs-improved.png');assert.equal((await get(10)).wagonVariantId,variantId);
-    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png',lengthOverBuffersMm:166.125,epochs:[4]},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png',lengthOverBuffersMm:166.125,epochs:[4],editScope:'new-variant'},'PUT')).status,200);
     assert.notEqual((await get(18)).wagonVariantId,variantId); assert.equal((await get(10)).imagePath,'/img/owned/uacs-improved.png');
     assert.equal((await get(18)).notes,'Original piece 18');
     assert.equal((await get(18)).lengthOverBuffersMm,166.125);
@@ -201,6 +201,29 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await request(`/api/varianty-vozu/${variantId}`,{method:'PUT',headers:{authorization:`Bearer ${secret}`},body:JSON.stringify({quantity:1,expectedQuantity:8})})).status,401);
     assert.equal((await request(`/nakladni-vozy/11`)).status,200);
     assert.ok(parse(await (await request(`/soupravy/${train.id}`)).text()).text.includes('0/8'));
+    // Regression: correcting an operator on a four-piece passenger variant must
+    // keep one gallery card, with physical configuration independent per copy.
+    const four = await (await save('/api/vozidla',{designation:'Bap regression',operator:'ČSD/ČD',type:'wagon',wagonKind:'passenger',imagePath:'/img/four-bap.png',quantity:4,dccAddress:69,hasLights:true})).json();
+    const fourIds = (sqlite.prepare('SELECT id FROM vehicles WHERE wagon_variant_id=? ORDER BY id').all(four.wagonVariantId) as {id:number}[]).map(r=>r.id);
+    assert.equal(fourIds.length,4);
+    assert.equal((await save(`/api/vozidla/${four.id}`,{operator:'ČSD',editScope:'piece'},'PUT')).status,200); // old form compatibility
+    await save(`/api/vozidla/${fourIds[1]}`,{epochs:[4],classType:'2',manufacturer:'Test Maker',catalogNumber:'123',hasTailLights:true,runningNumber:'Second copy'},'PUT');
+    for(const id of fourIds) {
+      const piece = await get(id);
+      assert.equal(piece.wagonVariantId,four.wagonVariantId);
+      assert.equal(piece.operator,'ČSD');assert.deepEqual(piece.epochs,[4]);
+      assert.equal(piece.classType,'2');assert.equal(piece.manufacturer,'Test Maker');assert.equal(piece.catalogNumber,'123');
+      assert.equal(piece.dccAddress,id===four.id?69:null);assert.equal(piece.hasLights,id===four.id);
+      assert.equal(piece.hasTailLights,id===fourIds[1]);assert.equal(piece.runningNumber,id===fourIds[1]?'Second copy':null);
+    }
+    const passenger = parse(await (await request('/vozy?op=ČSD&epocha=4')).text());
+    const bapCards=passenger.querySelectorAll('a[href^="/vozy/"]').filter(n=>fourIds.some(id=>n.getAttribute('href')===`/vozy/${id}`));
+    assert.equal(bapCards.length,1);assert.ok(bapCards[0].text.includes('4 ks'));
+    assert.equal((await save(`/api/vozidla/${four.id}`,{type:'loco'},'PUT')).status,400);
+    assert.equal((await get(four.id)).type,'wagon');
+    assert.equal((await save(`/api/vozidla/${four.id}`,{hasLights:false,editScope:'new-variant'},'PUT')).status,400);
+    assert.equal((await get(four.id)).hasLights,true); // failed detachment is atomic
+
   } finally {
     server.kill('SIGTERM');
     await new Promise<void>(resolve => { if (server.exitCode !== null) resolve(); else server.once('exit', () => resolve()); });

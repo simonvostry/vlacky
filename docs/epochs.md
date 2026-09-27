@@ -21,8 +21,8 @@ an empty list means **Nevyplněna**, never all epochs. The API sorts input, reje
 invalid/duplicate identifiers and null lists. Omission preserves values; `[]` clears.
 
 Owned epochs and source notes are shared model specifications through
-`wagon-storage.ts`: variant edits propagate, additional copies inherit, and a
-piece-only change splits a shared variant. Changing epochs without supplying new
+`wagon-storage.ts`: editing from any piece propagates to the whole variant, and
+additional copies inherit. Ordinary edits never separate a piece. Changing epochs without supplying new
 source notes clears stale evidence; the form also clears it when selection changes.
 Equipment, IDs, memberships and calibration remain independent.
 

@@ -65,7 +65,6 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
   const [form, setForm] = useState<Vehicle>({ ...defaults, ...vehicle, hasLights: vehicle?.hasLights ?? false });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [editScope, setEditScope] = useState("piece");
   const [quantity, setQuantity] = useState(1);
   const [customManufacturer, setCustomManufacturer] = useState(false);
   const manufacturerChoices = manufacturerOptions([...manufacturers, vehicle?.manufacturer ?? null]);
@@ -83,20 +82,26 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
       const url = isEdit ? `/api/vozidla/${vehicle!.id}` : "/api/vozidla";
       const method = isEdit ? "PUT" : "POST";
 
+      const normalize = (value: Vehicle) => ({
+        ...value,
+        manufacturer: value.manufacturer.trim(),
+        dccAddress: value.dccAddress || null,
+        imageWidth: value.imageWidth || null,
+        imageHeight: value.imageHeight || null,
+        catalogId: value.catalogId || null,
+        catalogImageId: value.catalogImageId || null,
+      });
+      const current = normalize(form);
+      const initial = normalize({ ...defaults, ...vehicle, hasLights: vehicle?.hasLights ?? false });
+      // Saving equipment from an older open form must not undo newer shared
+      // details. Send only fields the user actually changed on edit.
+      const payload = isEdit
+        ? Object.fromEntries(Object.entries(current).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(initial[key as keyof typeof initial])))
+        : { ...current, quantity: form.type === "wagon" ? quantity : 1 };
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          manufacturer: customManufacturer ? form.manufacturer.trim() : form.manufacturer,
-          editScope,
-          quantity: form.type === "wagon" ? quantity : 1,
-          dccAddress: form.dccAddress || null,
-          imageWidth: form.imageWidth || null,
-          imageHeight: form.imageHeight || null,
-          catalogId: form.catalogId || null,
-          catalogImageId: form.catalogImageId || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -130,12 +135,8 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {form.type === 'wagon' && isEdit && <div className="rounded-lg bg-subtle p-4 text-sm">
-        <label htmlFor="edit-scope" className="mb-2 block font-medium">Rozsah úpravy vzhledu a modelu</label>
-        <select id="edit-scope" value={editScope} onChange={e => setEditScope(e.target.value)} className="w-full rounded-md border border-control px-3 py-2">
-          <option value="piece">Jen tento kus (#{vehicle?.id})</option>
-          <option value="variant">Všechny kusy této varianty</option>
-        </select>
-        <p className="mt-2 text-secondary">{editScope === 'piece' ? 'Změna vzhledu se týká jen tohoto kusu. ' : 'Obrázek a údaje modelu se změní všem kusům varianty. '}DCC, výbava, číslo a poznámky se vždy mění jen u kusu #{vehicle?.id}.</p>
+        <p className="font-medium">Společné údaje všech kusů této varianty</p>
+        <p className="mt-1 text-secondary">Dopravce, epocha, označení, obrázek a parametry modelu se uloží všem kusům. Číslo kusu, DCC, výbava, patina a poznámky se mění jen u kusu #{vehicle?.id}.</p>
       </div>}
       {form.type === 'wagon' && !isEdit && <label className="block text-sm font-medium">Počet kusů
         <input type="number" min={1} max={1000} step={1} required value={quantity} onChange={e=>setQuantity(Number(e.target.value))} className="mt-1 block w-28 rounded-md border border-control px-3 py-2" />
@@ -273,24 +274,7 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
             placeholder="73219"
           />
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Výchozí DCC adresa</label>
-          <input
-            type="number"
-            min={1}
-            max={10239}
-            step={1}
-            value={form.dccAddress ?? ""}
-            onChange={(e) =>
-              set(
-                "dccAddress",
-                e.target.value ? parseInt(e.target.value) : null
-              )
-            }
-            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
-            placeholder="3"
-          />
-        </div>
+
       </div>
 
       <fieldset className="rounded-lg border border-divider p-4">
@@ -321,6 +305,26 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
           placeholder="Nevyplněno" />
         <p id="vehicle-length-help" className="mt-1 text-xs text-secondary">Délka fyzického modelu, nikoli skutečného vozidla. U trvale spojené jednotky celková délka; u sady samostatných vozů délka jednoho vozu.</p>
       </div>
+
+      {form.type === 'wagon' && <h2 className="pt-4 text-lg font-semibold">Konkrétní kus{vehicle?.id ? ` #${vehicle.id}` : ''}</h2>}
+        <div>
+          <label className="mb-1 block text-sm font-medium">Výchozí DCC adresa tohoto kusu</label>
+          <input
+            type="number"
+            min={1}
+            max={10239}
+            step={1}
+            value={form.dccAddress ?? ""}
+            onChange={(e) =>
+              set(
+                "dccAddress",
+                e.target.value ? parseInt(e.target.value) : null
+              )
+            }
+            className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
+            placeholder="3"
+          />
+        </div>
 
       {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">
         <legend className="px-2 text-sm font-semibold">Výbava konkrétního kusu{vehicle?.id ? ` #${vehicle.id}` : ''}</legend>

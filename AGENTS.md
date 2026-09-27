@@ -35,7 +35,8 @@ document; do not append chronological handoffs or duplicate architecture here.
 - Use semantic theme roles and shared controls. Preserve the top navigation,
   accessible pencil edit actions and responsive locomotive image sizing.
 - For an individual model's paint detail, create a unique asset and change only
-  that vehicle's image path; never overwrite shared catalog artwork.
+  that vehicle's image path; for a grouped wagon use explicit `editScope: "new-variant"`
+  through the storage API. Normal edits update all copies. Never overwrite shared catalog artwork.
 - Keep credentials, collection backups, personal source photos and local `output/`
   artifacts out of Git. Public repository assets are public even though the app
   requires login. Inspect staged paths before committing.
