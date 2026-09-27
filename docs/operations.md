@@ -168,3 +168,19 @@ adds insert/update fallback triggers so legacy nullable tables default omitted/n
 lighting to No without rebuilding vehicles or foreign keys. Fresh schemas have a
 NOT NULL false default. The vehicle-equipment suite checks preservation, repeat
 execution and legacy writes; the wagon-variant suite checks app defaults and copies.
+
+## Vehicle length migration
+
+Back up the intended database, then run `npm run db:migrate-vehicle-length` before
+deploying code that reads this column. Use
+`VEHICLE_LENGTH_MIGRATION_URL=file:/absolute/test.db` for disposable verification.
+The migration only adds nullable `vehicles.length_over_buffers_mm` with a positive
+numeric range constraint; repeats preserve existing values. It never parses notes,
+converts prototype dimensions or changes other collection data. Backfilling model
+lengths is a separate reviewed operation through the wagon storage boundary, with
+sources retained in notes and uncertain/set-only measurements left unknown.
+
+Run `npm run test:vehicle-length` and `npm run test:wagon-variants` after building;
+the latter covers decimal API round-trips, null/omission, validation, variant edits,
+copy inheritance, per-piece splits and snapshot export. Check detail/edit pages in
+both themes and a narrow viewport against a disposable collection.

@@ -121,3 +121,13 @@ hints in Vlacky do not reorder saved compositions or program decoder hardware.
 Sound equipment flags do not create/delete decoder definitions. Existing IDs,
 calibration, measured profiles and unknown iTrain fields retain the preservation
 contract above.
+
+## Model length over buffers
+
+Snapshot schema `1.5` adds nullable numeric `referenceOnly.lengthOverBuffersMm`
+for every exported physical vehicle. Units are millimetres of the model, including
+one total length for a permanently coupled unit. Decimals are preserved; null means
+unknown. This field is backup/reference data outside `allowedSourceFields`: adding
+it does not authorize automatic changes to iTrain length, detector offsets or
+calibration. A future explicitly supported adapter must handle units and missing
+values under the existing preservation contract.

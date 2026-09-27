@@ -11,6 +11,7 @@ const patchSchema = z.object({
   designation: z.string().trim().min(1), operator: nullableText, type: z.enum(['wagon', 'loco']),
   wagonKind: z.enum(['passenger', 'freight']), classType: nullableText,
   imagePath: nullableText, imageWidth: nullableId, imageHeight: nullableId,
+  lengthOverBuffersMm: z.number().finite().positive().max(10000).nullable(),
   manufacturer: nullableText, catalogNumber: nullableText, catalogId: nullableId, catalogImageId: nullableId,
   dccAddress: z.number().int().min(1).max(10239).nullable(), isTemplate: z.boolean(), notes: nullableText,
   magneticCouplerA: z.boolean(), magneticCouplerB: z.boolean(), hasTailLights: z.boolean(),
@@ -20,6 +21,7 @@ const patchSchema = z.object({
 const shared = {
   designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
   imagePath: 'image_path', imageWidth: 'image_width', imageHeight: 'image_height', manufacturer: 'manufacturer',
+  lengthOverBuffersMm: 'length_over_buffers_mm',
   catalogNumber: 'catalog_number', catalogId: 'catalog_id', catalogImageId: 'catalog_image_id',
 };
 const physical = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
@@ -45,6 +47,9 @@ async function copyMany(tx: Transaction, source: Row, variantId: number, count: 
 }
 function parsePatch(body: unknown) {
   const parsed = patchSchema.safeParse(body);
+  if (!parsed.success && parsed.error.issues.some(issue => issue.path[0] === 'lengthOverBuffersMm')) {
+    throw new CollectionError('Délka přes nárazníky musí být kladné číslo v mm (nejvýše 10 000), nebo zůstat prázdná.');
+  }
   if (!parsed.success) throw new CollectionError('Neplatné údaje vozidla. Zkontrolujte označení, druh, rozměry a DCC adresu (1–10239).');
   return parsed.data;
 }

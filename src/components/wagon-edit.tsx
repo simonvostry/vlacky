@@ -64,6 +64,7 @@ export default async function EditVehiclePage({
           imageHeight: vehicle.imageHeight,
           manufacturer: vehicle.manufacturer || "",
           catalogNumber: vehicle.catalogNumber || "",
+          lengthOverBuffersMm: vehicle.lengthOverBuffersMm,
           dccAddress: vehicle.dccAddress,
           isTemplate: vehicle.isTemplate,
           notes: vehicle.notes || "",

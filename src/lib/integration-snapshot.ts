@@ -21,7 +21,7 @@ export async function collectionSnapshot(includeTemplates = false) {
     type: String(v.type), wagonKind: v.type === "wagon" ? string(v.wagon_kind) ?? "passenger" : null, designation: String(v.designation), operator: string(v.operator), classType: string(v.class_type),
     modelManufacturer: string(v.manufacturer), catalogNumber: string(v.catalog_number), notes: string(v.notes),
     dccAddress: number(v.dcc_address),
-    referenceOnly: { wagonVariantId: number(v.wagon_variant_id), runningNumber: string(v.running_number),
+    referenceOnly: { lengthOverBuffersMm: number(v.length_over_buffers_mm), wagonVariantId: number(v.wagon_variant_id), runningNumber: string(v.running_number),
       magneticCouplers: Boolean(v.magnetic_coupler_a) === Boolean(v.magnetic_coupler_b) ? Boolean(v.magnetic_coupler_a) : null,
       magneticCouplerA: Boolean(v.magnetic_coupler_a), magneticCouplerB: Boolean(v.magnetic_coupler_b),
       hasTailLights: Boolean(v.has_tail_lights), hasSoundDecoder: Boolean(v.has_sound_decoder),
@@ -51,6 +51,6 @@ export async function collectionSnapshot(includeTemplates = false) {
       composition: rows.map(c => ({ sourceId: `vlacky:assignment:${c.id}`, position: Number(c.position), vehicleSourceId: `vlacky:vehicle:${c.vehicle_id}`, notes: string(c.notes), orientation: null })),
     }];
   });
-  const data = { schemaVersion: "1.4", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
+  const data = { schemaVersion: "1.5", source: publicOrigin(), includeTemplates, syncContract, vehicles: exportedVehicles, trains: exportedTrains, excluded: { templateVehicleCount: vehicles.length - visible.length, trains: excludedTrains } };
   return { ...data, revision: createHash("sha256").update(JSON.stringify(data)).digest("hex"), generatedAt: new Date().toISOString() };
 }

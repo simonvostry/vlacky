@@ -56,6 +56,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
   assert.equal((sqlite.prepare('SELECT count(DISTINCT wagon_variant_id) AS n FROM vehicles WHERE id IN (10,20,21)').get() as {n:number}).n,3);
   execFileSync(process.execPath, ['scripts/migrate-vehicle-equipment.mjs'], { env: { ...process.env, VEHICLE_EQUIPMENT_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   const origin = 'http://localhost:3114';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -98,9 +99,22 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     await save('/api/vozidla/11',{notes:'Only notes changed'},'PUT');assert.equal((await get(11)).hasSpeaker,true);
     assert.equal((await save('/api/vozidla/1',{isWeathered:true},'PUT')).status,200);assert.equal((await get(1)).isWeathered,true);
     assert.equal((await get(1)).dccAddress,3);
+    // Length is a shared model specification, with explicit per-piece splitting.
+    assert.equal(a.lengthOverBuffersMm,null);
+    for (const invalid of [0,-1,10001,'165',true]) assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:invalid},'PUT')).status,400);
+    assert.equal((await save('/api/vozidla/10',{lengthOverBuffersMm:165.25,editScope:'variant'},'PUT')).status,200);
+    assert.equal((await get(11)).lengthOverBuffersMm,165.25);
+    await save('/api/vozidla/11',{notes:'Length preserved'},'PUT');
+    assert.equal((await get(11)).lengthOverBuffersMm,165.25);
+    assert.equal((await save('/api/vozidla/1',{lengthOverBuffersMm:101.5},'PUT')).status,200);
+    assert.equal((await get(1)).lengthOverBuffersMm,101.5);
+    assert.equal((await get(1)).dccAddress,3);
+    assert.equal((await save('/api/vozidla/1',{lengthOverBuffersMm:null},'PUT')).status,200);
+    assert.equal((await get(1)).lengthOverBuffersMm,null);
     const resize = (body:unknown) => save(`/api/varianty-vozu/${variantId}`,body,'PUT');
     assert.equal((await resize({quantity:10,expectedQuantity:9})).status,200);
     const extra = sqlite.prepare('SELECT * FROM vehicles WHERE wagon_variant_id=? ORDER BY id DESC LIMIT 1').get(variantId) as {id:number;dcc_address:number|null;magnetic_couplers:number|null;notes:string|null};
+    assert.equal((await get(extra.id)).lengthOverBuffersMm,165.25);
     assert.equal(extra.dcc_address,null);assert.equal(extra.magnetic_couplers,null);assert.equal(extra.notes,null);
     for(const key of flags) assert.equal((await get(extra.id))[key],false);
     assert.equal((await resize({quantity:11,expectedQuantity:9})).status,409);
@@ -110,9 +124,11 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((await resize({quantity:9,expectedQuantity:10,removeVehicleIds:[extra.id]})).status,200);
     assert.equal((await save('/api/vozidla/10',{imagePath:'/img/owned/uacs-improved.png',editScope:'variant'},'PUT')).status,200);
     assert.equal((await get(11)).imagePath,'/img/owned/uacs-improved.png');assert.equal((await get(10)).wagonVariantId,variantId);
-    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png'},'PUT')).status,200);
+    assert.equal((await save('/api/vozidla/18',{imagePath:'/img/owned/uacs-yellow-stripe.png',lengthOverBuffersMm:166.125},'PUT')).status,200);
     assert.notEqual((await get(18)).wagonVariantId,variantId); assert.equal((await get(10)).imagePath,'/img/owned/uacs-improved.png');
     assert.equal((await get(18)).notes,'Original piece 18');
+    assert.equal((await get(18)).lengthOverBuffersMm,166.125);
+    assert.equal((await get(10)).lengthOverBuffersMm,165.25);
     const train = await (await save('/api/vlaky',{name:'Nine pieces',kind:'freight'})).json();
     const trainPath = `/api/vlaky/${train.id}/vozidla`;
     assert.equal((await save(trainPath,{variantId,quantity:2,vehicleIds:[11,12]})).status,201);
@@ -126,15 +142,16 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     const assignment = sqlite.prepare('SELECT id FROM train_vehicles WHERE train_id=? LIMIT 1').get(train.id) as {id:number};
     assert.equal((await save('/api/vlaky/1/vozidla',{trainVehicleId:assignment.id},'DELETE')).status,404);
     assert.equal((await save('/api/vlaky/1/vozidla',{trainVehicleId:assignment.id,action:'move',direction:'up'},'PUT')).status,404);
-    const made = await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png',quantity:3,dccAddress:99,hasLights:true,magneticCouplers:true,hasSoundDecoder:true,hasSpeaker:true,hasTailLights:true,isWeathered:true});
+    const made = await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png',lengthOverBuffersMm:123.75,quantity:3,dccAddress:99,hasLights:true,magneticCouplers:true,hasSoundDecoder:true,hasSpeaker:true,hasTailLights:true,isWeathered:true});
     assert.equal(made.status,201);const first = await made.json();
     const copies = sqlite.prepare('SELECT * FROM vehicles WHERE wagon_variant_id=? ORDER BY id').all(first.wagonVariantId) as {dcc_address:number|null;magnetic_couplers:number|null}[];
     assert.equal(copies.length,3);assert.equal(copies[0].dcc_address,99);assert.equal(copies[1].dcc_address,null);assert.equal(copies[1].magnetic_couplers,null);
     for(const key of ['hasSoundDecoder','hasSpeaker','hasTailLights','isWeathered','hasLights']) assert.equal(first[key],true);
     const newIds=sqlite.prepare('SELECT id FROM vehicles WHERE wagon_variant_id=? ORDER BY id').all(first.wagonVariantId) as {id:number}[];
     for(const key of flags) assert.equal((await get(newIds[1].id))[key],false);
-    const another = await (await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png'})).json();
+    const another = await (await save('/api/vozidla',{designation:'Three new copies',type:'wagon',wagonKind:'passenger',imagePath:'/img/three.png',lengthOverBuffersMm:123.75})).json();
     assert.equal(another.wagonVariantId,first.wagonVariantId);
+    assert.equal((await get(newIds[1].id)).lengthOverBuffersMm,123.75);
     assert.equal(another.hasLights,false);assert.equal((await get(newIds[1].id)).hasLights,false);
     await save(`/api/vozidla/${first.id}`,{notes:'Lighting unchanged'},'PUT');assert.equal((await get(first.id)).hasLights,true);
     await save(`/api/vozidla/${first.id}`,{hasLights:null},'PUT');assert.equal((await get(first.id)).hasLights,false);
@@ -144,7 +161,10 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     for(const key of flags) assert.equal(exported.referenceOnly[key],(await get(11))[key]);
     assert.equal(exported.referenceOnly.hasLights,false); // general lighting is independent of red tail lights
     assert.equal(exported.referenceOnly.hasTailLights,true);
-    assert.equal(snapshot.schemaVersion,'1.4');
+    assert.equal(snapshot.schemaVersion,'1.5');
+    assert.equal(exported.referenceOnly.lengthOverBuffersMm,165.25);
+    assert.equal((await request('/vozy/'+first.id+'/upravit')).status,200);
+    assert.ok(parse(await (await request('/nakladni-vozy/11')).text()).text.includes('165,25 mm'));
     assert.equal((await request(`/api/varianty-vozu/${variantId}`,{method:'PUT',headers:{authorization:`Bearer ${secret}`},body:JSON.stringify({quantity:1,expectedQuantity:8})})).status,401);
     assert.equal((await request(`/nakladni-vozy/11`)).status,200);
     assert.ok(parse(await (await request(`/soupravy/${train.id}`)).text()).text.includes('0/8'));

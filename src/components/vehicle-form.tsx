@@ -29,6 +29,7 @@ type Vehicle = {
   imageHeight: number | null;
   manufacturer: string;
   catalogNumber: string;
+  lengthOverBuffersMm?: number | null;
   dccAddress: number | null;
   notes: string;
   catalogId?: number | null;
@@ -49,6 +50,7 @@ const defaults: Vehicle = {
   imageHeight: 41,
   manufacturer: "",
   catalogNumber: "",
+  lengthOverBuffersMm: null,
   dccAddress: null,
   notes: "",
 };
@@ -284,6 +286,17 @@ export function VehicleForm({ vehicle, manufacturers = [] }: { vehicle?: Vehicle
             placeholder="3"
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="vehicle-length" className="mb-1 block text-sm font-medium">Délka přes nárazníky (mm)</label>
+        <input id="vehicle-length" type="number" min="0" max="10000" step="any"
+          value={form.lengthOverBuffersMm ?? ""}
+          onChange={e => set("lengthOverBuffersMm", e.target.value === "" ? null : Number(e.target.value))}
+          aria-describedby="vehicle-length-help"
+          className="w-full rounded-md border border-control px-3 py-2 text-sm focus:border-focus focus:ring-1 focus:ring-focus focus:outline-none"
+          placeholder="Nevyplněno" />
+        <p id="vehicle-length-help" className="mt-1 text-xs text-secondary">Délka fyzického modelu, nikoli skutečného vozidla. U trvale spojené jednotky celková délka; u sady samostatných vozů délka jednoho vozu.</p>
       </div>
 
       {form.type === 'wagon' && <fieldset className="grid gap-4 rounded-lg border border-divider p-4 sm:grid-cols-2">

@@ -1,3 +1,4 @@
+import { VehicleLength } from "@/components/vehicle-length";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { EditAction } from "@/components/ui-actions";
 import { SpeedProfileEditor } from "@/components/speed-profile-editor";
@@ -77,6 +78,7 @@ export default async function VehicleDetailPage({
             {vehicle.manufacturer && <div><dt className="text-secondary">Výrobce</dt><dd className="flex min-h-6 items-center"><ManufacturerLogo manufacturer={vehicle.manufacturer} /></dd></div>}
             {vehicle.catalogNumber && <div><dt className="text-secondary">Katalogové číslo</dt><dd className="break-all font-mono">{vehicle.catalogNumber}</dd></div>}
           </dl>
+          <VehicleLength value={vehicle.lengthOverBuffersMm} />
           {vehicle.isTemplate && <p className="mt-3 text-xs font-medium text-warning">Ukázka / předloha · vynecháno z běžné synchronizace</p>}
           {vehicle.notes && <p className="mt-3 whitespace-pre-wrap break-words text-sm text-secondary">{vehicle.notes}</p>}
         </div>

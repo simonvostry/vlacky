@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
 
 export const wagonVariants = sqliteTable("wagon_variants", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -16,6 +16,7 @@ export const vehicles = sqliteTable("vehicles", {
   imageHeight: integer("image_height"), // px
   manufacturer: text("manufacturer"), // "Roco", "ACME"
   catalogNumber: text("catalog_number"), // "73219"
+  lengthOverBuffersMm: real("length_over_buffers_mm"), // physical model, not prototype; null = unknown
   catalogId: integer("catalog_id").references(() => vehicleCatalog.id),
   catalogImageId: integer("catalog_image_id").references(() => catalogImages.id),
   wagonVariantId: integer("wagon_variant_id").references(() => wagonVariants.id),

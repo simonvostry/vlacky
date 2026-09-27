@@ -1,3 +1,4 @@
+import { VehicleLength } from "@/components/vehicle-length";
 import { OperatorLogo } from "@/components/operator-logo";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { EditAction } from "@/components/ui-actions";
@@ -88,6 +89,8 @@ export default async function VehicleDetailPage({
             {vehicle.notes && (
               <p className="mt-4 break-words text-sm text-secondary">{vehicle.notes}</p>
             )}
+
+            <VehicleLength value={vehicle.lengthOverBuffersMm} />
 
             <div className="mt-4">
               <EditAction href={`/vozidla/${vehicle.id}/upravit`} label="Upravit vozidlo" />

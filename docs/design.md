@@ -479,3 +479,12 @@ Owned wagon #117 has a user-applied white ČD emblem in place of the DB logo.
 outside the small logo patch unchanged. Its operator is ČD; the linked original
 DB catalog type/livery remains intact. Private references, prompt and patch stay
 in that output directory. This is a customized model, not evidence of a prototype livery.
+
+## Vehicle length
+
+The shared vehicle form has an optional **Délka přes nárazníky (mm)** numeric field
+alongside model information. Help text distinguishes physical model length from
+prototype length and explains individual wagons versus permanently coupled units.
+Locomotive, passenger/freight wagon and legacy vehicle details show the value in mm
+with a Czech decimal comma, or **Nevyplněna**. Gallery tiles stay compact. The field
+does not alter artwork sizing or gallery scale.

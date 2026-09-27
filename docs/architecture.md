@@ -141,7 +141,7 @@ An ungrouped legacy record is displayed individually until migrated.
 `wagon_variants` provides stable group identity. Shared model/artwork fields remain
 on each vehicle as a compatibility projection for existing queries and integrations:
 designation, operator, type/kind, class, image path/dimensions, model manufacturer,
-SKU and catalog/livery links. `wagon-storage.ts` is the write boundary: a variant
+SKU, model length over buffers and catalog/livery links. `wagon-storage.ts` is the write boundary: a variant
 edit updates these fields on every member in one transaction. A piece edit that
 changes shared fields splits that piece when it has siblings; changing artwork for
 a single-piece variant keeps its group ID. Physical fields are never propagated:
@@ -272,3 +272,20 @@ color visibility and the other sections' remembered selections. On the all-types
 wagons, and selecting construction group excludes locomotives/freight even for
 “Nezařazeno”. ČSD continues to include catalog entries labeled ČSD/ČD. The series
 filter includes each catalog entry's numeric code to distinguish wagon subtypes.
+
+## Model length
+
+`vehicles.lengthOverBuffersMm` (`length_over_buffers_mm`, nullable REAL) stores the
+physical model's length over buffers in millimetres, for locomotives and both wagon
+kinds. It is not prototype length or image width. Unknown is null; positive finite
+decimal values up to 10,000 mm are accepted. Omitted API fields preserve the current
+value; explicit null clears it. Never derive this value from artwork dimensions.
+
+It is a shared model specification under the existing wagon edit scope: editing
+all copies updates the variant, editing only one differing copy splits it, and new
+quantity copies inherit the length. IDs, DCC and individual equipment remain intact.
+Source notes stay as provenance. Populate existing lengths only from reviewed,
+per-vehicle evidence; do not mistake a whole set's length for one wagon or promote
+provisional/conflicting dimensions to facts. A permanently coupled unit has one
+total length. The reference catalog describes prototypes, so this model-specific
+measurement belongs to owned models, not a generic catalog type.

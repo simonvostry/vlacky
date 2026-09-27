@@ -31,7 +31,9 @@
     "db:migrate-lighting-defaults": "node scripts/migrate-lighting-defaults.mjs",
     "test:collection-filters": "tsx --test tests/collection-filter*.test.ts tests/locomotive-nicknames.test.ts",
     "test:gallery-size": "tsx --test tests/gallery-size.test.ts",
-    "test:filter-dropdown": "tsx --test tests/filter-dropdown.test.ts"
+    "test:filter-dropdown": "tsx --test tests/filter-dropdown.test.ts",
+    "db:migrate-vehicle-length": "node scripts/migrate-vehicle-length.mjs",
+    "test:vehicle-length": "tsx --test tests/vehicle-length.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

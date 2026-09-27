@@ -1,3 +1,4 @@
+import { VehicleLength } from "@/components/vehicle-length";
 import { OperatorLogo } from "@/components/operator-logo";
 import { ManufacturerLogo } from "@/components/manufacturer-logo";
 import { WagonPieces } from "@/components/wagon-pieces";
@@ -83,6 +84,8 @@ export default async function VehicleDetailPage({
                 <span data-vehicle-label="class" className="inline-flex"><ClassBadge classType={vehicle.classType} size="md" /></span>
               </div>
             </div>
+
+            <VehicleLength value={vehicle.lengthOverBuffersMm} />
 
             <div className="mt-4">
               <EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label="Upravit vzhled a údaje vozu" />
