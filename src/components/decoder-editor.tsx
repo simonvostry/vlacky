@@ -24,6 +24,16 @@ export function DecoderEditor({ vehicleId, initial, templates }: {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [templateId, setTemplateId] = useState("");
+  const [previousInitial, setPreviousInitial] = useState(initial);
+  if (initial !== previousInitial) {
+    setPreviousInitial(initial);
+    // Inline piece saves refresh this section. Preserve an open decoder draft,
+    // but follow the piece address unless the user explicitly edited that field.
+    setConfig(current => !editing ? initial : {
+      ...current,
+      dccAddress: current.dccAddress === previousInitial.dccAddress ? initial.dccAddress : current.dccAddress,
+    });
+  }
   function update(id: string, patch: Partial<DecoderConfig>) {
     setConfig(c => ({ ...c, decoders: c.decoders.map(d => d.id === id ? { ...d, ...patch } : d) }));
   }
@@ -49,7 +59,7 @@ export function DecoderEditor({ vehicleId, initial, templates }: {
     </header>
     {saved && <p role="status" className="px-4 pt-3 text-sm text-success">Konfigurace uložena.</p>}
     {!editing ? <div className="space-y-4 pt-5">
-      <p className="text-sm text-secondary">Výchozí DCC adresa vozidla: <strong className="font-mono text-foreground">{config.dccAddress ?? "nevyplněna"}</strong></p>
+      <p className="text-sm text-secondary">DCC adresa: <strong className="font-mono text-foreground">{config.dccAddress ?? "nevyplněna"}</strong></p>
       {!config.decoders.length && <div className="space-y-3"><p className="text-sm text-secondary">Zatím bez dekodéru. Přidejte jeho nastavení a funkce.</p><button type="button" className="ui-button ui-button-primary" onClick={() => { setEditing(true); setSaved(false); setError(""); add(); }}>Přidat dekodér</button></div>}
       {config.decoders.map(d => <article key={d.id} className="rounded-lg bg-subtle p-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="font-semibold">{d.name}</h3><span className="text-xs text-secondary">DCC {d.address ?? config.dccAddress ?? "—"}</span></div>
@@ -65,8 +75,8 @@ export function DecoderEditor({ vehicleId, initial, templates }: {
       </article>)}
     </div> : <form onSubmit={save} className="p-4">
       <fieldset disabled={busy} className="space-y-5 disabled:opacity-60">
-        <div className="max-w-xs"><NumberField label="Výchozí DCC adresa vozidla" value={config.dccAddress} min={1} max={10239} onChange={dccAddress => setConfig(c => ({ ...c, dccAddress }))} /></div>
-        <p className="text-xs text-secondary">Dekodér používá výchozí adresu vozidla, pokud mu nevyplníte vlastní. Záznamy slouží jako přehled; neprogramují model.</p>
+        <div className="max-w-xs"><NumberField label="DCC adresa" value={config.dccAddress} min={1} max={10239} onChange={dccAddress => setConfig(c => ({ ...c, dccAddress }))} /></div>
+        <p className="text-xs text-secondary">Dekodér používá adresu tohoto kusu, pokud mu nevyplníte vlastní. Záznamy slouží jako přehled; neprogramují model.</p>
         {config.decoders.map((d, index) => <article key={d.id} className="space-y-4 rounded-lg border border-divider p-3">
           <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Dekodér {index + 1}</h3><button type="button" className="text-xs text-danger" onClick={() => { if (confirm(`Odebrat dekodér „${d.name || index + 1}“ a jeho funkce? Změna se projeví po uložení.`)) setConfig(c => ({ ...c, decoders: c.decoders.filter(x => x.id !== d.id) })); }}>Odebrat dekodér</button></div>
           <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2">

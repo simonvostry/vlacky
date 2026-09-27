@@ -247,10 +247,13 @@ with accessible pencil actions. General lighting uses Ano / Ne, default Ne. Sele
 
 The pencil beside the main wagon image opens **Upravit variantu**, containing only
 shared model/artwork fields, epoch, dimensions and catalog links. The pencil on a
-piece row opens **Upravit kus #ID**, containing only running number, DCC, couplers,
-lights, sound, weathering, template status and notes. These are separate URLs and
-forms, not a mode selector inside one combined editor. Only the piece editor offers
-“Smazat tento kus”; the shared form cannot delete a physical piece. Locomotive and
+piece row opens an inline form for running number, DCC, couplers, lights, sound,
+weathering, template status and notes. Equipment uses labeled icon toggles; Save
+refreshes data without navigation, Cancel discards the draft. Errors retain the
+draft. Multiple rows may stay open; quantity changes are disabled while editing.
+Only changed physical fields are sent. The field is named **DCC adresa**: it belongs
+to that piece, never to its variant. The dedicated piece URL remains available as
+a fallback, including “Smazat tento kus”; the shared form cannot delete a piece. Locomotive and
 new-vehicle forms remain combined. Routine edits never split a wagon group.
 Quantity reductions require selecting the pieces and confirming configuration loss;
 assigned pieces cannot be deleted. The train picker shows grouped availability,

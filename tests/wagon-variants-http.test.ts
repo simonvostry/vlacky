@@ -235,7 +235,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
       assert.equal(piece.querySelector('#model-manufacturer'),null);
       const details=parse(await (await request(`/${section}/${id}`)).text());
       assert.ok(details.querySelector(`a[href="/${section}/${id}/upravit"]`));
-      assert.ok(details.querySelector(`a[href="/${section}/${id}/kus/upravit"]`));
+      assert.ok(details.querySelector(`button[aria-label="Upravit kus #${id}"]`));
       const before=await get(id);
       for(const fields of [{operator:'Wrong'},{epochs:[1]},{imagePath:'/img/wrong.png'},{catalogId:1}]) {
         assert.equal((await save(`/api/vozidla/${id}`,{editMode:'piece',dccAddress:5,...fields},'PUT')).status,400);

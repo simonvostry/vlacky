@@ -37,7 +37,7 @@ Nine active tables are defined in [the schema](../src/db/schema.ts).
 | Table | Purpose and relationships |
 | --- | --- |
 | `wagon_variants` | Stable identity for a group of visually identical wagon models |
-| `vehicles` | Owned physical pieces; nullable variant link, individual running number, end-specific magnetic couplers, lighting, sound equipment and weathering; optional catalog/livery links, image dimensions, default DCC address and `isTemplate` |
+| `vehicles` | Owned physical pieces; nullable variant link, individual running number, end-specific magnetic couplers, lighting, sound equipment and weathering; optional catalog/livery links, image dimensions, piece DCC address and `isTemplate` |
 | `vehicle_catalog` | Reference vehicle types and prototype specifications |
 | `catalog_images` | Ordered livery variants belonging to a catalog type |
 | `trains` | Named compositions with category, number, route, era and notes |
@@ -148,9 +148,9 @@ Legacy `editScope: "piece"` and `"variant"` both follow this rule; neither split
 copy. Creating a genuinely different model/livery requires the explicit maintenance
 API value `editScope: "new-variant"` and a shared-field change. This intentional
 operation preserves the physical ID and creates a new group. The ordinary form
-never offers implicit splitting. Wagon editing has two routes: `/[id]/upravit`
-for shared model fields and `/[id]/kus/upravit` for physical fields only, in both
-passenger and freight sections. Legacy wagon edit URLs redirect to the shared editor.
+never offers implicit splitting. `/[id]/upravit` edits shared model fields. Physical
+fields are edited inline in each detail row, with `/[id]/kus/upravit` retained as a
+dedicated fallback, in both passenger and freight sections. Legacy wagon edit URLs redirect to the shared editor.
 `vehicle-edit-fields.ts` defines their field allowlists; the form sends `editMode`
 (`model` or `piece`) and the server rejects cross-editor fields atomically. These
 modes apply only to existing wagons. Unscoped maintenance clients retain the shared

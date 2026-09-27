@@ -46,7 +46,7 @@ Rotate/revoke by changing/removing `VLACKY_MCP_TOKEN` in Vercel and deploying, t
 - A snapshot uses one read transaction for collection tables. `revision` is a SHA-256 over the exported content and image manifests, excluding `generatedAt`. If collection data changes between obtaining the manifest and downloading the snapshot, use the downloaded snapshot's revision and recompute the diff.
 - A source ID such as `vlacky:vehicle:15` is stable within this collection (`source` URL). Keep these IDs and the database when migrating hosting; never remap by designation or address automatically.
 - `isTemplate` marks samples. Samples are excluded by default; `includeTemplates=true` explicitly includes them. Any composition containing an excluded or missing vehicle is omitted in full and reported, never silently shortened. The vehicle edit form exposes the template checkbox.
-- Decoder addresses are resolved: a decoder's own address wins, otherwise the vehicle default is used. Unknown addresses remain null. Function keys are scoped to the decoder. CVs, manuals and sound project names are under `referenceOnly`.
+- Decoder addresses are resolved: a decoder's own address wins, otherwise the physical vehicle’s DCC address is used. Unknown addresses remain null. Function keys are scoped to the decoder. CVs, manuals and sound project names are under `referenceOnly`.
 - Each train contains vehicle source IDs in order. Images belong to individual vehicles; a composed train image is not currently generated.
 
 ## Required local iTrain workflow

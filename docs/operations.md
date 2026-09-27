@@ -203,4 +203,7 @@ For wagon editor changes, `test:wagon-variants` checks both route types, field
 isolation, shared propagation, catalog-link validation and rejection of mixed
 payloads. `test:auth-http` includes both piece-edit routes. Review light/dark and
 mobile editors through the actual pencils, including a stale piece form after
-a shared edit. This separation requires no schema migration or collection rewrite.
+a shared edit. Inline row review also covers Save/Cancel without navigation,
+multiple open drafts surviving another save, failed-save retry, quantity locking,
+address validation/clearing and the DCC section updating without discarding its
+open decoder draft. This separation requires no schema migration or collection rewrite.

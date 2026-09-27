@@ -1,18 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { EditAction } from '@/components/ui-actions';
-import { type VehicleEquipment } from '@/lib/vehicle-equipment';
-import { EquipmentIcons } from '@/components/equipment-icons';
+import { WagonPieceRow, type WagonPiece } from '@/components/wagon-piece-row';
 
-type Piece = VehicleEquipment & {id:number; runningNumber:string|null; hasLights:boolean|null; dccAddress:number|null; isTemplate:boolean; notes:string|null};
-export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:number|null;pieces:Piece[];selectedId:number;section:string}) {
+export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:number|null;pieces:WagonPiece[];selectedId:number;section:string}) {
   const router = useRouter();
   const [quantity,setQuantity] = useState(pieces.length);
   const [removeVehicleIds,setRemove] = useState<number[]>([]);
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
+  const [editingIds, setEditingIds] = useState<number[]>([]);
   const reducing = quantity < pieces.length;
   async function save() {
     if (reducing && !confirm(`Odebrat kusy ${removeVehicleIds.map(id=>`#${id}`).join(', ')} včetně jejich nastavení?`)) return;
@@ -32,8 +29,8 @@ export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:nu
       <h2 className="font-semibold">Moje kusy <span className="ml-2 text-sm font-normal text-secondary">{pieces.filter(p=>!p.isTemplate).length} ks</span></h2>
       {variantId && <form className="flex items-center gap-2" onSubmit={e=>{e.preventDefault();void save();}}>
         <label htmlFor="piece-count" className="text-sm">Počet</label>
-        <input id="piece-count" type="number" required min={1} max={1000} step={1} value={quantity} onChange={e=>{setQuantity(Number(e.target.value));setRemove([]);}} className="w-20 rounded-md border border-control px-2 py-2 text-sm" />
-        <button className="ui-button ui-button-primary" disabled={busy || quantity === pieces.length || (reducing && removeVehicleIds.length !== pieces.length-quantity)}>Uložit</button>
+        <input id="piece-count" disabled={busy || editingIds.length > 0} type="number" required min={1} max={1000} step={1} value={quantity} onChange={e=>{setQuantity(Number(e.target.value));setRemove([]);}} className="w-20 rounded-md border border-control px-2 py-2 text-sm" />
+        <button className="ui-button ui-button-primary" disabled={busy || editingIds.length > 0 || quantity === pieces.length || (reducing && removeVehicleIds.length !== pieces.length-quantity)}>Uložit</button>
       </form>}
     </div>
     {reducing && <p className="px-4 pt-3 text-sm text-secondary">Vyberte {pieces.length-quantity} kusů k odebrání. Kusy zařazené v soupravách je nutné nejprve ze souprav odebrat. Smazáním se odstraní i jejich DCC nastavení a poznámky.</p>}
@@ -41,15 +38,8 @@ export function WagonPieces({variantId,pieces,selectedId,section}: {variantId:nu
     <ul className="divide-y divide-divider">
       {pieces.map(p=><li key={p.id} className={`flex items-start gap-3 px-4 py-3 ${p.id===selectedId ? 'bg-selected' : ''}`}>
         {reducing && <input type="checkbox" aria-label={`Odebrat kus #${p.id}`} className="mt-1" checked={removeVehicleIds.includes(p.id)} onChange={e=>setRemove(ids=>e.target.checked ? [...ids,p.id] : ids.filter(id=>id!==p.id))} />}
-        <div className="min-w-0 flex-1">
-          <Link aria-current={p.id===selectedId ? 'page' : undefined} href={`/${section}/${p.id}`} className="text-sm font-semibold hover:text-accent">Kus #{p.id}{p.runningNumber ? ` · ${p.runningNumber}` : ''}</Link>
-          {p.isTemplate && <span className="ml-2 text-xs text-warning">Předloha</span>}
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <EquipmentIcons value={p} />
-            {p.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {p.dccAddress}</span>}
-          </div>
-        </div>
-        <EditAction href={`/${section}/${p.id}/kus/upravit`} label={`Upravit kus #${p.id}`} />
+        <WagonPieceRow piece={p} selected={p.id===selectedId} section={section} disabled={busy || quantity !== pieces.length}
+          onEditingChange={editing => setEditingIds(ids => editing ? [...ids, p.id] : ids.filter(id => id !== p.id))} />
       </li>)}
     </ul>
     <p className="border-t border-divider px-4 py-3 text-xs text-secondary">Vybraný kus #{selectedId}: DCC nastavení, poznámky a zařazení v soupravách jsou uvedeny níže.</p>

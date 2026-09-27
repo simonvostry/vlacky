@@ -79,7 +79,7 @@ export const vehicleDecoders = sqliteTable("vehicle_decoders", {
   name: text("name").notNull(),
   manufacturer: text("manufacturer").notNull().default(""),
   model: text("model").notNull().default(""),
-  address: integer("address"), // null inherits the vehicle's default DCC address
+  address: integer("address"), // null inherits the physical vehicle's DCC address
   soundProject: text("sound_project").notNull().default(""),
   manualUrl: text("manual_url").notNull().default(""),
   notes: text("notes").notNull().default(""),

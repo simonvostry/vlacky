@@ -338,7 +338,7 @@ export function VehicleForm({ vehicle, manufacturers = [], editMode, catalogRefe
       {showPiece && <>
       {form.type === 'wagon' && !mode && <h2 className="pt-4 text-lg font-semibold">Konkrétní kus{vehicle?.id ? ` #${vehicle.id}` : ''}</h2>}
         <div>
-          <label htmlFor="piece-dcc-address" className="mb-1 block text-sm font-medium">Výchozí DCC adresa tohoto kusu</label>
+          <label htmlFor="piece-dcc-address" className="mb-1 block text-sm font-medium">DCC adresa</label>
           <input
             type="number"
             min={1}
