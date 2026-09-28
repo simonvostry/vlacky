@@ -245,3 +245,9 @@ integration, speed-profile and auth HTTP suites. Browser review covers dependent
 selectors, new and duplicate catalog entries, unknown selections, loading/retry,
 optional function labels, advanced disclosure and preserved CVs, both themes and
 narrow layouts. Tests and browser writes use disposable databases only.
+
+Unified wagon editing requires no migration. Run decoder and wagon-variant HTTP
+suites (including atomic combined-save rollback), auth HTTP, integration and profile
+checks. Browser review should exercise combined Save/Cancel, multiple drafts,
+selection, failed-save retry, coupler ends independently, inline deletion No/Escape/
+Yes/error, decoder removal, and the compact desktop/narrow layout in both themes.

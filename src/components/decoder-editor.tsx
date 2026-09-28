@@ -1,4 +1,5 @@
 "use client";
+import { InlineDelete } from './inline-delete';
 import { DecoderModelPicker } from './decoder-model-picker';
 import type { DecoderCatalog } from '@/lib/decoder-catalog';
 
@@ -22,16 +23,12 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
   vehicleId: number; initial: VehicleDccConfig; templates: { label: string; decoder: DecoderConfig }[];
 }) {
   const router = useRouter();
-  const [catalog,setCatalog]=useState<DecoderCatalog|null>(null);
-  const [catalogError,setCatalogError]=useState('');
-  const [catalogRetry,setCatalogRetry]=useState(0);
   const [config, setConfig] = useState(initial);
   const [editing, setEditingState] = useState(false);
   function setEditing(value: boolean) { setEditingState(value); onEditingChange?.(value); }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const [templateId, setTemplateId] = useState("");
   const [previousInitial, setPreviousInitial] = useState(initial);
   if (initial !== previousInitial) {
     setPreviousInitial(initial);
@@ -42,23 +39,7 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
       dccAddress: current.dccAddress === previousInitial.dccAddress ? initial.dccAddress : current.dccAddress,
     });
   }
-  useEffect(()=>{
-    if(!editing||catalog)return;
-    let cancelled=false;
-    fetch('/api/dekodery/katalog').then(async response=>{
-      if(!response.ok)throw new Error('Seznam dekodérů se nepodařilo načíst.');
-      const value=await response.json();if(!cancelled){setCatalog(value);setCatalogError('');}
-    }).catch(error=>{if(!cancelled)setCatalogError(error.message);});
-    return ()=>{cancelled=true;};
-  },[editing,catalog,catalogRetry]);
-  function update(id: string, patch: Partial<DecoderConfig>) {
-    setConfig(c => ({ ...c, decoders: c.decoders.map(d => d.id === id ? { ...d, ...patch } : d) }));
-  }
-  function add(template?: DecoderConfig) {
-    const decoder = template ? { ...structuredClone(template), id: crypto.randomUUID(), address: null } : blankDecoder();
-    setConfig(c => ({ ...c, decoders: [...c.decoders, decoder] }));
-    setTemplateId("");
-  }
+  function add() { setConfig(c=>({...c,decoders:[...c.decoders,blankDecoder()]})); }
   async function save(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(""); setSaved(false);
     try {
@@ -88,11 +69,47 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
         {!!d.cvs.length && <details className="mt-3 text-xs" data-decoder-advanced><summary className="cursor-pointer font-medium">Pokročilé nastavení</summary><h4 className="mt-3 font-medium">CV záznamy ({d.cvs.length})</h4><ul className="mt-2 space-y-1">{d.cvs.map(c => <li key={`${c.number}:${c.cv31}:${c.cv32}`}><strong className="font-mono">CV{c.number} = {c.value}</strong>{c.cv31 !== null && <span className="text-secondary"> (CV31 {c.cv31}, CV32 {c.cv32})</span>}{c.note && <span> · {c.note}</span>}</li>)}</ul></details>}
       </article>)}
     </div> : <form onSubmit={save} className="p-4">
+      <DecoderFields config={config} onChange={setConfig} templates={templates} disabled={busy} onBusyChange={setBusy} showAddress={!compact} />
+      <fieldset disabled={busy}>
+        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+        <div className="flex gap-2 border-t border-divider pt-4"><button type="submit" className="ui-button ui-button-primary">{busy ? "Ukládání…" : "Uložit změny"}</button><button type="button" className="ui-button ui-button-quiet" onClick={() => { setConfig(initial); setEditing(false); setError(""); }}>Zrušit</button></div>
+      </fieldset>
+    </form>}
+  </section>;
+}
+
+export function DecoderFields({config,onChange,templates,disabled=false,onBusyChange,showAddress=false}:{config:VehicleDccConfig;onChange:(value:VehicleDccConfig)=>void;templates:{label:string;decoder:DecoderConfig}[];disabled?:boolean;onBusyChange?:(busy:boolean)=>void;showAddress?:boolean}) {
+  const [catalog,setCatalog]=useState<DecoderCatalog|null>(null);
+  const [catalogError,setCatalogError]=useState('');
+  const [catalogRetry,setCatalogRetry]=useState(0);
+  const [templateId,setTemplateId]=useState('');
+  const [catalogBusy,setCatalogBusy]=useState(false);
+  const busy=disabled||catalogBusy;
+  function setBusy(value:boolean){setCatalogBusy(value);onBusyChange?.(value);}
+  function setConfig(update:(current:VehicleDccConfig)=>VehicleDccConfig){onChange(update(config));}
+  useEffect(()=>{
+    if(catalog)return;
+    let cancelled=false;
+    fetch('/api/dekodery/katalog').then(async response=>{
+      if(!response.ok)throw new Error('Seznam dekodérů se nepodařilo načíst.');
+      const value=await response.json();if(!cancelled){setCatalog(value);setCatalogError('');}
+    }).catch(error=>{if(!cancelled)setCatalogError(error.message);});
+    return ()=>{cancelled=true;};
+  },[catalog,catalogRetry]);
+  function update(id: string, patch: Partial<DecoderConfig>) {
+    setConfig(c => ({ ...c, decoders: c.decoders.map(d => d.id === id ? { ...d, ...patch } : d) }));
+  }
+  function add(template?: DecoderConfig) {
+    const decoder = template ? { ...structuredClone(template), id: crypto.randomUUID(), address: null } : blankDecoder();
+    setConfig(c => ({ ...c, decoders: [...c.decoders, decoder] }));
+    setTemplateId("");
+  }
+  return <div className="@container">
       <fieldset disabled={busy} className="space-y-5 disabled:opacity-60">
-        {!compact && <div className="max-w-xs"><NumberField label="DCC adresa" value={config.dccAddress} min={1} max={10239} onChange={dccAddress => setConfig(c => ({ ...c, dccAddress }))} /></div>}
+        {showAddress && <div className="max-w-xs"><NumberField label="DCC adresa" value={config.dccAddress} min={1} max={10239} onChange={dccAddress => setConfig(c => ({ ...c, dccAddress }))} /></div>}
         <p className="text-xs text-secondary">Dekodér používá DCC adresu vozidla. Více vozů může mít stejnou adresu i funkci osvětlení.</p>
         {config.decoders.map((d, index) => <article key={d.id} className="space-y-4 rounded-lg border border-divider p-3">
-          <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Dekodér {index + 1}</h3><button type="button" className="text-xs text-danger" onClick={() => { if (confirm(`Odebrat dekodér ${index + 1} a jeho funkce? Změna se projeví po uložení.`)) setConfig(c => ({ ...c, decoders: c.decoders.filter(x => x.id !== d.id) })); }}>Odebrat dekodér</button></div>
+          <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Dekodér {index + 1}</h3><InlineDelete className="text-xs text-danger" disabled={busy} question={`Odebrat dekodér ${index + 1} a jeho funkce? Změna se projeví po uložení.`} onConfirm={() => setConfig(c => ({ ...c, decoders: c.decoders.filter(x => x.id !== d.id) }))}>Odebrat dekodér</InlineDelete></div>
           {catalog ? <DecoderModelPicker decoder={d} catalog={catalog} disabled={busy} onBusy={setBusy} onCatalog={setCatalog} onChange={patch=>update(d.id,patch)} /> : <div className="text-sm text-secondary">{catalogError||'Načítání seznamu dekodérů…'}{catalogError&&<button type="button" className="ui-button ui-button-quiet" onClick={()=>setCatalogRetry(n=>n+1)}>Zkusit znovu</button>}</div>}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold">Funkce</h4>
@@ -131,9 +148,6 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
           {!!templates.length && <><div className="min-w-0 flex-1"><Field label="Kopírovat z existujícího dekodéru"><select className={input} value={templateId} onChange={e => setTemplateId(e.target.value)}><option value="">Vyberte předlohu…</option>{templates.map(t => <option key={t.decoder.id} value={t.decoder.id}>{t.label}</option>)}</select></Field></div><button type="button" className={button} disabled={!templateId || config.decoders.length >= 12} onClick={() => add(templates.find(t => t.decoder.id === templateId)!.decoder)}>Kopírovat</button></>}
         </div>
         {!!templates.length && <p className="text-xs text-secondary">Kopie přebírá funkce a CV a používá adresu tohoto vozidla. Další změny předlohy kopii neovlivní.</p>}
-        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-        <div className="flex gap-2 border-t border-divider pt-4"><button type="submit" className="ui-button ui-button-primary">{busy ? "Ukládání…" : "Uložit změny"}</button><button type="button" className="ui-button ui-button-quiet" onClick={() => { setConfig(initial); setEditing(false); setError(""); }}>Zrušit</button></div>
       </fieldset>
-    </form>}
-  </section>;
+  </div>;
 }

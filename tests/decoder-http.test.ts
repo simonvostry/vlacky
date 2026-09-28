@@ -117,8 +117,25 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     assert.equal((await (await request('/api/vozidla/1/dekodery')).json()).decoders.length, 2);
     for (const page of ['/lokomotivy/1', '/vozy/2', '/dcc', '/soupravy?souprava=1', '/soupravy/1']) {
       const response = await request(page); assert.equal(response.status, 200, `${page}\n${logs}`);
-      const html = await response.text(); assert.ok(html.includes(page === '/dcc' ? '55' : page.startsWith('/soupravy') ? 'Test wagon' : page.startsWith('/vozy') ? 'Dekodér a funkce' : 'Dekodéry a DCC funkce'));
+      const html = await response.text(); assert.ok(html.includes(page === '/dcc' ? '55' : page.startsWith('/soupravy') ? 'Test wagon' : page.startsWith('/vozy') ? 'LokPilot' : 'Dekodéry a DCC funkce'));
     }
+    const combined=(body:unknown)=>request('/api/vozidla/2/konfigurace',{method:'PUT',headers,body:JSON.stringify(body)});
+    const rowBefore=await(await request('/api/vozidla/2')).json();
+    const oneBefore=await(await request('/api/vozidla/1/dekodery')).json();
+    const combinedResult=await combined({piece:{dccAddress:69,hasTailLights:true,magneticCouplerB:true},decoders:resolved.decoders});
+    assert.equal(combinedResult.status,200);
+    const unified=await combinedResult.json();assert.equal(unified.vehicle.dccAddress,69);assert.equal(unified.vehicle.hasTailLights,true);assert.equal(unified.vehicle.magneticCouplerB,true);assert.equal(unified.vehicle.wagonVariantId,rowBefore.wagonVariantId);
+    assert.deepEqual(unified.decoders[0].cvs,resolved.decoders[0].cvs);
+    for(const decoders of [[{...linked,catalogModelId:999999}],[decoder()]]){
+      assert.equal((await combined({piece:{dccAddress:88,hasLights:true},decoders})).status,409);
+      assert.deepEqual(await(await request('/api/vozidla/2')).json(),unified.vehicle);
+      assert.deepEqual((await(await request('/api/vozidla/2/dekodery')).json()).decoders,unified.decoders);
+    }
+    assert.equal((await combined({piece:{operator:'Wrong'},decoders:resolved.decoders})).status,400);
+    assert.equal((await combined({piece:{dccAddress:0}})).status,400);
+    assert.equal((await combined({piece:{dccAddress:70}})).status,200);
+    assert.deepEqual((await(await request('/api/vozidla/2/dekodery')).json()).decoders,unified.decoders);
+    assert.deepEqual(await(await request('/api/vozidla/1/dekodery')).json(),oneBefore);
     assert.equal((await request('/api/vlaky/1/vozidla', { method: 'PUT', headers, body: JSON.stringify({ action: 'update', trainVehicleId: 1, lightingDecoderAddress: 8 }) })).status, 400);
     assert.equal((await save(1, { dccAddress: null, decoders: [] })).status, 200);
     assert.equal((sqlite.prepare('SELECT COUNT(*) AS n FROM decoder_functions WHERE vehicle_id = 1').get() as {n: number}).n, 0);

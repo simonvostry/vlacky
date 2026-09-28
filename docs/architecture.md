@@ -356,3 +356,12 @@ register normalized entries. Each installed decoder retains independent function
 CVs and addresses; shared product selection never changes other installations.
 A blank function label is stored as blank; `functionLabel` provides the category
 fallback for summaries, train details and integration exports.
+
+`PUT /api/vozidla/[id]/konfigurace` authorizes a user and atomically saves a wagon's
+physical-field patch plus an optional complete decoder list. Shared metadata is
+rejected. `saveVehicle` and `saveDecoderConfig` accept the same existing write
+transaction, so a decoder failure rolls back equipment/address changes as well.
+Omitted decoder data is preserved; the row editor sends it only when modified.
+Decoder saves resolve the physical address inside that transaction. Ungrouped
+physical edits do not create a variant. The existing separate APIs remain for
+compatibility and locomotive editing; DCC remains owned by physical vehicle IDs.

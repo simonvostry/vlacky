@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PlusIcon } from '@heroicons/react/20/solid';
-import { DecoderEditor } from '@/components/decoder-editor';
-import type { DecoderConfig } from '@/lib/decoder-config';
+import { functionLabel, type DecoderConfig } from '@/lib/decoder-config';
 import { WagonPieceRow, type WagonPiece } from '@/components/wagon-piece-row';
 
 type Appearance = { vehicleId: number; trainId: number; trainNumber: string | null; trainName: string | null; trainCategory: string | null; position: number };
@@ -26,7 +25,6 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [editingIds, setEditingIds] = useState<number[]>([]);
-  const [decoderEditingIds, setDecoderEditingIds] = useState<number[]>([]);
   async function add(sourceId: number, mode: 'blank' | 'equipment') {
     if (busy) return;
     setBusy(true); setError('');
@@ -41,10 +39,9 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
     finally { setBusy(false); }
   }
   async function remove(id: number) {
-    if (editingIds.some(value => value !== id) || decoderEditingIds.length) {
+    if (editingIds.some(value => value !== id)) {
       setError('Nejprve uložte nebo zrušte ostatní rozpracované úpravy.'); return;
     }
-    if (!confirm('Odstranit tento vůz z vaší sbírky včetně jeho DCC nastavení a poznámek?')) return;
     setBusy(true); setError('');
     try {
       const response=await fetch(`/api/vozidla/${id}`,{method:'DELETE'});
@@ -69,11 +66,15 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
         <div className="flex items-start">
           <WagonPieceRow piece={p} selected={p.id===selectedId} section={section} disabled={busy} ordinal={pieces.length > 1 ? index+1 : undefined}
             onDuplicate={()=>void add(p.id,'equipment')} onDelete={()=>remove(p.id)}
-            onSaved={saved => setPieces(values => values.map(value => value.id === saved.id ? saved : value))}
+            decoders={decoders.filter(d=>d.vehicleId===p.id)} templates={templates}
+            onSaved={(saved,configuration) => {
+              setPieces(values => values.map(value => value.id === saved.id ? saved : value));
+              setDecoders(values=>[...values.filter(d=>d.vehicleId!==p.id),...configuration.map(d=>({...d,vehicleId:p.id}))]);
+            }}
             onSelect={() => { if (selectedId !== p.id) window.history.pushState(null, '', `/${section}/${p.id}`); }}
             onEditingChange={editing => setEditingIds(ids => editing ? [...ids, p.id] : ids.filter(id => id !== p.id))} />
         </div>
-        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId} className="border-t border-divider px-4 py-3">
+        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId || editingIds.includes(p.id) || (!p.notes && !appearances.some(a=>a.vehicleId===p.id) && !decoders.some(d=>d.vehicleId===p.id))} className="border-t border-divider px-4 py-3">
           {p.notes && <p className="mb-3 whitespace-pre-wrap break-words text-sm text-secondary">{p.notes}</p>}
           {appearances.some(a => a.vehicleId === p.id) && <div className="mb-3">
             <h3 className="mb-1 text-xs font-medium text-secondary">Zařazení ve vlacích</h3>
@@ -83,15 +84,11 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
               </Link>
             </li>)}</ul>
           </div>}
-          <details>
-            <summary className="cursor-pointer text-sm font-medium text-secondary">Dekodér a funkce</summary>
-            <DecoderEditor vehicleId={p.id} compact label={pieces.length > 1 ? `Vůz ${index+1}` : 'Vůz'} initial={{dccAddress:p.dccAddress,decoders:decoders.filter(d => d.vehicleId === p.id)}} templates={templates}
-              onSaved={config => {
-                setPieces(values => values.map(value => value.id === p.id ? {...value,dccAddress:config.dccAddress} : value));
-                setDecoders(values => [...values.filter(d => d.vehicleId !== p.id), ...config.decoders.map(d => ({...d,vehicleId:p.id}))]);
-              }}
-              onEditingChange={editing => setDecoderEditingIds(ids => editing ? [...ids,p.id] : ids.filter(id => id!==p.id))} />
-          </details>
+          {decoders.filter(d=>d.vehicleId===p.id).map(d=><div key={d.id} className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-secondary">
+            <span>{[d.manufacturer,d.model].filter(Boolean).join(' · ')||'Dekodér'}</span>
+            {d.address!==null&&d.address!==p.dccAddress&&<span>DCC {d.address}</span>}
+            {d.functions.map(f=><span key={f.functionNumber} title={f.description}><strong className="font-mono">F{f.functionNumber}</strong> {functionLabel(f)}</span>)}
+          </div>)}
         </div>
       </li>)}
     </ul>

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { EditAction } from '@/components/ui-actions';
 import { EquipmentGlyph, EquipmentIcons } from '@/components/equipment-icons';
-import { FilterDropdown } from '@/components/filter-dropdown';
+import { InlineDelete } from '@/components/inline-delete';
+import { DecoderFields } from '@/components/decoder-editor';
+import type { DecoderConfig } from '@/lib/decoder-config';
 import { hasVehicleSound, soundEquipmentPatch, type VehicleEquipment } from '@/lib/vehicle-equipment';
 
 export type WagonPiece = VehicleEquipment & {
@@ -15,10 +17,11 @@ export type WagonPiece = VehicleEquipment & {
 const input = 'w-full min-w-0 rounded-md border border-control bg-surface px-3 py-2 text-sm';
 const fields = ['runningNumber', 'dccAddress', 'magneticCouplerA', 'magneticCouplerB', 'hasTailLights', 'hasLights', 'hasSoundDecoder', 'hasSpeaker', 'isWeathered', 'isTemplate', 'notes'] as const;
 
-export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete }: {
+export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete, decoders, templates }: {
+  decoders: DecoderConfig[]; templates: {label:string;decoder:DecoderConfig}[];
   ordinal?: number; onDuplicate: () => void; onDelete: () => Promise<void>;
   piece: WagonPiece; selected: boolean; section: string; disabled: boolean;
-  onEditingChange: (editing: boolean) => void; onSelect: () => void; onSaved: (piece: WagonPiece) => void;
+  onEditingChange: (editing: boolean) => void; onSelect: () => void; onSaved: (piece: WagonPiece, decoders: DecoderConfig[]) => void;
 }) {
   const label = ordinal ? `Vůz ${ordinal}` : 'Vůz';
   const [editing, setEditing] = useState(false);
@@ -49,77 +52,80 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
         </span>
       </Link>
       <div ref={trigger} className="edit-reveal absolute right-3 top-2.5 flex gap-1">{!editing && <>
-        <EditAction label={`Upravit ${label.toLowerCase()}`} disabled={disabled} onClick={() => { setEditing(true); setSaved(false); onEditingChange(true); }} />
+        <EditAction label={`Upravit ${label.toLowerCase()}`} disabled={disabled} onClick={() => { onSelect(); setEditing(true); setSaved(false); onEditingChange(true); }} />
         <button type="button" className="ui-icon-button ui-edit" aria-label={`Duplikovat ${label.toLowerCase()}`} title="Duplikovat výbavu, DCC adresu a konfiguraci dekodéru" disabled={disabled} onClick={onDuplicate}><DocumentDuplicateIcon className="size-4" aria-hidden="true" /><span className="ui-tooltip" aria-hidden="true">Duplikovat</span></button>
       </>}</div>
     </div>
-    {editing && <div className="px-4 pb-4"><PieceEditor piece={piece} onClose={close} onSaved={onSaved} label={label} onDelete={onDelete} disabled={disabled} /></div>}
+    {editing && <div className="px-4 pb-4"><PieceEditor decoders={decoders} templates={templates} piece={piece} onClose={close} onSaved={onSaved} label={label} onDelete={onDelete} disabled={disabled} /></div>}
   </div>;
 }
 
-function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled }: { piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece) => void; label:string; onDelete:()=>Promise<void>; disabled:boolean }) {
+function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled, decoders, templates }: { decoders:DecoderConfig[]; templates:{label:string;decoder:DecoderConfig}[]; piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece, decoders: DecoderConfig[]) => void; label:string; onDelete:()=>Promise<void>; disabled:boolean }) {
   const notesId = useId();
   // Capture only this piece's editable values; later refreshes must not reset a draft.
   const [base] = useState(piece);
   const [draft, setDraft] = useState(piece);
+  const [baseDecoders]=useState(()=>JSON.stringify(decoders));
+  const [decoderDraft,setDecoderDraft]=useState(decoders);
+  const [catalogBusy,setCatalogBusy]=useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const locked = busy || disabled;
+  const locked = busy || disabled || catalogBusy;
   function patch(value: Partial<WagonPiece>) { setDraft(d => ({ ...d, ...value })); }
-  const couplers = draft.magneticCouplerA && draft.magneticCouplerB ? 'both' : draft.magneticCouplerA || draft.magneticCouplerB ? 'one' : '';
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (locked) return;
     const changes = Object.fromEntries(fields.filter(key => draft[key] !== base[key]).map(key => [key, draft[key]]));
-    if (!Object.keys(changes).length) { onClose(false); return; }
+    const decoderChanges=JSON.stringify(decoderDraft)!==baseDecoders;
+    if (!Object.keys(changes).length && !decoderChanges) { onClose(false); return; }
     setBusy(true); setError('');
     try {
-      const response = await fetch(`/api/vozidla/${piece.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...changes, editMode: 'piece' }) });
+      const response = await fetch(`/api/vozidla/${piece.id}/konfigurace`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({piece:changes,...(decoderChanges?{decoders:decoderDraft}:{})}) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Uložení se nezdařilo.');
-      onSaved(data); onClose(true);
+      onSaved(data.vehicle,data.decoders); onClose(true);
     } catch (err) { setError(err instanceof Error ? err.message : 'Spojení se nezdařilo. Zkuste to znovu.'); }
     finally { setBusy(false); }
   }
   return <form aria-label={`Upravit ${label.toLowerCase()}`} onSubmit={save} className="mt-3">
     <fieldset disabled={locked} className="min-w-0 space-y-3 disabled:opacity-60">
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="min-w-0 text-xs font-medium text-secondary">Číslo / označení vozu
+      <div className="flex min-w-0 flex-wrap items-end gap-3" data-piece-controls>
+        <label className="w-full min-w-0 text-xs font-medium text-secondary sm:w-52">Číslo / označení vozu
           <input autoFocus className={`${input} mt-1`} value={draft.runningNumber ?? ''} onChange={e => patch({ runningNumber: e.target.value || null })} />
         </label>
-        <label className="min-w-0 text-xs font-medium text-secondary">DCC adresa
+        <label className="w-28 shrink-0 text-xs font-medium text-secondary">DCC adresa
           <input className={`${input} mt-1`} type="number" min={1} max={10239} step={1} value={draft.dccAddress ?? ''} onChange={e => patch({ dccAddress: e.target.value === '' ? null : Number(e.target.value) })} />
         </label>
-        <div className="min-w-0">
-          <span className="mb-1 block text-xs font-medium text-secondary">Magnetická spřáhla</span>
-          <FilterDropdown label="Magnetická spřáhla" emptyLabel="Bez magnetických spřáhel" value={couplers} disabled={locked} className="w-full" options={[{ value: 'one', label: 'Na jednom konci' }, { value: 'both', label: 'Na obou koncích' }]} onChange={mode => patch({ magneticCouplerA: mode === 'both' || (mode === 'one' && !draft.magneticCouplerB), magneticCouplerB: mode === 'both' || (mode === 'one' && draft.magneticCouplerB) })} />
-        </div>
-        {couplers === 'one' && <div className="min-w-0">
-          <span className="mb-1 block text-xs font-medium text-secondary">Magnetický konec</span>
-          <FilterDropdown label="Magnetický konec" emptyLabel="Konec A" value={draft.magneticCouplerB ? 'B' : ''} disabled={locked} className="w-full" options={[{ value: 'B', label: 'Konec B' }]} onChange={end => patch({ magneticCouplerA: end !== 'B', magneticCouplerB: end === 'B' })} />
-        </div>}
-      </div>
-      <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Výbava vozu">
         {([
-          ['tail', 'Koncová světla', draft.hasTailLights, () => patch({ hasTailLights: !draft.hasTailLights })],
-          ['lights', 'Osvětlení', Boolean(draft.hasLights), () => patch({ hasLights: !draft.hasLights })],
-          ['sound', 'Zvuk', hasVehicleSound(draft), () => patch(soundEquipmentPatch(!hasVehicleSound(draft), draft))],
-          ['weather', 'Patinováno', draft.isWeathered, () => patch({ isWeathered: !draft.isWeathered })],
-        ] as const).map(([icon, label, active, toggle]) => <button key={icon} type="button" aria-pressed={active} onClick={toggle} className={`ui-button ${active ? 'border-accent bg-accent-soft text-accent' : 'ui-button-secondary'}`}>
-          <EquipmentGlyph name={icon} className="size-4" />{label}<span aria-hidden="true">{active ? '✓' : '−'}</span>
+          ['coupler', 'Spřáhlo A', 'Magnetické spřáhlo A', draft.magneticCouplerA, () => patch({ magneticCouplerA: !draft.magneticCouplerA })],
+          ['coupler', 'Spřáhlo B', 'Magnetické spřáhlo B', draft.magneticCouplerB, () => patch({ magneticCouplerB: !draft.magneticCouplerB })],
+          ['tail', 'Koncová světla', 'Koncová světla', draft.hasTailLights, () => patch({ hasTailLights: !draft.hasTailLights })],
+          ['lights', 'Osvětlení', 'Osvětlení', Boolean(draft.hasLights), () => patch({ hasLights: !draft.hasLights })],
+          ['sound', 'Zvuk', 'Zvuk', hasVehicleSound(draft), () => patch(soundEquipmentPatch(!hasVehicleSound(draft), draft))],
+          ['weather', 'Patinováno', 'Patinováno', draft.isWeathered, () => patch({ isWeathered: !draft.isWeathered })],
+        ] as const).map(([icon, text, label, active, toggle]) => <button key={label} type="button" aria-label={label} title={label} aria-pressed={active} onClick={toggle} className={`ui-button !px-2 !text-xs ${active ? 'border-accent bg-accent-soft text-accent' : 'ui-button-secondary'}`}>
+          <EquipmentGlyph name={icon} className="size-4" />{text}<span aria-hidden="true">{active ? '✓' : '−'}</span>
         </button>)}
+        </div>
       </div>
+      <details className="text-xs text-secondary"><summary className="cursor-pointer">Poznámky a další údaje</summary><div className="mt-3 space-y-3">
       <div>
         <label htmlFor={notesId} className="block text-xs font-medium text-secondary">Poznámky k vozu</label>
         <textarea id={notesId} rows={2} className={`${input} mt-1`} value={draft.notes ?? ''} onChange={e => patch({ notes: e.target.value || null })} />
       </div>
       {piece.referenceNotes && <details className="text-xs text-secondary"><summary className="cursor-pointer">Zdroje a původní poznámky</summary><p className="mt-2 whitespace-pre-wrap break-words">{piece.referenceNotes}</p></details>}
       <label className="flex items-center gap-2 text-xs text-secondary"><input type="checkbox" checked={draft.isTemplate} onChange={e => patch({ isTemplate: e.target.checked })} />Ukázka / předloha (vynechat ze synchronizace)</label>
+      </div></details>
+      <div className="border-t border-divider pt-3">
+        <h3 className="mb-3 text-sm font-semibold">Dekodér a funkce</h3>
+        <DecoderFields config={{dccAddress:draft.dccAddress,decoders:decoderDraft}} onChange={config=>setDecoderDraft(config.decoders)} templates={templates} disabled={locked} onBusyChange={setCatalogBusy} />
+      </div>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <div className="flex flex-wrap items-center gap-2">
         <button type="submit" className="ui-button ui-button-primary">{locked ? 'Ukládám…' : 'Uložit'}</button>
         <button type="button" className="ui-button ui-button-secondary" onClick={() => onClose(false)}>Zrušit</button>
-        <button type="button" className="ui-button ui-button-danger ml-auto" onClick={()=>void onDelete()}><TrashIcon className="size-4" aria-hidden="true" />Odstranit vůz</button>
+        <div className="ml-auto"><InlineDelete disabled={locked} question="Odstranit tento vůz včetně jeho DCC nastavení a poznámek?" onConfirm={onDelete}><TrashIcon className="size-4" aria-hidden="true" />Odstranit vůz</InlineDelete></div>
       </div>
     </fieldset>
   </form>;

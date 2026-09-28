@@ -61,6 +61,7 @@ test("production server protects pages, images, API methods and session integrit
       ["/api/varianty-vozu/1", ["PUT"]],
       ["/api/vozidla/1/kopie", ["POST"]],
       ["/api/vozidla/1/dekodery", ["GET", "PUT"]],
+      ["/api/vozidla/1/konfigurace", ["PUT"]],
       ["/api/dekodery/katalog", ["GET", "POST"]],
       ["/api/vozidla", ["GET", "POST"]], ["/api/vozidla/1", ["GET", "PUT", "DELETE"]],
       ["/api/vlaky", ["GET", "POST"]], ["/api/vlaky/1", ["GET", "PUT", "DELETE"]],

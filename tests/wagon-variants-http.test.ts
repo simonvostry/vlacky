@@ -245,12 +245,11 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
       assert.ok(header);assert.ok(!header.text.includes('DCC'));
       const selected=details.querySelector(`[data-piece-id="${id}"]`);
       assert.ok(selected?.querySelector(`a[aria-current="page"][aria-controls="piece-details-${id}"]`));
-      assert.ok(selected?.querySelector(`#dekodery-${id}`));
-      assert.equal(selected?.querySelector(`#piece-details-${id}`)?.hasAttribute('hidden'),false);
+      assert.equal(selected?.querySelector(`button[aria-label^="Upravit dekodér"]`),null);
       assert.ok(!selected?.text.includes('Zatím bez dekodéru'));
       for(const row of details.querySelectorAll('[data-piece-id]')) {
         const pieceId=row.getAttribute('data-piece-id');
-        assert.ok(row.querySelector(`#dekodery-${pieceId}`));
+        assert.equal(row.querySelectorAll(`button[aria-label^="Upravit vůz"]`).length,1);
         if(pieceId!==String(id)) assert.ok(row.querySelector(`#piece-details-${pieceId}`)?.hasAttribute('hidden'));
       }
       const before=await get(id);

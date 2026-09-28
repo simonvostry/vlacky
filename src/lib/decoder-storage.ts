@@ -2,7 +2,7 @@ import { resolveDecoderModel } from './decoder-catalog-storage';
 import { db, schema, withWriteTransaction } from "@/db";
 import { eq } from "drizzle-orm";
 import type { DecoderConfig, VehicleDccConfig } from "./decoder-config";
-import type { InStatement } from "@libsql/client";
+import type { InStatement, Transaction } from "@libsql/client";
 
 export async function getDecoders(vehicleId?: number): Promise<(DecoderConfig & { vehicleId: number })[]> {
   const [decoders, functions] = await Promise.all([
@@ -39,12 +39,13 @@ export function decoderSaveStatements(vehicleId: number, config: VehicleDccConfi
   return statements;
 }
 
-export async function saveDecoderConfig(vehicleId:number, config:VehicleDccConfig) {
-  return withWriteTransaction(async tx=>{
+export async function saveDecoderConfig(vehicleId:number, config:VehicleDccConfig, transaction?:Transaction) {
+  const work = async (tx:Transaction)=>{
     const decoders=[];
     for(const decoder of config.decoders) decoders.push(await resolveDecoderModel(tx,decoder));
     const resolved={...config,decoders};
     for(const statement of decoderSaveStatements(vehicleId,resolved))await tx.execute(statement);
     return resolved;
-  });
+  };
+  return transaction ? work(transaction) : withWriteTransaction(work);
 }

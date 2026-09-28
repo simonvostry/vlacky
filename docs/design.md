@@ -583,3 +583,22 @@ No function number or equipment is inferred from this choice. Function 0 remains
 an explicit configurable key. CV records are inside the collapsed “Pokročilé
 nastavení” section, as are existing independent address overrides. Stored CVs and
 hidden metadata are preserved when saving the simpler form.
+
+## Unified wagon instance editor
+
+Passenger and freight rows have one pencil for all physical settings, including
+decoder/model selection, functions and advanced CV records. Shared vehicle artwork
+and catalog metadata remain in the separate header editor. One Save/Cancel applies
+to the whole instance draft. Compact running-number and DCC inputs share a wrapping
+row with equipment toggles; magnetic ends A and B use independent toggles with the
+same appearance as lighting, sound and weathering. The shorter address input still
+accepts the existing 1–10239 range. Notes/template metadata are collapsed.
+
+The selected row shows a small read-only decoder/function summary when it is not
+being edited; there is no secondary decoder edit button. Drafts survive selection
+and other instance saves. Save errors retain the full draft. Wagon deletion and
+removing an installed decoder use the shared inline Yes/No popover directly above
+the triggering button, with No initially focused, Escape cancellation and focus
+restoration. No browser `confirm` is used by these controls. Decoder removal stays
+a draft change until the unified Save; wagon deletion is immediate after Yes and
+still respects train-membership and other-open-draft guards.

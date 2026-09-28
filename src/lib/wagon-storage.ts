@@ -58,7 +58,7 @@ function parsePatch(body: unknown) {
   if (!parsed.success) throw new CollectionError('Neplatné údaje vozidla. Zkontrolujte označení, druh, rozměry a DCC adresu (1–10239).');
   return parsed.data;
 }
-export async function saveVehicle(body: Record<string, unknown>, id?: number) {
+export async function saveVehicle(body: Record<string, unknown>, id?: number, transaction?: Transaction) {
   const patch = parsePatch(body);
   const mode = body.editMode;
   if (mode !== undefined) {
@@ -76,7 +76,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     patch.magneticCouplerB = patch.magneticCouplers;
   }
   if (body.editScope !== undefined && !['piece','variant','new-variant'].includes(String(body.editScope))) throw new CollectionError('Neplatný rozsah úpravy.');
-  return withWriteTransaction(async tx => {
+  const work = async (tx: Transaction) => {
     if (id === undefined) {
       patch.hasLights ??= false;
       patch.epochs ??= [];
@@ -129,7 +129,7 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     }
     if (variantId && nextType === 'wagon' && !detach) {
       await update(tx,entries,'wagon_variant_id',variantId);
-    } else {
+    } else if (mode !== 'piece') {
       const nextVariantId = nextType === 'wagon' ? await newVariant(tx) : null;
       await update(tx,[...entries,['wagon_variant_id',nextVariantId]],'id',id);
     }
@@ -139,7 +139,8 @@ export async function saveVehicle(body: Record<string, unknown>, id?: number) {
     }
     await update(tx,values(patch,physical),'id',id);
     return id;
-  });
+  };
+  return transaction ? work(transaction) : withWriteTransaction(work);
 }
 export async function resizeVariant(id: number, body: Record<string, unknown>) {
   const parsed = z.object({ quantity: z.number().int().min(1).max(1000), expectedQuantity: z.number().int().min(1), removeVehicleIds: z.array(z.number().int().positive()).default([]) }).safeParse(body);
