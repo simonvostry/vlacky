@@ -59,6 +59,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-descriptions.mjs'], { env: { ...process.env, VEHICLE_DESCRIPTION_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-decoder-catalog.mjs'], { env: { ...process.env, DECODER_CATALOG_MIGRATION_URL: url } });
   const origin = 'http://localhost:3114';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';

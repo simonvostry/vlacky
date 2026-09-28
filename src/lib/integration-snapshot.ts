@@ -1,3 +1,4 @@
+import { functionLabel, type DecoderFunction } from './decoder-config';
 import { readEpochs } from "./epochs";
 import { createHash } from "node:crypto";
 import { readAtomic } from "@/db";
@@ -34,7 +35,7 @@ export async function collectionSnapshot(includeTemplates = false) {
       address: number(d.address) ?? number(v.dcc_address), addressSource: d.address === null ? "vehicle" : "decoder",
       notes: String(d.notes),
       functions: functions.filter(f => f.decoder_id === d.id).map(f => ({
-        number: Number(f.function_number), key: `F${f.function_number}`, label: String(f.label),
+        number: Number(f.function_number), key: `F${f.function_number}`, label: functionLabel({label:String(f.label),category:f.category as DecoderFunction["category"]}),
         category: String(f.category), behavior: String(f.behavior), description: string(f.description),
       })),
       referenceOnly: { soundProject: String(d.sound_project), manualUrl: String(d.manual_url), cvs: JSON.parse(String(d.cvs)) as unknown },

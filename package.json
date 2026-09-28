@@ -36,7 +36,8 @@
     "test:vehicle-length": "tsx --test tests/vehicle-length.test.ts",
     "db:migrate-epochs": "node scripts/migrate-epochs.mjs",
     "test:epochs": "tsx --test tests/epochs.test.ts",
-    "db:migrate-vehicle-descriptions": "node scripts/migrate-vehicle-descriptions.mjs"
+    "db:migrate-vehicle-descriptions": "node scripts/migrate-vehicle-descriptions.mjs",
+    "db:migrate-decoder-catalog": "node scripts/migrate-decoder-catalog.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

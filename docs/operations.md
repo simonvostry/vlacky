@@ -229,3 +229,19 @@ freight, integration, speed-profile and auth HTTP suites. Browser checks cover p
 duplicate with independent decoder IDs and copied addresses, pending drafts, deletion
 confirmation/failure/membership guard, last-row navigation, single/multiple numbering,
 header layout and visible descriptions in both themes and narrow viewports.
+
+
+## Decoder catalog
+
+Back up the intended database, then run `npm run db:migrate-decoder-catalog` before
+deploying the decoder catalog. Use `DECODER_CATALOG_MIGRATION_URL=file:/absolute/test.db`
+for disposable tests. The migration adds manufacturers/models and the nullable
+installed decoder `catalog_model_id`, reusing normalized names from existing
+configurations. It does not rewrite existing manufacturer/model text, addresses,
+functions, CVs, vehicle IDs or speed profiles; repeating it is safe.
+
+Run `npx tsx --test tests/decoder-catalog.test.ts`, decoder, wagon-variant, freight,
+integration, speed-profile and auth HTTP suites. Browser review covers dependent
+selectors, new and duplicate catalog entries, unknown selections, loading/retry,
+optional function labels, advanced disclosure and preserved CVs, both themes and
+narrow layouts. Tests and browser writes use disposable databases only.

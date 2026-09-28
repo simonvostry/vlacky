@@ -32,7 +32,7 @@ and [integration](itrain-integration.md) for the separate boundaries.
 
 ## Data model
 
-Nine active tables are defined in [the schema](../src/db/schema.ts).
+The active tables are defined in [the schema](../src/db/schema.ts).
 
 | Table | Purpose and relationships |
 | --- | --- |
@@ -42,7 +42,8 @@ Nine active tables are defined in [the schema](../src/db/schema.ts).
 | `catalog_images` | Ordered livery variants belonging to a catalog type |
 | `trains` | Named compositions with category, number, route, era and notes |
 | `train_vehicles` | Ordered vehicle membership and notes; the same vehicle may belong to several saved compositions |
-| `vehicle_decoders` | Installed decoders belonging to a physical vehicle; nullable own address inherits the physical piece’s DCC address |
+| `decoder_manufacturers`, `decoder_models` | Shared decoder product list; normalized manufacturer names and models unique within a manufacturer |
+| `vehicle_decoders` | Nullable catalog-model reference, compatibility manufacturer/model text; installed decoders belonging to a physical vehicle; nullable own address inherits the physical piece’s DCC address |
 | `decoder_functions` | Functions linked to vehicle and installed decoder; category, behavior and description |
 | `vehicle_speed_profiles` | One current JSON profile per locomotive with an optimistic-concurrency token |
 
@@ -343,3 +344,15 @@ name/purpose, sound-project, manual and note fields remain in full configuration
 payloads and integration exports. New decoders inherit the physical address;
 existing explicit overrides are retained. Shared addresses are valid, and physical
 vehicle/decoder IDs remain the identity boundary. See [decoder UI](design.md#simplified-decoder-editing).
+
+
+Decoder catalog GET/POST at `/api/dekodery/katalog` requires normal user authorization.
+The selectors use the shared accessible dropdown and allow inline additions, with
+case/whitespace-normalized uniqueness. Unknown maker/model remain allowed. Existing
+installed text is retained by the additive migration, which backfills model links
+where both names are known. Configuration saves resolve catalog IDs and canonical
+names in the same transaction as decoder/functions, and legacy text-only clients
+register normalized entries. Each installed decoder retains independent functions,
+CVs and addresses; shared product selection never changes other installations.
+A blank function label is stored as blank; `functionLabel` provides the category
+fallback for summaries, train details and integration exports.

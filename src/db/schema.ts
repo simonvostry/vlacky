@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const wagonVariants = sqliteTable("wagon_variants", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -75,7 +75,18 @@ export const trainVehicles = sqliteTable("train_vehicles", {
   notes: text("notes"),
 });
 
+export const decoderManufacturers = sqliteTable("decoder_manufacturers", {
+  id: integer("id").primaryKey({autoIncrement:true}),
+  name: text("name").notNull(), nameKey: text("name_key").notNull().unique(),
+});
+export const decoderModels = sqliteTable("decoder_models", {
+  id: integer("id").primaryKey({autoIncrement:true}),
+  manufacturerId: integer("manufacturer_id").notNull().references(() => decoderManufacturers.id),
+  name: text("name").notNull(), nameKey: text("name_key").notNull(),
+}, table => [uniqueIndex("decoder_models_manufacturer_name").on(table.manufacturerId, table.nameKey)]);
+
 export const vehicleDecoders = sqliteTable("vehicle_decoders", {
+  catalogModelId: integer("catalog_model_id").references(() => decoderModels.id),
   id: text("id").primaryKey(),
   vehicleId: integer("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
   name: text("name").notNull(),

@@ -568,3 +568,18 @@ Multiple wagons may intentionally share an address and function key for lighting
 the DCC overview presents these shared addresses neutrally, not as an error.
 Copying settings into a vehicle uses that vehicle's address; duplicating a whole
 owned model still copies its addresses and independent decoder configuration.
+
+
+Decoder manufacturer/model controls now select from the shared decoder catalog.
+The model dropdown is limited to the chosen manufacturer. Each dropdown offers
+an explicit inline addition, saved with “Přidat do seznamu”; cancelling the decoder
+form does not remove an explicitly added catalog entry. Changing manufacturer
+clears the model selection. Missing information remains “Nevyplněn”. Existing
+unlinked text is shown without silently losing it.
+
+Function custom names are optional: a blank name displays its category (Světla,
+Zvuk, Ostatní); changing category updates the fallback, while a custom label stays.
+No function number or equipment is inferred from this choice. Function 0 remains
+an explicit configurable key. CV records are inside the collapsed “Pokročilé
+nastavení” section, as are existing independent address overrides. Stored CVs and
+hidden metadata are preserved when saving the simpler form.

@@ -1,4 +1,5 @@
-import { db, schema } from "@/db";
+import { resolveDecoderModel } from './decoder-catalog-storage';
+import { db, schema, withWriteTransaction } from "@/db";
 import { eq } from "drizzle-orm";
 import type { DecoderConfig, VehicleDccConfig } from "./decoder-config";
 import type { InStatement } from "@libsql/client";
@@ -27,8 +28,8 @@ export function decoderSaveStatements(vehicleId: number, config: VehicleDccConfi
   ];
   for (const [position, d] of config.decoders.entries()) {
     statements.push({
-      sql: "INSERT INTO vehicle_decoders (id, vehicle_id, name, manufacturer, model, address, sound_project, manual_url, notes, cvs, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      args: [d.id, vehicleId, d.name, d.manufacturer, d.model, d.address, d.soundProject, d.manualUrl, d.notes, JSON.stringify(d.cvs), position],
+      sql: "INSERT INTO vehicle_decoders (id, vehicle_id, name, manufacturer, model, address, sound_project, manual_url, notes, cvs, sort_order, catalog_model_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      args: [d.id, vehicleId, d.name, d.manufacturer, d.model, d.address, d.soundProject, d.manualUrl, d.notes, JSON.stringify(d.cvs), position, d.catalogModelId ?? null],
     });
     for (const f of d.functions) statements.push({
       sql: "INSERT INTO decoder_functions (vehicle_id, decoder_id, function_number, label, description, category, behavior) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -36,4 +37,14 @@ export function decoderSaveStatements(vehicleId: number, config: VehicleDccConfi
     });
   }
   return statements;
+}
+
+export async function saveDecoderConfig(vehicleId:number, config:VehicleDccConfig) {
+  return withWriteTransaction(async tx=>{
+    const decoders=[];
+    for(const decoder of config.decoders) decoders.push(await resolveDecoderModel(tx,decoder));
+    const resolved={...config,decoders};
+    for(const statement of decoderSaveStatements(vehicleId,resolved))await tx.execute(statement);
+    return resolved;
+  });
 }

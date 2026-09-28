@@ -2,7 +2,7 @@ import { galleryDimension } from "@/lib/gallery-size";
 import { EquipmentIcons } from "./equipment-icons";
 import { ManufacturerLogo } from "./manufacturer-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
-import type { DecoderConfig } from "@/lib/decoder-config";
+import { functionLabel, type DecoderConfig } from "@/lib/decoder-config";
 import Image from "@/components/vehicle-image";
 import Link from "next/link";
 import type { trains, vehicles } from "@/db/schema";
@@ -114,7 +114,7 @@ export function TrainDetailsPanel({ train, vehicles: composition, decoders = [],
                   <summary className="cursor-pointer py-0.5 hover:text-accent">Dekodéry a funkce ({vehicleDecoders.reduce((n, d) => n + d.functions.length, 0)})</summary>
                   {vehicleDecoders.map(d => <div key={d.id} className="mb-1 rounded bg-subtle p-1.5">
                     <p className="font-medium text-foreground">{d.name} · DCC {d.address ?? dcc ?? "—"}</p>
-                    {d.functions.map(f => <p key={f.functionNumber} title={f.description}><strong className="font-mono">F{f.functionNumber}</strong> {f.label}{f.behavior === "momentary" ? " (podržet)" : ""}</p>)}
+                    {d.functions.map(f => <p key={f.functionNumber} title={f.description}><strong className="font-mono">F{f.functionNumber}</strong> {functionLabel(f)}{f.behavior === "momentary" ? " (podržet)" : ""}</p>)}
                     {!d.functions.length && <p>Funkce nevyplněny</p>}
                   </div>)}
                 </details>}

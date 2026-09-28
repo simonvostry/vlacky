@@ -1,9 +1,9 @@
 import { authorizeApiRequest } from "@/lib/auth-guards";
-import { db, schema, executeAtomic } from "@/db";
+import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { parseDccConfig } from "@/lib/decoder-config";
-import { decoderSaveStatements, getDecoders } from "@/lib/decoder-storage";
+import { saveDecoderConfig, getDecoders } from "@/lib/decoder-storage";
 
 type Context = { params: Promise<{ id: string }> };
 async function vehicleFor(context: Context) {
@@ -28,7 +28,7 @@ export async function PUT(request: Request, context: Context) {
   let config;
   try { config = parseDccConfig(JSON.parse(text)); }
   catch (error) { return NextResponse.json({ error: error instanceof SyntaxError ? "Neplatný JSON." : error instanceof Error ? error.message : "Neplatná konfigurace." }, { status: 400 }); }
-  try { await executeAtomic(decoderSaveStatements(vehicle.id, config)); }
+  try { config = await saveDecoderConfig(vehicle.id, config); }
   catch { return NextResponse.json({ error: "Konfiguraci se nepodařilo uložit. Obnovte stránku a zkuste to znovu." }, { status: 409 }); }
   return NextResponse.json(config);
 }

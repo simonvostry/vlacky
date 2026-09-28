@@ -8,13 +8,20 @@ import { setTimeout as delay } from "node:timers/promises";
 import Database from "better-sqlite3";
 import test from "node:test";
 import { encode } from "next-auth/jwt";
-import { blankDecoder, parseDccConfig } from "../src/lib/decoder-config";
+import { blankDecoder, parseDccConfig, functionLabel } from "../src/lib/decoder-config";
 
 const decoder = (id = "decoder-one") => ({ id, name: "Zvuk", manufacturer: "Test", model: "Model", address: null, soundProject: "Project", manualUrl: "https://example.com/manual", notes: "", functions: [{ functionNumber: 0, label: "Světla", category: "light", behavior: "toggle", description: "Čelní světla" }, { functionNumber: 2, label: "Houkačka", category: "sound", behavior: "momentary", description: "" }], cvs: [{ number: 259, value: 0, cv31: 16, cv32: 0, note: "Hlasitost" }] });
 test("a new decoder saves without entering a name and inherits the vehicle address", () => {
   const config = parseDccConfig({ dccAddress: 69, decoders: [blankDecoder()] });
   assert.equal(config.decoders[0].name, 'Dekodér');
   assert.equal(config.decoders[0].address, null);
+});
+test("function labels are optional and category fallback stays dynamic", () => {
+  const d=decoder();d.functions[0].label='';
+  const f=parseDccConfig({dccAddress:69,decoders:[d]}).decoders[0].functions[0];
+  assert.equal(f.label,'');assert.equal(functionLabel(f),'Světla');
+  assert.equal(functionLabel({...f,category:'sound'}),'Zvuk');
+  assert.equal(functionLabel({...f,label:'Interiér'}),'Interiér');
 });
 test("validates decoder functions, indexed CVs, addresses and manual URLs", () => {
   assert.equal(parseDccConfig({ dccAddress: 3, decoders: [decoder()] }).decoders[0].cvs[0].value, 0);
@@ -51,6 +58,7 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-descriptions.mjs'], { env: { ...process.env, VEHICLE_DESCRIPTION_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-decoder-catalog.mjs'], { env: { ...process.env, DECODER_CATALOG_MIGRATION_URL: url } });
   const origin = 'http://localhost:3108';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'decoder-test@example.com';
@@ -72,6 +80,15 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     assert.ok(ready, logs);
     assert.equal((await request('/api/vozidla/1/dekodery', { headers: {} })).status, 401);
     assert.equal((await request('/api/vozidla/999/dekodery')).status, 404);
+    assert.equal((await request('/api/dekodery/katalog',{headers:{}})).status,401);
+    const addEntry=async (body:unknown)=>request('/api/dekodery/katalog',{method:'POST',headers,body:JSON.stringify(body)});
+    const maker=await(await addEntry({kind:'manufacturer',name:'ESU'})).json();
+    const repeated=await(await addEntry({kind:'manufacturer',name:'  esu  '})).json();assert.equal(repeated.id,maker.id);
+    const model=await(await addEntry({kind:'model',name:'LokPilot',manufacturerId:maker.id})).json();
+    assert.equal((await(await addEntry({kind:'model',name:' lokpilot ',manufacturerId:maker.id})).json()).id,model.id);
+    assert.equal((await addEntry({kind:'model',name:'Invalid',manufacturerId:999999})).status,400);
+    const maker2=await(await addEntry({kind:'manufacturer',name:'Other maker'})).json();
+    const model2=await(await addEntry({kind:'model',name:'LokPilot',manufacturerId:maker2.id})).json();assert.notEqual(model.id,model2.id);
     const original = await (await request('/api/vozidla/1/dekodery')).json();
     assert.equal(original.dccAddress, 3); assert.equal(original.decoders[0].functions[0].label, 'Legacy lights');
     const body = { dccAddress: 3, decoders: [decoder(), { ...decoder('decoder-two'), name: 'Osvětlení', address: 44 }] };
@@ -85,6 +102,13 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     assert.equal((await (await request('/api/vozidla/1/dekodery')).json()).dccAddress, 3);
     assert.equal((await (await request('/api/vozidla/2/dekodery')).json()).dccAddress, 3);
     assert.equal((await save(2, { dccAddress: 55, decoders: [{ ...decoder('wagon-light'), name: 'Interiér' }] })).status, 200);
+    const linked={...decoder('wagon-light'),catalogModelId:model.id,manufacturer:'ignored',model:'ignored'};
+    linked.functions[0].label='';
+    assert.equal((await save(2,{dccAddress:55,decoders:[linked]})).status,200);
+    const resolved=await(await request('/api/vozidla/2/dekodery')).json();
+    assert.equal(resolved.decoders[0].manufacturer,'ESU');assert.equal(resolved.decoders[0].model,'LokPilot');assert.equal(resolved.decoders[0].catalogModelId,model.id);assert.equal(resolved.decoders[0].functions[0].label,'');
+    assert.equal((await save(2,{dccAddress:55,decoders:[{...linked,catalogModelId:999999}]})).status,409);
+    assert.deepEqual(await(await request('/api/vozidla/2/dekodery')).json(),resolved);
     // Another vehicle cannot take an existing decoder ID, and its original data survives the failed save.
     assert.equal((await save(2, { dccAddress: 99, decoders: [decoder()] })).status, 409);
     const wagon = await (await request('/api/vozidla/2/dekodery')).json();

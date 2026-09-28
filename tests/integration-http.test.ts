@@ -49,6 +49,8 @@ test("hosted MCP and image API export read-only collection with preservation con
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-descriptions.mjs'], { env: { ...process.env, VEHICLE_DESCRIPTION_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-decoder-catalog.mjs'], { env: { ...process.env, DECODER_CATALOG_MIGRATION_URL: url } });
+  sqlite.exec("UPDATE decoder_functions SET label='',category='light' WHERE vehicle_id=1");
   const origin = 'http://localhost:3109';
   const token = randomBytes(32).toString('base64url');
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', '3109'], {env:{...process.env, NODE_ENV:'production', AUTH_SECRET:randomBytes(48).toString('base64url'), AUTH_ALLOWED_EMAIL:'mcp-test@example.com', AUTH_GOOGLE_ID:'test', AUTH_GOOGLE_SECRET:'test', AUTH_URL:origin, AUTH_TRUST_HOST:'true', VLACKY_MCP_TOKEN:token, VLACKY_PUBLIC_URL:origin, TURSO_DATABASE_URL:url, TURSO_AUTH_TOKEN:'test-only'}, stdio:'pipe'});
@@ -78,6 +80,8 @@ test("hosted MCP and image API export read-only collection with preservation con
     const before = JSON.stringify(sqlite.prepare('SELECT * FROM vehicles ORDER BY id').all());
     const snapshot = await (await request('/api/integrations/v1/snapshot')).json();
     assert.equal(snapshot.schemaVersion,'1.7');
+    assert.equal(snapshot.vehicles[0].decoders[0].functions[0].label,'Světla');
+    assert.equal((sqlite.prepare('SELECT label FROM decoder_functions WHERE vehicle_id=1').get() as {label:string}).label,'');
     assert.deepEqual(snapshot.vehicles[0].referenceOnly.speedProfile,fixture);
     assert.ok(!snapshot.syncContract.allowedSourceFields.includes('referenceOnly.speedProfile'));
     assert.ok(snapshot.syncContract.speedProfiles.includes('never an automatically applied'));

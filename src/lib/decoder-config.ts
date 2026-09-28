@@ -7,6 +7,7 @@ export type DecoderFunction = {
 };
 export type CvRecord = { number: number; value: number; cv31: number | null; cv32: number | null; note: string };
 export type DecoderConfig = {
+  catalogModelId?: number | null;
   id: string;
   name: string;
   manufacturer: string;
@@ -20,6 +21,9 @@ export type DecoderConfig = {
 };
 export type VehicleDccConfig = { dccAddress: number | null; decoders: DecoderConfig[] };
 export const categoryLabels = { sound: "Zvuk", light: "Světla", other: "Ostatní" };
+export function functionLabel(f: Pick<DecoderFunction, 'label' | 'category'>) {
+  return f.label.trim() || categoryLabels[f.category];
+}
 export function blankDecoder(): DecoderConfig {
   return { id: crypto.randomUUID(), name: "Dekodér", manufacturer: "", model: "", address: null, soundProject: "", manualUrl: "", notes: "", functions: [], cvs: [] };
 }
@@ -60,6 +64,7 @@ export function parseDccConfig(value: unknown): VehicleDccConfig {
       const functionNumbers = new Set<number>();
       const cvKeys = new Set<string>();
       return {
+        catalogModelId: d.catalogModelId == null ? null : num(d.catalogModelId, 1, Number.MAX_SAFE_INTEGER),
         id, name: str(d.name, 100, true), manufacturer: str(d.manufacturer), model: str(d.model),
         address: optionalNum(d.address, 1, 10239), soundProject: str(d.soundProject, 500), manualUrl, notes: str(d.notes, 4000),
         functions: list(d.functions, 129).map((item): DecoderFunction => {
@@ -69,7 +74,7 @@ export function parseDccConfig(value: unknown): VehicleDccConfig {
           functionNumbers.add(functionNumber);
           if (f.category !== "sound" && f.category !== "light" && f.category !== "other") throw new Error("Neplatná kategorie funkce.");
           if (f.behavior !== "toggle" && f.behavior !== "momentary") throw new Error("Neplatný režim funkce.");
-          return { functionNumber, label: str(f.label, 150, true), category: f.category, behavior: f.behavior, description: str(f.description, 1000) };
+          return { functionNumber, label: str(f.label ?? "", 150), category: f.category, behavior: f.behavior, description: str(f.description, 1000) };
         }).sort((a, b) => a.functionNumber - b.functionNumber),
         cvs: list(d.cvs, 1024).map(item => {
           const c = object(item);

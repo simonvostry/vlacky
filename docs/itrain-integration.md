@@ -145,3 +145,9 @@ backups without expanding iTrain write ownership. Ordinary user notes remain `no
 Duplicating a wagon in the collection copies its DCC addresses and decoder records
 only when explicitly requested through Duplicate; new decoder IDs preserve isolation.
 The snapshot’s existing duplicate-address reporting still applies.
+
+
+Decoder product references are local catalog identities; exports keep resolved
+manufacturer/model names and stable installed decoder IDs. Blank custom function
+names export the category label rather than an empty name. CV values remain under
+`referenceOnly`; moving their controls into advanced settings changes no sync scope.
