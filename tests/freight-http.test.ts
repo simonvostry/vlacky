@@ -48,6 +48,7 @@ test("freight migration, separate collections, shared locomotives and preservati
   execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-descriptions.mjs'], { env: { ...process.env, VEHICLE_DESCRIPTION_MIGRATION_URL: url } });
   const origin = 'http://localhost:3113';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -109,7 +110,7 @@ test("freight migration, separate collections, shared locomotives and preservati
     assert.equal(preserved.catalogId,1); assert.equal(preserved.catalogImageId,1);
     assert.equal((await (await save(`/api/vlaky/${train.id}`,{name:train.name},'PUT')).json()).kind,'freight');
     const snapshot = await (await request('/api/integrations/v1/snapshot', {headers:{authorization:`Bearer ${secret}`}})).json();
-    assert.equal(snapshot.schemaVersion,'1.6');
+    assert.equal(snapshot.schemaVersion,'1.7');
     assert.equal(snapshot.vehicles.find((v:{id:number})=>v.id===wagon.id).wagonKind,'freight');
     assert.equal(snapshot.vehicles.find((v:{id:number})=>v.id===1).wagonKind,null);
     assert.equal(snapshot.trains.find((t:{id:number})=>t.id===train.id).kind,'freight');

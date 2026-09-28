@@ -7,6 +7,8 @@ export const wagonVariants = sqliteTable("wagon_variants", {
 export const vehicles = sqliteTable("vehicles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   designation: text("designation").notNull(), // "362", "Amz 61", "Bmz 61"
+  description: text("description"), // shared owned-model description, separate from provenance
+  referenceNotes: text("reference_notes"), // preserved research/source notes for this record
   operator: text("operator"), // "ČD", "ÖBB"
   type: text("type").notNull(), // "loco" | "wagon"
   wagonKind: text("wagon_kind").notNull().default("passenger"), // used only for wagons: passenger | freight

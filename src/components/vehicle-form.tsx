@@ -14,6 +14,7 @@ import { useState } from "react";
 
 type Vehicle = {
   id?: number;
+  description?: string | null; referenceNotes?: string | null;
   wagonVariantId?: number | null;
   magneticCouplerA?: boolean;
   magneticCouplerB?: boolean;
@@ -58,7 +59,7 @@ const defaults: Vehicle = {
   manufacturer: "",
   catalogNumber: "",
   lengthOverBuffersMm: null,
-  epochs: [], epochNotes: null,
+  epochs: [], epochNotes: null, description: null, referenceNotes: null,
   dccAddress: null,
   notes: "",
 };
@@ -335,6 +336,10 @@ export function VehicleForm({ vehicle, manufacturers = [], editMode, catalogRefe
       </div>
 
       </>}
+      {showModel && <label className="mb-4 block text-sm font-medium">Popis vozu / lokomotivy
+        <textarea rows={3} maxLength={5000} value={form.description ?? ''} onChange={e => set('description',e.target.value || null)} className="mt-1 w-full rounded-md border border-control px-3 py-2 text-sm" />
+        <span className="mt-1 block text-xs font-normal text-secondary">Stručný popis předlohy, uspořádání a vybavení. Společný pro všechny stejné modely.</span>
+      </label>}
       {showPiece && <>
       {form.type === 'wagon' && !mode && <h2 className="pt-4 text-lg font-semibold">Konkrétní kus{vehicle?.id ? ` #${vehicle.id}` : ''}</h2>}
         <div>
@@ -400,6 +405,7 @@ export function VehicleForm({ vehicle, manufacturers = [], editMode, catalogRefe
         <input type="checkbox" checked={form.isWeathered ?? false} onChange={e => set("isWeathered", e.target.checked)} />
         <EquipmentGlyph name="weather" />Patinováno (tento konkrétní kus)
       </label>
+      <details className="text-sm text-secondary"><summary className="cursor-pointer">Zdroje a původní poznámky</summary><textarea aria-label="Zdroje a původní poznámky" rows={5} maxLength={30000} value={form.referenceNotes ?? ''} onChange={e => set('referenceNotes',e.target.value || null)} className="mt-2 w-full rounded-md border border-control px-3 py-2" /></details>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={form.isTemplate ?? false} onChange={e => set("isTemplate", e.target.checked)} />
         Ukázka / předloha (vynechat z běžné synchronizace)

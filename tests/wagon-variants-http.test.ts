@@ -58,6 +58,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
   execFileSync(process.execPath, ['scripts/migrate-lighting-defaults.mjs'], { env: { ...process.env, LIGHTING_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-vehicle-length.mjs'], { env: { ...process.env, VEHICLE_LENGTH_MIGRATION_URL: url } });
   execFileSync(process.execPath, ['scripts/migrate-epochs.mjs'], { env: { ...process.env, EPOCH_MIGRATION_URL: url } });
+  execFileSync(process.execPath, ['scripts/migrate-vehicle-descriptions.mjs'], { env: { ...process.env, VEHICLE_DESCRIPTION_MIGRATION_URL: url } });
   const origin = 'http://localhost:3114';
   const secret = randomBytes(48).toString('base64url');
   const owner = 'freight-test@example.com';
@@ -173,7 +174,7 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     for(const key of flags) assert.equal(exported.referenceOnly[key],(await get(11))[key]);
     assert.equal(exported.referenceOnly.hasLights,false); // general lighting is independent of red tail lights
     assert.equal(exported.referenceOnly.hasTailLights,true);
-    assert.equal(snapshot.schemaVersion,'1.6');
+    assert.equal(snapshot.schemaVersion,'1.7');
     assert.deepEqual(exported.referenceOnly.epochs,[5,6]);assert.equal(exported.referenceOnly.epochNotes,'Manufacturer: V-VI');
     const filtered = parse(await (await request('/nakladni-vozy?epocha=5')).text());
     assert.ok(filtered.querySelector('a[href="/nakladni-vozy/10"]'));
@@ -235,7 +236,9 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
       assert.equal(piece.querySelector('#model-manufacturer'),null);
       const details=parse(await (await request(`/${section}/${id}`)).text());
       assert.ok(details.querySelector(`a[href="/${section}/${id}/upravit"]`));
-      assert.ok(details.querySelector(`button[aria-label="Upravit kus #${id}"]`));
+      assert.ok(details.querySelector(`button[aria-label^="Upravit vůz"]`));
+      assert.equal(details.querySelector('#piece-count'),null);
+      assert.ok(details.querySelector('button[aria-label="Přidat další vůz"]'));
       assert.equal(details.querySelector('aside'),null);
       const header=details.querySelector('section[aria-label="Společné údaje vozu"]');
       assert.ok(header);assert.ok(!header.text.includes('DCC'));
@@ -269,6 +272,35 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     for(const id of fourIds){assert.equal((await get(id)).catalogId,null);assert.equal((await get(id)).catalogImageId,null);assert.equal((await get(id)).imagePath,'/img/four-bap.png');}
     for(const mode of [null, ['piece'], {}, 'all', 1]) assert.equal((await save(`/api/vozidla/${four.id}`,{editMode:mode,hasLights:false},'PUT')).status,400);
     assert.equal((await save('/api/vozidla/1',{editMode:'piece',dccAddress:5},'PUT')).status,400);
+    // Shared descriptions and independent physical provenance.
+    assert.equal((await save(`/api/vozidla/${four.id}`,{description:'80 míst, klimatizace.',editMode:'model'},'PUT')).status,200);
+    for(const id of fourIds) assert.equal((await get(id)).description,'80 míst, klimatizace.');
+    assert.equal((await save(`/api/vozidla/${four.id}`,{description:'Wrong',editMode:'piece'},'PUT')).status,400);
+    await save(`/api/vozidla/${four.id}`,{hasLights:true,magneticCouplerB:true,isWeathered:true,runningNumber:'unique',referenceNotes:'Keep source',notes:'personal'},'PUT');
+    const decoder={id:'copy-decoder',name:'Osvětlení',manufacturer:'Test',model:'Model',address:72,soundProject:'Project',manualUrl:'',notes:'Decoder note',cvs:[{number:1,value:72,cv31:null,cv32:null,note:''}],functions:[{functionNumber:0,label:'Světla',category:'light',behavior:'toggle',description:''}]};
+    assert.equal((await save(`/api/vozidla/${four.id}/dekodery`,{dccAddress:70,decoders:[decoder]},'PUT')).status,200);
+    const sourceBefore=await get(four.id);
+    const copiedResponse=await save(`/api/vozidla/${four.id}/kopie`,{mode:'equipment'});
+    assert.equal(copiedResponse.status,201);const copied=await copiedResponse.json();
+    assert.notEqual(copied.id,four.id);assert.equal(copied.wagonVariantId,sourceBefore.wagonVariantId);
+    assert.equal(copied.description,sourceBefore.description);assert.equal(copied.imagePath,sourceBefore.imagePath);
+    assert.equal(copied.dccAddress,70);assert.equal(copied.runningNumber,null);assert.equal(copied.notes,null);assert.equal(copied.referenceNotes,null);
+    assert.equal(copied.hasLights,true);assert.equal(copied.magneticCouplerB,true);assert.equal(copied.isWeathered,true);
+    assert.equal(copied.decoders.length,1);assert.notEqual(copied.decoders[0].id,decoder.id);assert.equal(copied.decoders[0].vehicleId,copied.id);
+    for(const key of Object.keys(decoder).filter(key=>key!=='id')) assert.deepEqual(copied.decoders[0][key],decoder[key as keyof typeof decoder]);
+    assert.equal((sqlite.prepare('SELECT count(*) AS n FROM train_vehicles WHERE vehicle_id=?').get(copied.id) as {n:number}).n,0);
+    await save(`/api/vozidla/${copied.id}/dekodery`,{dccAddress:75,decoders:[{...copied.decoders[0],name:'Independent'}]},'PUT');
+    assert.equal((await get(four.id)).dccAddress,70);assert.equal((await (await request(`/api/vozidla/${four.id}/dekodery`)).json()).decoders[0].name,'Osvětlení');
+    const blank=await (await save(`/api/vozidla/${four.id}/kopie`,{mode:'blank'})).json();
+    assert.equal(blank.hasLights,false);assert.equal(blank.magneticCouplerB,false);assert.equal(blank.isWeathered,false);assert.equal(blank.dccAddress,null);assert.deepEqual(blank.decoders,[]);
+    assert.equal((await save('/api/vozidla/1/kopie',{mode:'equipment'})).status,400);
+    assert.equal((await save('/api/vozidla/999999/kopie',{mode:'blank'})).status,404);
+    assert.equal((await save(`/api/vozidla/${four.id}/kopie`,{mode:'unknown'})).status,400);
+    assert.equal((await request(`/api/vozidla/${copied.id}`,{method:'DELETE'})).status,200);
+    assert.equal((sqlite.prepare('SELECT count(*) AS n FROM vehicle_decoders WHERE vehicle_id=?').get(copied.id) as {n:number}).n,0);
+    assert.equal((sqlite.prepare('SELECT count(*) AS n FROM decoder_functions WHERE vehicle_id=?').get(copied.id) as {n:number}).n,0);
+    assert.deepEqual(await get(four.id),sourceBefore);
+
 
 
   } finally {

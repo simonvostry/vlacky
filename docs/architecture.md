@@ -141,7 +141,7 @@ An ungrouped legacy record is displayed individually until migrated.
 `wagon_variants` provides stable group identity. Shared model/artwork fields remain
 on each vehicle as a compatibility projection for existing queries and integrations:
 designation, operator, type/kind, class, image path/dimensions, model manufacturer,
-SKU, epochs/provenance, model length over buffers and catalog/livery links.
+SKU, short description, epochs/provenance, model length over buffers and catalog/livery links.
 `wagon-storage.ts` is the write boundary: every normal edit updates shared fields
 on all variant members in one transaction, regardless of the edited piece URL.
 Legacy `editScope: "piece"` and `"variant"` both follow this rule; neither splits a
@@ -163,7 +163,7 @@ modes apply only to existing wagons. Unscoped maintenance clients retain the sha
 model/per-piece equipment write contract. Forms send only changed fields, so an equipment
 save from an older open form cannot undo newer shared data. A multi-piece wagon
 group cannot be converted to a locomotive. Physical fields are never propagated:
-DCC, notes, template status, running number, general lighting, couplers at ends A/B,
+DCC, notes, preserved reference notes, template status, running number, general lighting, couplers at ends A/B,
 tail lights, sound decoder, speaker and weathering.
 The shared editor can change catalog and livery links without replacing artwork or
 other model data. Scoped saves validate that a chosen livery belongs to its catalog
@@ -204,7 +204,8 @@ both locomotives and wagons, without changing shared artwork or variant grouping
 
 All six new fields are non-null booleans, default false. They are validated and saved
 only on the edited physical piece, even with whole-variant edit scope. Additional
-copies receive defaults rather than copying equipment/weathering. Omitted fields
+copies added through the plus/quantity controls receive defaults; explicit Duplicate
+copies equipment and decoder configuration as described above. Omitted fields
 preserve existing values; explicit null/string/number values are rejected.
 
 The legacy `magnetic_couplers` column remains for compatibility. The additive equipment
@@ -316,3 +317,18 @@ See [epochs](epochs.md) for the data contract and source policy. Owned vehicles,
 catalog base artwork and individual liveries each store independent epoch lists
 and provenance. Epoch filters use membership rather than scalar equality; catalog
 results show matching liveries. Epochs never come from automatic class/year guesses.
+
+Owned `vehicles.description` is shared across a wagon variant, distinct from catalog
+reference data and epoch evidence. `reference_notes` preserves research/import text
+on its original physical record; `notes` is reserved for useful individual notes.
+The description migration adds nullable columns only. Content cleanup is a separate,
+backed-up operation through `saveVehicle`, preserving original text and all IDs.
+
+`POST /api/vozidla/[id]/kopie` requires normal CRUD authorization. Mode `blank` adds
+one wagon with shared model values and empty physical configuration. Mode `equipment`
+duplicates equipment **and**, by explicit user preference, vehicle/decoder addresses,
+functions, CVs and decoder metadata into new physical and decoder IDs in a single
+transaction. Running number, notes, reference notes, memberships and profiles are not
+copied. Neither path alters its source; both enforce the 1000-model group limit.
+The normal DELETE endpoint remains membership-guarded and cascades only configuration
+belonging to that physical ID. The older quantity API remains for compatibility.

@@ -14,8 +14,8 @@ function NumberField({ label, value, onChange, min = 0, max = 255, required = fa
   return <Field label={label}><input className={input} type="number" min={min} max={max} step={1} required={required} value={value !== null && Number.isFinite(value) ? value : ""} onChange={e => onChange(e.target.value === "" ? null : Number(e.target.value))} /></Field>;
 }
 
-export function DecoderEditor({ vehicleId, initial, templates, compact = false, onEditingChange, onSaved }: {
-  compact?: boolean; onEditingChange?: (editing: boolean) => void; onSaved?: (config: VehicleDccConfig) => void;
+export function DecoderEditor({ vehicleId, initial, templates, compact = false, onEditingChange, onSaved, label = "Vůz" }: {
+  label?: string; compact?: boolean; onEditingChange?: (editing: boolean) => void; onSaved?: (config: VehicleDccConfig) => void;
   vehicleId: number; initial: VehicleDccConfig; templates: { label: string; decoder: DecoderConfig }[];
 }) {
   const router = useRouter();
@@ -55,10 +55,10 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
     } catch (e) { setError(e instanceof Error ? e.message : "Uložení se nezdařilo."); }
     finally { setBusy(false); }
   }
-  return <section id={compact ? `dekodery-${vehicleId}` : "dekodery"} aria-label={compact ? `Dekodér kusu #${vehicleId}` : undefined} className={compact ? "edit-reveal-scope @container mt-3" : "config-section @container mt-6"}>
+  return <section id={compact ? `dekodery-${vehicleId}` : "dekodery"} aria-label={compact ? `Dekodér: ${label}` : undefined} className={compact ? "edit-reveal-scope @container mt-3" : "config-section @container mt-6"}>
     {(!compact || config.decoders.length > 0) && <header className="flex items-center justify-between gap-3 border-b border-divider pb-4">
       <h2 className="font-semibold">{compact ? "Nastavení dekodéru" : "Dekodéry a DCC funkce"}</h2>
-      {!editing && <span className={compact ? "edit-reveal" : ""}><EditAction label={compact ? `Upravit dekodér kusu #${vehicleId}` : "Upravit DCC"} onClick={() => { setEditing(true); setSaved(false); setError(""); }} /></span>}
+      {!editing && <span className={compact ? "edit-reveal" : ""}><EditAction label={compact ? `Upravit dekodér: ${label}` : "Upravit DCC"} onClick={() => { setEditing(true); setSaved(false); setError(""); }} /></span>}
     </header>}
     {saved && <p role="status" className="px-4 pt-3 text-sm text-success">Konfigurace uložena.</p>}
     {!editing ? <div className="space-y-4 pt-5">
@@ -79,7 +79,7 @@ export function DecoderEditor({ vehicleId, initial, templates, compact = false, 
     </div> : <form onSubmit={save} className="p-4">
       <fieldset disabled={busy} className="space-y-5 disabled:opacity-60">
         <div className="max-w-xs"><NumberField label="DCC adresa" value={config.dccAddress} min={1} max={10239} onChange={dccAddress => setConfig(c => ({ ...c, dccAddress }))} /></div>
-        <p className="text-xs text-secondary">Dekodér používá adresu tohoto kusu, pokud mu nevyplníte vlastní. Záznamy slouží jako přehled; neprogramují model.</p>
+        <p className="text-xs text-secondary">Dekodér používá adresu tohoto vozu, pokud mu nevyplníte vlastní. Záznamy slouží jako přehled; neprogramují model.</p>
         {config.decoders.map((d, index) => <article key={d.id} className="space-y-4 rounded-lg border border-divider p-3">
           <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Dekodér {index + 1}</h3><button type="button" className="text-xs text-danger" onClick={() => { if (confirm(`Odebrat dekodér „${d.name || index + 1}“ a jeho funkce? Změna se projeví po uložení.`)) setConfig(c => ({ ...c, decoders: c.decoders.filter(x => x.id !== d.id) })); }}>Odebrat dekodér</button></div>
           <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2">

@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PlusIcon } from '@heroicons/react/20/solid';
 import { DecoderEditor } from '@/components/decoder-editor';
 import type { DecoderConfig } from '@/lib/decoder-config';
 import { WagonPieceRow, type WagonPiece } from '@/components/wagon-piece-row';
 
 type Appearance = { vehicleId: number; trainId: number; trainNumber: string | null; trainName: string | null; trainCategory: string | null; position: number };
-export function WagonPieces({variantId,pieces: initialPieces,selectedId: initialSelectedId,section,decoders: initialDecoders,templates,appearances}: {
-  variantId:number|null; pieces:WagonPiece[]; selectedId:number; section:string;
+export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId,section,decoders: initialDecoders,templates,appearances}: {
+  pieces:WagonPiece[]; selectedId:number; section:string;
   decoders:(DecoderConfig & {vehicleId:number})[]; templates:{label:string;decoder:DecoderConfig}[]; appearances:Appearance[];
 }) {
   const router = useRouter();
@@ -22,43 +23,52 @@ export function WagonPieces({variantId,pieces: initialPieces,selectedId: initial
   const pathname = usePathname();
   const routeId = Number(pathname.split('/').pop());
   const selectedId = pieces.some(p => p.id === routeId) ? routeId : initialSelectedId;
-  const [quantity,setQuantity] = useState(pieces.length);
-  const [removeVehicleIds,setRemove] = useState<number[]>([]);
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [editingIds, setEditingIds] = useState<number[]>([]);
   const [decoderEditingIds, setDecoderEditingIds] = useState<number[]>([]);
-  const hasDrafts = editingIds.length > 0 || decoderEditingIds.length > 0;
-  const reducing = quantity < pieces.length;
-  async function save() {
-    if (reducing && !confirm(`Odebrat kusy ${removeVehicleIds.map(id=>`#${id}`).join(', ')} včetně jejich nastavení?`)) return;
+  async function add(sourceId: number, mode: 'blank' | 'equipment') {
+    if (busy) return;
     setBusy(true); setError('');
     try {
-      const res = await fetch(`/api/varianty-vozu/${variantId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantity,expectedQuantity:pieces.length,removeVehicleIds})});
-      const data = await res.json();
-      if (!res.ok) {setError(data.error);return;}
-      setRemove([]);
-      if (removeVehicleIds.includes(selectedId)) router.replace(`/${section}/${data.vehicleId}`);
+      const response = await fetch(`/api/vozidla/${sourceId}/kopie`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode})});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Vůz se nepodařilo přidat.');
+      setPieces(values => [...values,data]);
+      setDecoders(values => [...values,...data.decoders]);
+      window.history.pushState(null,'',`/${section}/${data.id}`);
+    } catch(error) { setError(error instanceof Error ? error.message : 'Spojení se nezdařilo.'); }
+    finally { setBusy(false); }
+  }
+  async function remove(id: number) {
+    if (editingIds.some(value => value !== id) || decoderEditingIds.length) {
+      setError('Nejprve uložte nebo zrušte ostatní rozpracované úpravy.'); return;
+    }
+    if (!confirm('Odstranit tento vůz z vaší sbírky včetně jeho DCC nastavení a poznámek?')) return;
+    setBusy(true); setError('');
+    try {
+      const response=await fetch(`/api/vozidla/${id}`,{method:'DELETE'});
+      const data=await response.json();
+      if (!response.ok) throw new Error(data.error || 'Vůz se nepodařilo odstranit.');
+      const remaining=pieces.filter(p=>p.id!==id);
+      setPieces(remaining); setEditingIds([]);
+      const next=remaining.find(p=>p.id===selectedId) ?? remaining[0];
+      router.replace(next ? `/${section}/${next.id}` : `/${section}`);
       router.refresh();
-    } catch {setError('Spojení se nezdařilo. Zkuste to znovu.');}
-    finally {setBusy(false);}
+    } catch(error) { setError(error instanceof Error ? error.message : 'Spojení se nezdařilo.'); }
+    finally { setBusy(false); }
   }
   return <section className="mt-6 rounded-lg border border-divider">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider px-4 py-3">
-      <h2 className="font-semibold">Moje kusy <span className="ml-2 text-sm font-normal text-secondary">{pieces.filter(p=>!p.isTemplate).length} ks</span></h2>
-      {variantId && <form className="flex items-center gap-2" onSubmit={e=>{e.preventDefault();void save();}}>
-        <label htmlFor="piece-count" className="text-sm">Počet</label>
-        <input id="piece-count" disabled={busy || hasDrafts} type="number" required min={1} max={1000} step={1} value={quantity} onChange={e=>{setQuantity(Number(e.target.value));setRemove([]);}} className="w-20 rounded-md border border-control px-2 py-2 text-sm" />
-        <button className="ui-button ui-button-primary" disabled={busy || hasDrafts || quantity === pieces.length || (reducing && removeVehicleIds.length !== pieces.length-quantity)}>Uložit</button>
-      </form>}
+      <h2 className="font-semibold">Moje vozy</h2>
+      <button type="button" className="ui-icon-button" aria-label="Přidat další vůz" title="Přidat další vůz bez individuální výbavy" disabled={busy} onClick={()=>void add(selectedId,'blank')}><PlusIcon className="size-5" aria-hidden="true" /></button>
     </div>
-    {reducing && <p className="px-4 pt-3 text-sm text-secondary">Vyberte {pieces.length-quantity} kusů k odebrání. Kusy zařazené v soupravách je nutné nejprve ze souprav odebrat. Smazáním se odstraní i jejich DCC nastavení a poznámky.</p>}
     {error && <p role="alert" className="px-4 pt-3 text-sm text-danger">{error}</p>}
     <ul className="divide-y divide-divider">
-      {pieces.map(p=><li key={p.id} data-piece-id={p.id} className={`edit-reveal-scope ${p.id===selectedId ? 'bg-selected' : ''}`}>
+      {pieces.map((p,index)=><li key={p.id} data-piece-id={p.id} className={`edit-reveal-scope ${p.id===selectedId ? 'bg-selected' : ''}`}>
         <div className="flex items-start">
-          {reducing && <input type="checkbox" aria-label={`Odebrat kus #${p.id}`} className="ml-4 mt-4" checked={removeVehicleIds.includes(p.id)} onChange={e=>setRemove(ids=>e.target.checked ? [...ids,p.id] : ids.filter(id=>id!==p.id))} />}
-          <WagonPieceRow piece={p} selected={p.id===selectedId} section={section} disabled={busy || quantity !== pieces.length}
+          <WagonPieceRow piece={p} selected={p.id===selectedId} section={section} disabled={busy} ordinal={pieces.length > 1 ? index+1 : undefined}
+            onDuplicate={()=>void add(p.id,'equipment')} onDelete={()=>remove(p.id)}
             onSaved={saved => setPieces(values => values.map(value => value.id === saved.id ? saved : value))}
             onSelect={() => { if (selectedId !== p.id) window.history.pushState(null, '', `/${section}/${p.id}`); }}
             onEditingChange={editing => setEditingIds(ids => editing ? [...ids, p.id] : ids.filter(id => id !== p.id))} />
@@ -75,7 +85,7 @@ export function WagonPieces({variantId,pieces: initialPieces,selectedId: initial
           </div>}
           <details>
             <summary className="cursor-pointer text-sm font-medium text-secondary">Dekodér a funkce</summary>
-            <DecoderEditor vehicleId={p.id} compact initial={{dccAddress:p.dccAddress,decoders:decoders.filter(d => d.vehicleId === p.id)}} templates={templates}
+            <DecoderEditor vehicleId={p.id} compact label={pieces.length > 1 ? `Vůz ${index+1}` : 'Vůz'} initial={{dccAddress:p.dccAddress,decoders:decoders.filter(d => d.vehicleId === p.id)}} templates={templates}
               onSaved={config => {
                 setPieces(values => values.map(value => value.id === p.id ? {...value,dccAddress:config.dccAddress} : value));
                 setDecoders(values => [...values.filter(d => d.vehicleId !== p.id), ...config.decoders.map(d => ({...d,vehicleId:p.id}))]);

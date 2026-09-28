@@ -81,7 +81,7 @@ export default async function EditVehiclePage({
           epochs: vehicle.epochs, epochNotes: vehicle.epochNotes,
           dccAddress: vehicle.dccAddress,
           isTemplate: vehicle.isTemplate,
-          notes: vehicle.notes || "",
+          notes: vehicle.notes || "", description: vehicle.description, referenceNotes: vehicle.referenceNotes,
         }}
       />
     </div>

@@ -138,3 +138,10 @@ Snapshot schema `1.6` adds `referenceOnly.epochs` (integer array, unknown `[]`) 
 `referenceOnly.epochNotes` (nullable provenance). These fields are informational
 and do not extend any iTrain write allowlist. Calibration and layout ownership are
 unchanged. See [epochs](epochs.md) for the assignment contract.
+
+Snapshot `1.7` adds `referenceOnly.description` and `referenceOnly.referenceNotes`.
+These preserve the cleaned owned-model description and original research text in
+backups without expanding iTrain write ownership. Ordinary user notes remain `notes`.
+Duplicating a wagon in the collection copies its DCC addresses and decoder records
+only when explicitly requested through Duplicate; new decoder IDs preserve isolation.
+The snapshot’s existing duplicate-address reporting still applies.

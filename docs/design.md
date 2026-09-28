@@ -241,10 +241,13 @@ split between top/bottom to satisfy the unchanged alpha-bound checks without str
 Wagon collection tiles show one image per stable variant and an owned `N ks` badge.
 Display filters affect identity labels, never the quantity. The detail route remains
 the physical vehicle URL for compatibility. The full-width shared header contains
-responsive artwork, an inline operator logo (up to 32 px high / 160 px wide), rounded
-Roman-numeral epoch badges and compact known model metadata. It has no DCC sidebar
-or empty length placeholder. Epoch source notes remain available in a disclosure.
-The header is followed by “Moje kusy”. Clicking a whole summary row selects that
+responsive artwork, the operator logo first (up to 32 px high / 160 px wide), the
+vehicle name, rounded Roman-numeral epoch badges and compact known model metadata.
+The model manufacturer and product number align to the right, before the hover edit
+action. Locomotive and wagon headers share this component. It has no DCC sidebar
+or empty length placeholder. The short owned-model description is always visible below the metadata. Epoch
+evidence and original research notes remain in the editors, not in this description.
+The header is followed by “Moje vozy”. Clicking a whole summary row selects that
 piece and updates browser history without navigation or losing open drafts; Back,
 Forward and direct URLs select the same piece. Notes, train appearances and a
 collapsed “Dekodér a funkce” section sit directly beneath the selected row.
@@ -252,7 +255,9 @@ Each decoder editor remains bound to its own physical ID. Missing decoder detail
 are described as unfilled information, never evidence that no hardware is installed.
 The piece address appears once in its row; decoder readouts show an address only
 when that decoder has a different explicit address. Individual piece rows
-show stable IDs, optional running numbers and per-piece equipment/weathering values,
+emphasize equipment icons and optional running/DCC numbers. Database IDs stay in
+URLs and data attributes; multiple rows show a small 1-based ordinal, a single row
+has no ordinal. Rows have edit and duplicate actions,
 with accessible pencil actions. Pencils reveal on row/header hover or keyboard
 focus; touch/coarse-pointer devices keep them visible. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
@@ -261,8 +266,13 @@ shared model/artwork fields, epoch, dimensions and catalog links. The pencil on 
 piece row opens an inline form for running number, DCC, couplers, lights, sound,
 weathering, template status and notes. Equipment uses labeled icon toggles; Save
 updates the row from the saved response without route refresh, Cancel discards the draft. Errors retain the
-draft. Multiple rows may stay open; quantity changes are disabled while editing
-either piece equipment or decoder details. Switching selection retains both drafts.
+draft. Multiple rows may stay open; switching, adding and duplicating retain drafts.
+A plus button adds one wagon with blank individual configuration. Hover Duplicate
+copies equipment, DCC addresses and decoder details (functions and CVs included),
+with new vehicle/decoder IDs; it omits running number, notes and train membership.
+This address-copy behavior is the user’s explicit preference. Inline editing includes
+Delete with confirmation; close other drafts before deleting. Deleting the last wagon
+returns to its collection. Train membership still blocks deletion.
 Only changed physical fields are sent. The field is named **DCC adresa**: it belongs
 to that piece, never to its variant. The dedicated piece URL remains available as
 a fallback, including “Smazat tento kus”; the shared form cannot delete a piece. Locomotive and
@@ -510,6 +520,7 @@ with a Czech decimal comma, or **Nevyplněna**. Gallery tiles stay compact. The 
 does not alter artwork sizing or gallery scale.
 
 Epochs use six compact, independent Roman-numeral checkboxes in vehicle editing.
-Show their joined label in detail views with source notes collapsed by default.
+Catalog detail views show their joined label with source notes collapsed by default.
+Owned detail headers use Roman-numeral badges; evidence remains in the editor.
 Use the shared Epocha dropdown in collection/catalog toolbars; do not add badges
 to every gallery image. Unknown is displayed as Nevyplněna. See [epochs](epochs.md).

@@ -213,3 +213,19 @@ direct URLs, retained piece/decoder drafts, decoder saves targeting the selected
 physical ID, a single address readout, epoch badges, responsive artwork and edit
 pencils on mouse hover, keyboard focus and touch. Use a disposable collection for
 these writes; the layout change needs no production data migration.
+
+## Owned descriptions and row actions
+
+Run `npm run db:migrate-vehicle-descriptions` against the backed-up intended database
+before deploying code reading `description` and `reference_notes`. Override with
+`VEHICLE_DESCRIPTION_MIGRATION_URL=file:/absolute/disposable.db` for tests. The script
+is additive/idempotent and leaves all original notes untouched. A reviewed content
+cleanup may separately populate shared descriptions and preserve the full original
+text as physical reference notes through the storage boundary; never infer missing
+seat counts or promote generated lettering to facts.
+
+Run `npx tsx --test tests/vehicle-descriptions.test.ts`, wagon-variant, decoder,
+freight, integration, speed-profile and auth HTTP suites. Browser checks cover plus,
+duplicate with independent decoder IDs and copied addresses, pending drafts, deletion
+confirmation/failure/membership guard, last-row navigation, single/multiple numbering,
+header layout and visible descriptions in both themes and narrow viewports.

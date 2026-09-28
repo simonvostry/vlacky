@@ -10,6 +10,7 @@ const nullableText = z.string().nullable().transform(v => v || null);
 const nullableId = z.number().int().positive().nullable();
 const epochsSchema = z.array(z.number().int().min(1).max(6)).max(6).refine(v => new Set(v).size === v.length).transform(v => [...v].sort((a,b) => a-b));
 const patchSchema = z.object({
+  description: z.string().max(5000).nullable().transform(v => v?.trim() || null), referenceNotes: z.string().max(30000).nullable().transform(v => v?.trim() || null),
   designation: z.string().trim().min(1), operator: nullableText, type: z.enum(['wagon', 'loco']),
   wagonKind: z.enum(['passenger', 'freight']), classType: nullableText,
   imagePath: nullableText, imageWidth: nullableId, imageHeight: nullableId,
@@ -22,13 +23,13 @@ const patchSchema = z.object({
   magneticCouplers: z.boolean().nullable(), hasLights: z.boolean().nullable().transform(v => v ?? false), runningNumber: nullableText,
 }).partial();
 const shared: Record<(typeof wagonModelFields)[number], string> = {
-  designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
+  description: 'description', designation: 'designation', operator: 'operator', type: 'type', wagonKind: 'wagon_kind', classType: 'class_type',
   imagePath: 'image_path', imageWidth: 'image_width', imageHeight: 'image_height', manufacturer: 'manufacturer',
   epochs: 'epochs', epochNotes: 'epoch_notes',
   lengthOverBuffersMm: 'length_over_buffers_mm',
   catalogNumber: 'catalog_number', catalogId: 'catalog_id', catalogImageId: 'catalog_image_id',
 };
-const physical: Record<(typeof vehiclePieceFields)[number], string> = { magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
+const physical: Record<(typeof vehiclePieceFields)[number], string> = { referenceNotes: 'reference_notes', magneticCouplerA: 'magnetic_coupler_a', magneticCouplerB: 'magnetic_coupler_b', hasTailLights: 'has_tail_lights', hasSoundDecoder: 'has_sound_decoder', hasSpeaker: 'has_speaker', isWeathered: 'is_weathered', dccAddress: 'dcc_address', isTemplate: 'is_template', notes: 'notes', magneticCouplers: 'magnetic_couplers', hasLights: 'has_lights', runningNumber: 'running_number' };
 type Row = Record<string, unknown>;
 function values(patch: Record<string, unknown>, mapping: Record<string, string>) {
   return Object.entries(mapping).filter(([key]) => patch[key] !== undefined).map(([key, column]) => [column, Array.isArray(patch[key]) ? JSON.stringify(patch[key]) : typeof patch[key] === 'boolean' ? Number(patch[key]) : patch[key]] as [string, InValue]);
@@ -166,3 +167,46 @@ async function deletePiece(tx: Transaction, id: number) {
   if (!result.rowsAffected) throw new CollectionError('Vozidlo nenalezeno.',404);
 }
 export async function removeVehicle(id: number) { return withWriteTransaction(tx => deletePiece(tx,id)); }
+
+/** Add one physical wagon; duplication copies configuration into independent records. */
+export async function addWagonCopy(sourceId: number, mode: unknown) {
+  if (!Number.isSafeInteger(sourceId) || sourceId < 1) throw new CollectionError('Neplatné vozidlo.');
+  if (mode !== 'blank' && mode !== 'equipment') throw new CollectionError('Neplatný způsob přidání vozu.');
+  return withWriteTransaction(async tx => {
+    const source = (await tx.execute({sql:'SELECT * FROM vehicles WHERE id=?',args:[sourceId]})).rows[0];
+    if (!source) throw new CollectionError('Vozidlo nenalezeno.',404);
+    if (source.type !== 'wagon') throw new CollectionError('Kopírovat lze pouze vozy.');
+    let variantId = source.wagon_variant_id as number | null;
+    if (variantId == null) {
+      variantId = await newVariant(tx);
+      await update(tx,[['wagon_variant_id',variantId]],'id',sourceId);
+    }
+    const count = Number((await tx.execute({sql:'SELECT count(*) AS n FROM vehicles WHERE wagon_variant_id=?',args:[variantId]})).rows[0].n);
+    if (count >= 1000) throw new CollectionError('Ve variantě může být nejvýše 1000 vozů.');
+    const equipment = ['magnetic_couplers','magnetic_coupler_a','magnetic_coupler_b','has_tail_lights','has_lights','has_sound_decoder','has_speaker','is_weathered'];
+    const id = await insert(tx,[...Object.values(shared).map(key => [key,source[key]] as [string,InValue]),
+      ['wagon_variant_id',variantId],['is_template',0],
+      ...equipment.map(key => [key,mode === 'equipment' ? source[key] : 0] as [string,InValue])]);
+    if (mode === 'equipment') {
+      await update(tx,[['dcc_address',source.dcc_address as InValue]],'id',id);
+      const decoderIds = new Map<string,string>();
+      const decoders = (await tx.execute({sql:'SELECT * FROM vehicle_decoders WHERE vehicle_id=?',args:[sourceId]})).rows;
+      for (const decoder of decoders) {
+        const newId = crypto.randomUUID(); decoderIds.set(String(decoder.id),newId);
+        const row = {...decoder,id:newId,vehicle_id:id};
+        const keys = Object.keys(row);
+        await tx.execute({sql:`INSERT INTO vehicle_decoders (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
+      }
+      const functions = (await tx.execute({sql:'SELECT * FROM decoder_functions WHERE vehicle_id=?',args:[sourceId]})).rows;
+      for (const fn of functions) {
+        const row: Record<string,InValue> = Object.fromEntries(Object.entries(fn).filter(([key])=>key!=='id'));
+        row.vehicle_id=id;
+        if (fn.decoder_id != null && !decoderIds.has(String(fn.decoder_id))) throw new CollectionError('Funkce odkazuje na jiný dekodér.');
+        row.decoder_id=fn.decoder_id == null ? null : decoderIds.get(String(fn.decoder_id))!;
+        const keys = Object.keys(row);
+        await tx.execute({sql:`INSERT INTO decoder_functions (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
+      }
+    }
+    return id;
+  });
+}

@@ -2,6 +2,7 @@
 
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { EditAction } from '@/components/ui-actions';
 import { EquipmentGlyph, EquipmentIcons } from '@/components/equipment-icons';
 import { FilterDropdown } from '@/components/filter-dropdown';
@@ -9,15 +10,17 @@ import { hasVehicleSound, soundEquipmentPatch, type VehicleEquipment } from '@/l
 
 export type WagonPiece = VehicleEquipment & {
   id: number; runningNumber: string | null; hasLights: boolean | null;
-  dccAddress: number | null; isTemplate: boolean; notes: string | null;
+  dccAddress: number | null; isTemplate: boolean; notes: string | null; referenceNotes?: string | null;
 };
 const input = 'w-full min-w-0 rounded-md border border-control bg-surface px-3 py-2 text-sm';
 const fields = ['runningNumber', 'dccAddress', 'magneticCouplerA', 'magneticCouplerB', 'hasTailLights', 'hasLights', 'hasSoundDecoder', 'hasSpeaker', 'isWeathered', 'isTemplate', 'notes'] as const;
 
-export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved }: {
+export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete }: {
+  ordinal?: number; onDuplicate: () => void; onDelete: () => Promise<void>;
   piece: WagonPiece; selected: boolean; section: string; disabled: boolean;
   onEditingChange: (editing: boolean) => void; onSelect: () => void; onSaved: (piece: WagonPiece) => void;
 }) {
+  const label = ordinal ? `Vůz ${ordinal}` : 'Vůz';
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const trigger = useRef<HTMLDivElement>(null);
@@ -35,29 +38,33 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
         href={`/${section}/${piece.id}`} scroll={false} onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           e.preventDefault(); if (!disabled) onSelect();
-        }} className="block rounded-md px-4 py-3 pr-16 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
-        <span className="text-sm font-semibold">Kus #{piece.id}{piece.runningNumber ? ` · ${piece.runningNumber}` : ''}</span>
-        {piece.isTemplate && <span className="ml-2 text-xs text-warning">Předloha</span>}
-        {!editing && <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+        }} aria-label={`Vybrat ${label.toLowerCase()}`} className="block rounded-md px-4 py-3 pr-24 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
+        <span className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
+          {ordinal && <span className="w-4 text-xs tabular-nums text-secondary">{ordinal}</span>}
           <EquipmentIcons value={piece} focusable={false} />
+          {piece.runningNumber && <span className="text-xs text-secondary">{piece.runningNumber}</span>}
           {piece.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {piece.dccAddress}</span>}
+          {piece.isTemplate && <span className="text-xs text-warning">Předloha</span>}
           {saved && <span role="status" className="text-xs text-success">Uloženo.</span>}
-        </span>}
+        </span>
       </Link>
-      <div ref={trigger} className="edit-reveal absolute right-4 top-3">{!editing && <EditAction label={`Upravit kus #${piece.id}`} disabled={disabled} onClick={() => { setEditing(true); setSaved(false); onEditingChange(true); }} />}</div>
+      <div ref={trigger} className="edit-reveal absolute right-3 top-2.5 flex gap-1">{!editing && <>
+        <EditAction label={`Upravit ${label.toLowerCase()}`} disabled={disabled} onClick={() => { setEditing(true); setSaved(false); onEditingChange(true); }} />
+        <button type="button" className="ui-icon-button ui-edit" aria-label={`Duplikovat ${label.toLowerCase()}`} title="Duplikovat výbavu, DCC adresu a konfiguraci dekodéru" disabled={disabled} onClick={onDuplicate}><DocumentDuplicateIcon className="size-4" aria-hidden="true" /><span className="ui-tooltip" aria-hidden="true">Duplikovat</span></button>
+      </>}</div>
     </div>
-    {editing && <div className="px-4 pb-4"><PieceEditor piece={piece} onClose={close} onSaved={onSaved} /></div>}
+    {editing && <div className="px-4 pb-4"><PieceEditor piece={piece} onClose={close} onSaved={onSaved} label={label} onDelete={onDelete} disabled={disabled} /></div>}
   </div>;
 }
 
-function PieceEditor({ piece, onClose, onSaved }: { piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece) => void }) {
+function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled }: { piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece) => void; label:string; onDelete:()=>Promise<void>; disabled:boolean }) {
   const notesId = useId();
   // Capture only this piece's editable values; later refreshes must not reset a draft.
   const [base] = useState(piece);
   const [draft, setDraft] = useState(piece);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const locked = busy;
+  const locked = busy || disabled;
   function patch(value: Partial<WagonPiece>) { setDraft(d => ({ ...d, ...value })); }
   const couplers = draft.magneticCouplerA && draft.magneticCouplerB ? 'both' : draft.magneticCouplerA || draft.magneticCouplerB ? 'one' : '';
   async function save(e: React.FormEvent) {
@@ -74,10 +81,10 @@ function PieceEditor({ piece, onClose, onSaved }: { piece: WagonPiece; onClose: 
     } catch (err) { setError(err instanceof Error ? err.message : 'Spojení se nezdařilo. Zkuste to znovu.'); }
     finally { setBusy(false); }
   }
-  return <form aria-label={`Upravit kus #${piece.id}`} onSubmit={save} className="mt-3">
+  return <form aria-label={`Upravit ${label.toLowerCase()}`} onSubmit={save} className="mt-3">
     <fieldset disabled={locked} className="min-w-0 space-y-3 disabled:opacity-60">
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="min-w-0 text-xs font-medium text-secondary">Číslo / označení kusu
+        <label className="min-w-0 text-xs font-medium text-secondary">Číslo / označení vozu
           <input autoFocus className={`${input} mt-1`} value={draft.runningNumber ?? ''} onChange={e => patch({ runningNumber: e.target.value || null })} />
         </label>
         <label className="min-w-0 text-xs font-medium text-secondary">DCC adresa
@@ -103,14 +110,16 @@ function PieceEditor({ piece, onClose, onSaved }: { piece: WagonPiece; onClose: 
         </button>)}
       </div>
       <div>
-        <label htmlFor={notesId} className="block text-xs font-medium text-secondary">Poznámky ke kusu</label>
+        <label htmlFor={notesId} className="block text-xs font-medium text-secondary">Poznámky k vozu</label>
         <textarea id={notesId} rows={2} className={`${input} mt-1`} value={draft.notes ?? ''} onChange={e => patch({ notes: e.target.value || null })} />
       </div>
+      {piece.referenceNotes && <details className="text-xs text-secondary"><summary className="cursor-pointer">Zdroje a původní poznámky</summary><p className="mt-2 whitespace-pre-wrap break-words">{piece.referenceNotes}</p></details>}
       <label className="flex items-center gap-2 text-xs text-secondary"><input type="checkbox" checked={draft.isTemplate} onChange={e => patch({ isTemplate: e.target.checked })} />Ukázka / předloha (vynechat ze synchronizace)</label>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button type="submit" className="ui-button ui-button-primary">{locked ? 'Ukládám…' : 'Uložit'}</button>
         <button type="button" className="ui-button ui-button-secondary" onClick={() => onClose(false)}>Zrušit</button>
+        <button type="button" className="ui-button ui-button-danger ml-auto" onClick={()=>void onDelete()}><TrashIcon className="size-4" aria-hidden="true" />Odstranit vůz</button>
       </div>
     </fieldset>
   </form>;
