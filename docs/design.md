@@ -260,7 +260,8 @@ emphasize equipment icons and optional running/DCC numbers. Database IDs stay in
 URLs and data attributes; multiple rows show a small 1-based ordinal, a single row
 has no ordinal. Rows have edit and duplicate actions,
 with accessible pencil actions. Pencils reveal on row/header hover or keyboard
-focus; touch/coarse-pointer devices keep them visible. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
+focus-visible; mouse selection alone never keeps row actions visible after the pointer
+leaves. Touch/coarse-pointer devices keep them visible. General lighting uses Ano / Ne, default Ne. Selection uses `bg-selected`.
 
 The pencil beside the main wagon image opens **Upravit variantu**, containing only
 shared model/artwork fields, epoch, dimensions and catalog links. The pencil on a

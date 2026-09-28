@@ -133,5 +133,5 @@ html[data-train-labels-hidden~="operator"][data-train-labels-hidden~="number"][d
 @media (hover: hover) and (pointer: fine) {
   .edit-reveal { opacity: 0; transition: opacity 120ms; }
   .edit-reveal-scope:hover .edit-reveal,
-  .edit-reveal-scope:focus-within .edit-reveal { opacity: 1; }
+  .edit-reveal-scope:has(:focus-visible) .edit-reveal { opacity: 1; }
 }
