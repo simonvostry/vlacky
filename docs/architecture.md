@@ -365,3 +365,13 @@ Omitted decoder data is preserved; the row editor sends it only when modified.
 Decoder saves resolve the physical address inside that transaction. Ungrouped
 physical edits do not create a variant. The existing separate APIs remain for
 compatibility and locomotive editing; DCC remains owned by physical vehicle IDs.
+
+`POST /api/vozidla/[id]/pouzit-nastaveni` applies saved equipment and DCC settings
+from one wagon to every other physical model in the same variant. The request must
+name the exact current sibling IDs; changed membership is rejected before writing.
+One transaction updates couplers, lighting/tail lights, sound flags, weathering and
+DCC address, and replaces decoder configurations with independent IDs, including
+functions, CVs and preserved decoder metadata. Empty values also replace existing
+values. The source, running numbers, vehicle notes/provenance, template flags,
+catalog/artwork/group identities, train memberships and speed profiles are preserved.
+The decoder-cloning helper is shared with Duplicate. No schema migration is needed.

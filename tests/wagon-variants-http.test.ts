@@ -301,6 +301,55 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     assert.equal((sqlite.prepare('SELECT count(*) AS n FROM decoder_functions WHERE vehicle_id=?').get(copied.id) as {n:number}).n,0);
     assert.deepEqual(await get(four.id),sourceBefore);
 
+    // Apply saved equipment and decoder configuration to the confirmed sibling set.
+    const targetIds = [...fourIds.slice(1),blank.id];
+    const applyPath = `/api/vozidla/${four.id}/pouzit-nastaveni`;
+    await save(`/api/vozidla/${targetIds[0]}`,{notes:'Keep target note',referenceNotes:'Keep provenance',isTemplate:true,runningNumber:'Target identity'},'PUT');
+    await save(`/api/vozidla/${targetIds[0]}/dekodery`,{dccAddress:99,decoders:[{...decoder,id:'replaced-decoder',name:'Old target'}]},'PUT');
+    await save('/api/vlaky/1/vozidla',{vehicleId:targetIds[0]});
+    const allState = () => Object.fromEntries(['vehicles','vehicle_decoders','decoder_functions','train_vehicles','vehicle_speed_profiles'].map(table=>[table,sqlite.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()]));
+    const beforeApply = allState();
+    for (const invalid of [{}, {targetIds:[]}, {targetIds:[targetIds[0],targetIds[0]]}, {targetIds,extra:true}]) {
+      assert.equal((await save(applyPath,invalid)).status,400);
+    }
+    for (const stale of [targetIds.slice(1),[...targetIds,20],[...targetIds.slice(1),20]]) assert.equal((await save(applyPath,{targetIds:stale})).status,409);
+    assert.equal((await save('/api/vozidla/1/pouzit-nastaveni',{targetIds})).status,400);
+    assert.equal((await save('/api/vozidla/999999/pouzit-nastaveni',{targetIds})).status,404);
+    assert.deepEqual(allState(),beforeApply);
+    // Failure after one target was already changed rolls back the whole transaction.
+    sqlite.exec(`CREATE TRIGGER reject_settings_copy BEFORE UPDATE ON vehicles WHEN NEW.id=${targetIds[1]} BEGIN SELECT RAISE(ABORT, 'test failure'); END;`);
+    assert.equal((await save(applyPath,{targetIds})).status,409);
+    assert.deepEqual(allState(),beforeApply);
+    sqlite.exec('DROP TRIGGER reject_settings_copy');
+    const result = await save(applyPath,{targetIds});assert.equal(result.status,200);
+    const applied = await result.json();assert.equal(applied.pieces.length,targetIds.length);
+    assert.equal(new Set(applied.decoders.map((d:{id:string})=>d.id)).size,targetIds.length);
+    const copiedKeys=['dcc_address','magnetic_couplers','magnetic_coupler_a','magnetic_coupler_b','has_tail_lights','has_lights','has_sound_decoder','has_speaker','is_weathered'];
+    const afterApply = allState();
+    for (const old of beforeApply.vehicles as Record<string,unknown>[]) {
+      const current = (afterApply.vehicles as Record<string,unknown>[]).find(row=>row.id===old.id)!;
+      if(!targetIds.includes(Number(old.id)))assert.deepEqual(current,old);
+      else {
+        const expected={...old};const source=(beforeApply.vehicles as Record<string,unknown>[]).find(row=>row.id===four.id)!;
+        for(const key of copiedKeys)expected[key]=source[key];
+        assert.deepEqual(current,expected); // IDs, numbers, notes, catalog/group, template status all retained
+        const config=await(await request(`/api/vozidla/${old.id}/dekodery`)).json();
+        assert.equal(config.decoders.length,1);assert.notEqual(config.decoders[0].id,decoder.id);
+        for(const key of Object.keys(decoder).filter(key=>key!=='id'))assert.deepEqual(config.decoders[0][key],decoder[key as keyof typeof decoder]);
+      }
+    }
+    assert.deepEqual(afterApply.train_vehicles,beforeApply.train_vehicles);
+    assert.deepEqual(afterApply.vehicle_speed_profiles,beforeApply.vehicle_speed_profiles);
+    for(const table of ['vehicle_decoders','decoder_functions']) {
+      const untouched=(rows:unknown[]) => (rows as Record<string,unknown>[]).filter(row=>!targetIds.includes(Number(row.vehicle_id)));
+      assert.deepEqual(untouched(afterApply[table]),untouched(beforeApply[table]));
+    }
+    // Explicit apply also transfers absence: old decoders and addresses are cleared.
+    await save(`/api/vozidla/${four.id}/dekodery`,{dccAddress:null,decoders:[]},'PUT');
+    await save(`/api/vozidla/${four.id}`,{editMode:'piece',hasLights:false,magneticCouplerB:false,isWeathered:false},'PUT');
+    assert.equal((await save(applyPath,{targetIds})).status,200);
+    for(const id of targetIds){const v=await get(id);assert.equal(v.dccAddress,null);assert.equal(v.hasLights,false);assert.equal(v.magneticCouplerB,false);assert.equal(v.isWeathered,false);assert.deepEqual((await(await request(`/api/vozidla/${id}/dekodery`)).json()).decoders,[]);}
+
 
 
   } finally {

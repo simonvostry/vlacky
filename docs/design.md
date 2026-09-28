@@ -608,3 +608,11 @@ the triggering button, with No initially focused, Escape cancellation and focus
 restoration. No browser `confirm` is used by these controls. Decoder removal stays
 a draft change until the unified Save; wagon deletion is immediate after Yes and
 still respects train-membership and other-open-draft guards.
+
+The third wagon-row hover action, “Použít pro ostatní vozy”, uses an arrow into
+stacked squares to distinguish applying settings from Duplicate. It appears only
+when siblings exist. Its inline Yes/No confirmation names the number of targets,
+warns about replacing equipment, addresses and complete decoder configuration
+(including empty values), and explains that individual numbers/notes are preserved.
+Save or cancel all open drafts before applying. The source remains unchanged;
+success updates sibling rows in place. Failures show an error and allow retry.

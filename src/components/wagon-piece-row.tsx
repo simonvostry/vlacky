@@ -2,9 +2,10 @@
 
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/20/solid';
+import { ArrowDownOnSquareStackIcon, DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { EditAction } from '@/components/ui-actions';
 import { EquipmentGlyph, EquipmentIcons } from '@/components/equipment-icons';
+import { InlineConfirm } from '@/components/inline-confirm';
 import { InlineDelete } from '@/components/inline-delete';
 import { DecoderFields } from '@/components/decoder-editor';
 import { functionLabel, type DecoderConfig } from '@/lib/decoder-config';
@@ -18,7 +19,8 @@ export type WagonAppearance = { vehicleId: number; trainId: number; trainNumber:
 const input = 'w-full min-w-0 rounded-md border border-control bg-surface px-3 py-2 text-sm';
 const fields = ['runningNumber', 'dccAddress', 'magneticCouplerA', 'magneticCouplerB', 'hasTailLights', 'hasLights', 'hasSoundDecoder', 'hasSpeaker', 'isWeathered', 'isTemplate', 'notes'] as const;
 
-export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete, decoders, templates, appearances }: {
+export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete, decoders, templates, appearances, otherCount, applyDisabled, onApplySettings }: {
+  otherCount: number; applyDisabled: boolean; onApplySettings: () => Promise<void>;
   appearances: WagonAppearance[];
   decoders: DecoderConfig[]; templates: {label:string;decoder:DecoderConfig}[];
   ordinal?: number; onDuplicate: () => void; onDelete: () => Promise<void>;
@@ -38,7 +40,7 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
     setEditing(false); setSaved(wasSaved); onEditingChange(false);
   }
   return <div className="edit-reveal-scope min-w-0 flex-1">
-    <div className="relative flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md px-4 py-3 pr-24 hover:bg-subtle">
+    <div className={`relative flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md px-4 py-3 ${otherCount ? 'pr-4 sm:pr-40' : 'pr-4 sm:pr-28'} hover:bg-subtle`}>
       <Link aria-current={selected ? 'page' : undefined} aria-controls={`piece-details-${piece.id}`} aria-expanded={selected}
         href={`/${section}/${piece.id}`} scroll={false} onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -61,9 +63,14 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
           </Link>
         </li>)}
       </ul>}
-      <div ref={trigger} className="edit-reveal absolute right-3 top-2.5 z-10 flex gap-1">{!editing && <>
+      <div ref={trigger} className="edit-reveal relative z-10 ml-auto flex gap-1 sm:absolute sm:right-3 sm:top-2.5">{!editing && <>
         <EditAction label={`Upravit ${label.toLowerCase()}`} disabled={disabled} onClick={() => { onSelect(); setEditing(true); setSaved(false); onEditingChange(true); }} />
         <button type="button" className="ui-icon-button ui-edit" aria-label={`Duplikovat ${label.toLowerCase()}`} title="Duplikovat výbavu, DCC adresu a konfiguraci dekodéru" disabled={disabled} onClick={onDuplicate}><DocumentDuplicateIcon className="size-4" aria-hidden="true" /><span className="ui-tooltip" aria-hidden="true">Duplikovat</span></button>
+        {otherCount > 0 && <InlineConfirm label={`Použít nastavení ${label.toLowerCase()} pro ostatní vozy`} title={applyDisabled ? 'Nejprve uložte nebo zrušte rozpracované úpravy' : 'Použít nastavení pro ostatní vozy'} className="ui-icon-button ui-edit" disabled={disabled || applyDisabled}
+          question={`Přepsat výbavu, DCC adresu a celou konfiguraci dekodérů u ostatních vozů této varianty (${otherCount})? Prázdné hodnoty se přenesou také. Čísla vozů a poznámky zůstanou zachovány.`} onConfirm={onApplySettings}>
+          <ArrowDownOnSquareStackIcon className="size-4" aria-hidden="true" />
+          <span className="ui-tooltip" aria-hidden="true">Použít pro ostatní vozy</span>
+        </InlineConfirm>}
       </>}</div>
     </div>
     {editing && <div className="px-4 pb-4"><PieceEditor decoders={decoders} templates={templates} piece={piece} onClose={close} onSaved={onSaved} label={label} onDelete={onDelete} disabled={disabled} /></div>}

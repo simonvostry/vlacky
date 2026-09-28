@@ -60,6 +60,7 @@ test("production server protects pages, images, API methods and session integrit
     for (const [path, methods] of [
       ["/api/varianty-vozu/1", ["PUT"]],
       ["/api/vozidla/1/kopie", ["POST"]],
+      ["/api/vozidla/1/pouzit-nastaveni", ["POST"]],
       ["/api/vozidla/1/dekodery", ["GET", "PUT"]],
       ["/api/vozidla/1/konfigurace", ["PUT"]],
       ["/api/dekodery/katalog", ["GET", "POST"]],

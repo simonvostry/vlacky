@@ -251,3 +251,10 @@ suites (including atomic combined-save rollback), auth HTTP, integration and pro
 checks. Browser review should exercise combined Save/Cancel, multiple drafts,
 selection, failed-save retry, the three-state coupler count and stable toggle widths, inline deletion No/Escape/
 Yes/error, decoder removal, and the compact desktop/narrow layout in both themes.
+
+For applying wagon settings to siblings, wagon-variant HTTP tests cover exact-target
+validation, cross-variant rejection, transactional rollback, independent decoder IDs,
+replacement by empty values and preservation of identities, memberships and profiles.
+Run auth HTTP checks for the new endpoint and browser-check confirmation No/Escape/Yes,
+open-draft locking, failure/retry, updated summaries and single-wagon visibility in
+both themes and narrow viewports, using a disposable collection only.

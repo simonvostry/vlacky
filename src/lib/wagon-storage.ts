@@ -190,24 +190,54 @@ export async function addWagonCopy(sourceId: number, mode: unknown) {
       ...equipment.map(key => [key,mode === 'equipment' ? source[key] : 0] as [string,InValue])]);
     if (mode === 'equipment') {
       await update(tx,[['dcc_address',source.dcc_address as InValue]],'id',id);
-      const decoderIds = new Map<string,string>();
-      const decoders = (await tx.execute({sql:'SELECT * FROM vehicle_decoders WHERE vehicle_id=?',args:[sourceId]})).rows;
-      for (const decoder of decoders) {
-        const newId = crypto.randomUUID(); decoderIds.set(String(decoder.id),newId);
-        const row = {...decoder,id:newId,vehicle_id:id};
-        const keys = Object.keys(row);
-        await tx.execute({sql:`INSERT INTO vehicle_decoders (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
-      }
-      const functions = (await tx.execute({sql:'SELECT * FROM decoder_functions WHERE vehicle_id=?',args:[sourceId]})).rows;
-      for (const fn of functions) {
-        const row: Record<string,InValue> = Object.fromEntries(Object.entries(fn).filter(([key])=>key!=='id'));
-        row.vehicle_id=id;
-        if (fn.decoder_id != null && !decoderIds.has(String(fn.decoder_id))) throw new CollectionError('Funkce odkazuje na jiný dekodér.');
-        row.decoder_id=fn.decoder_id == null ? null : decoderIds.get(String(fn.decoder_id))!;
-        const keys = Object.keys(row);
-        await tx.execute({sql:`INSERT INTO decoder_functions (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
-      }
+      await copyWagonDecoders(tx,sourceId,id);
     }
     return id;
+  });
+}
+
+/** Clone full decoder records, including CVs and legacy functions, into independent IDs. */
+async function copyWagonDecoders(tx: Transaction, sourceId: number, id: number) {
+  const decoderIds = new Map<string,string>();
+  const decoders = (await tx.execute({sql:'SELECT * FROM vehicle_decoders WHERE vehicle_id=?',args:[sourceId]})).rows;
+  for (const decoder of decoders) {
+    const newId = crypto.randomUUID(); decoderIds.set(String(decoder.id),newId);
+    const row = {...decoder,id:newId,vehicle_id:id};
+    const keys = Object.keys(row);
+    await tx.execute({sql:`INSERT INTO vehicle_decoders (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
+  }
+  const functions = (await tx.execute({sql:'SELECT * FROM decoder_functions WHERE vehicle_id=?',args:[sourceId]})).rows;
+  for (const fn of functions) {
+    const row: Record<string,InValue> = Object.fromEntries(Object.entries(fn).filter(([key])=>key!=='id'));
+    row.vehicle_id=id;
+    if (fn.decoder_id != null && !decoderIds.has(String(fn.decoder_id))) throw new CollectionError('Funkce odkazuje na jiný dekodér.');
+    row.decoder_id=fn.decoder_id == null ? null : decoderIds.get(String(fn.decoder_id))!;
+    const keys = Object.keys(row);
+    await tx.execute({sql:`INSERT INTO decoder_functions (${keys.join(',')}) VALUES (${keys.map(()=>'?').join(',')})`,args:Object.values(row) as InValue[]});
+  }
+}
+
+/** Replace only equipment/DCC on the exact sibling set confirmed by the user. */
+export async function applyWagonSettings(sourceId: number, body: unknown) {
+  if (!Number.isSafeInteger(sourceId) || sourceId < 1) throw new CollectionError('Neplatné vozidlo.');
+  const parsed = z.object({targetIds:z.array(z.number().int().positive()).min(1).max(999)}).strict().safeParse(body);
+  if (!parsed.success || new Set(parsed.data.targetIds).size !== parsed.data.targetIds.length) throw new CollectionError('Neplatný seznam vozů.');
+  return withWriteTransaction(async tx => {
+    const source = (await tx.execute({sql:'SELECT * FROM vehicles WHERE id=?',args:[sourceId]})).rows[0];
+    if (!source) throw new CollectionError('Vozidlo nenalezeno.',404);
+    if (source.type !== 'wagon' || source.wagon_variant_id == null) throw new CollectionError('Nastavení lze přenést pouze mezi vozy stejné varianty.');
+    const targets = (await tx.execute({sql:'SELECT id,type FROM vehicles WHERE wagon_variant_id=? AND id<>? ORDER BY id',args:[source.wagon_variant_id,sourceId]})).rows;
+    const targetIds = targets.map(row=>Number(row.id));
+    if (targets.some(row=>row.type!=='wagon') || targetIds.length !== parsed.data.targetIds.length || targetIds.some(id=>!parsed.data.targetIds.includes(id))) {
+      throw new CollectionError('Seznam vozů se mezitím změnil. Obnovte stránku a potvrďte přenos znovu.',409);
+    }
+    const keys = ['dcc_address','magnetic_couplers','magnetic_coupler_a','magnetic_coupler_b','has_tail_lights','has_lights','has_sound_decoder','has_speaker','is_weathered'];
+    for (const id of targetIds) {
+      await update(tx,keys.map(key=>[key,source[key]] as [string,InValue]),'id',id);
+      await tx.execute({sql:'DELETE FROM decoder_functions WHERE vehicle_id=?',args:[id]});
+      await tx.execute({sql:'DELETE FROM vehicle_decoders WHERE vehicle_id=?',args:[id]});
+      await copyWagonDecoders(tx,sourceId,id);
+    }
+    return targetIds;
   });
 }
