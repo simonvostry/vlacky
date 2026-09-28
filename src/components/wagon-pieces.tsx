@@ -1,15 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import type { DecoderConfig } from '@/lib/decoder-config';
-import { WagonPieceRow, type WagonPiece } from '@/components/wagon-piece-row';
+import { WagonPieceRow, type WagonPiece, type WagonAppearance } from '@/components/wagon-piece-row';
 
-type Appearance = { vehicleId: number; trainId: number; trainNumber: string | null; trainName: string | null; trainCategory: string | null; position: number };
 export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId,section,decoders: initialDecoders,templates,appearances}: {
   pieces:WagonPiece[]; selectedId:number; section:string;
-  decoders:(DecoderConfig & {vehicleId:number})[]; templates:{label:string;decoder:DecoderConfig}[]; appearances:Appearance[];
+  decoders:(DecoderConfig & {vehicleId:number})[]; templates:{label:string;decoder:DecoderConfig}[]; appearances:WagonAppearance[];
 }) {
   const router = useRouter();
   const [pieces,setPieces] = useState(initialPieces);
@@ -66,7 +64,7 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
         <div className="flex items-start">
           <WagonPieceRow piece={p} selected={p.id===selectedId} section={section} disabled={busy} ordinal={pieces.length > 1 ? index+1 : undefined}
             onDuplicate={()=>void add(p.id,'equipment')} onDelete={()=>remove(p.id)}
-            decoders={decoders.filter(d=>d.vehicleId===p.id)} templates={templates}
+            decoders={decoders.filter(d=>d.vehicleId===p.id)} templates={templates} appearances={appearances.filter(a=>a.vehicleId===p.id)}
             onSaved={(saved,configuration) => {
               setPieces(values => values.map(value => value.id === saved.id ? saved : value));
               setDecoders(values=>[...values.filter(d=>d.vehicleId!==p.id),...configuration.map(d=>({...d,vehicleId:p.id}))]);
@@ -74,16 +72,9 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
             onSelect={() => { if (selectedId !== p.id) window.history.pushState(null, '', `/${section}/${p.id}`); }}
             onEditingChange={editing => setEditingIds(ids => editing ? [...ids, p.id] : ids.filter(id => id !== p.id))} />
         </div>
-        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId || editingIds.includes(p.id) || (!p.notes && !appearances.some(a=>a.vehicleId===p.id))} className="border-t border-divider px-4 py-3">
-          {p.notes && <p className="mb-3 whitespace-pre-wrap break-words text-sm text-secondary">{p.notes}</p>}
-          {appearances.some(a => a.vehicleId === p.id) && <div className="mb-3">
-            <h3 className="mb-1 text-xs font-medium text-secondary">Zařazení ve vlacích</h3>
-            <ul className="flex flex-wrap gap-2">{appearances.filter(a => a.vehicleId === p.id).map(a => <li key={a.trainId}>
-              <Link href={`/soupravy/${a.trainId}`} className="inline-flex flex-wrap items-center gap-2 rounded-md bg-surface px-3 py-2 text-sm hover:text-accent">
-                <span>{[a.trainCategory,a.trainNumber,a.trainName].filter(Boolean).join(' ')}</span><span className="text-xs text-secondary">Pozice {a.position}</span>
-              </Link>
-            </li>)}</ul>
-          </div>}
+        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId || editingIds.includes(p.id) || !p.notes} className="border-t border-divider px-4 py-3">
+          {p.notes && <p className="whitespace-pre-wrap break-words text-sm text-secondary">{p.notes}</p>}
+
         </div>
       </li>)}
     </ul>

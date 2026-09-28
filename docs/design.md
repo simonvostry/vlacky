@@ -249,9 +249,10 @@ or empty length placeholder. The short owned-model description is always visible
 evidence and original research notes remain in the editors, not in this description.
 The header is followed by “Moje vozy”. Clicking a whole summary row selects that
 piece and updates browser history without navigation or losing open drafts; Back,
-Forward and direct URLs select the same piece. Notes and train appearances sit
-directly beneath the selected row. DCC addresses and functions share the summary
-line; decoder fields live inside the unified instance editor, bound to its physical ID. Missing decoder details
+Forward and direct URLs select the same piece. Notes sit beneath the selected row.
+Train-set links and positions share the equipment/DCC summary line on every row,
+wrapping only when needed. These links navigate to the train; the rest of the row
+still selects the physical wagon. DCC addresses and functions share the summary line; decoder fields live inside the unified instance editor, bound to its physical ID. Missing decoder details
 are described as unfilled information, never evidence that no hardware is installed.
 The piece address appears once in its row; decoder readouts show an address only
 when that decoder has a different explicit address. Individual piece rows

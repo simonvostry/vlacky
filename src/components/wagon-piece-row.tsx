@@ -14,10 +14,12 @@ export type WagonPiece = VehicleEquipment & {
   id: number; runningNumber: string | null; hasLights: boolean | null;
   dccAddress: number | null; isTemplate: boolean; notes: string | null; referenceNotes?: string | null;
 };
+export type WagonAppearance = { vehicleId: number; trainId: number; trainNumber: string | null; trainName: string | null; trainCategory: string | null; position: number };
 const input = 'w-full min-w-0 rounded-md border border-control bg-surface px-3 py-2 text-sm';
 const fields = ['runningNumber', 'dccAddress', 'magneticCouplerA', 'magneticCouplerB', 'hasTailLights', 'hasLights', 'hasSoundDecoder', 'hasSpeaker', 'isWeathered', 'isTemplate', 'notes'] as const;
 
-export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete, decoders, templates }: {
+export function WagonPieceRow({ piece, selected, section, disabled, onEditingChange, onSelect, onSaved, ordinal, onDuplicate, onDelete, decoders, templates, appearances }: {
+  appearances: WagonAppearance[];
   decoders: DecoderConfig[]; templates: {label:string;decoder:DecoderConfig}[];
   ordinal?: number; onDuplicate: () => void; onDelete: () => Promise<void>;
   piece: WagonPiece; selected: boolean; section: string; disabled: boolean;
@@ -36,13 +38,13 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
     setEditing(false); setSaved(wasSaved); onEditingChange(false);
   }
   return <div className="edit-reveal-scope min-w-0 flex-1">
-    <div className="relative">
+    <div className="relative flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md px-4 py-3 pr-24 hover:bg-subtle">
       <Link aria-current={selected ? 'page' : undefined} aria-controls={`piece-details-${piece.id}`} aria-expanded={selected}
         href={`/${section}/${piece.id}`} scroll={false} onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           e.preventDefault(); if (!disabled) onSelect();
-        }} aria-label={`Vybrat ${label.toLowerCase()}`} className="block rounded-md px-4 py-3 pr-24 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
-        <span className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
+        }} aria-label={`Vybrat ${label.toLowerCase()}`} className="min-w-0 after:absolute after:inset-0 after:rounded-md focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-focus">
+        <span className="relative z-10 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
           {ordinal && <span className="w-4 text-xs tabular-nums text-secondary">{ordinal}</span>}
           <EquipmentIcons value={piece} focusable={false} />
           {piece.runningNumber && <span className="text-xs text-secondary">{piece.runningNumber}</span>}
@@ -51,7 +53,15 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
           {saved && <span role="status" className="text-xs text-success">Uloženo.</span>}
         </span>
       </Link>
-      <div ref={trigger} className="edit-reveal absolute right-3 top-2.5 flex gap-1">{!editing && <>
+      {appearances.length > 0 && <ul aria-label="Zařazení ve vlacích" className="relative z-10 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        {appearances.map(appearance => <li key={appearance.trainId} className="min-w-0">
+          <Link href={`/soupravy/${appearance.trainId}`} className="inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 rounded-sm py-1 text-accent hover:underline focus-visible:outline-2 focus-visible:outline-focus">
+            <span className="min-w-0 break-words">{[appearance.trainCategory, appearance.trainNumber, appearance.trainName].filter(Boolean).join(' ') || 'Souprava'}</span>
+            <span className="text-secondary">· pozice {appearance.position}</span>
+          </Link>
+        </li>)}
+      </ul>}
+      <div ref={trigger} className="edit-reveal absolute right-3 top-2.5 z-10 flex gap-1">{!editing && <>
         <EditAction label={`Upravit ${label.toLowerCase()}`} disabled={disabled} onClick={() => { onSelect(); setEditing(true); setSaved(false); onEditingChange(true); }} />
         <button type="button" className="ui-icon-button ui-edit" aria-label={`Duplikovat ${label.toLowerCase()}`} title="Duplikovat výbavu, DCC adresu a konfiguraci dekodéru" disabled={disabled} onClick={onDuplicate}><DocumentDuplicateIcon className="size-4" aria-hidden="true" /><span className="ui-tooltip" aria-hidden="true">Duplikovat</span></button>
       </>}</div>
