@@ -20,7 +20,7 @@ export function EquipmentIcons({ value, wagon = true, activeOnly = false, focusa
     {items.map(item => <span key={item.key} role="img" aria-label={item.label} title={item.label} tabIndex={focusable ? 0 : undefined}
       className={`equipment-indicator relative inline-flex size-8 shrink-0 items-center justify-center rounded-md ${item.active ? 'bg-accent-soft text-accent' : 'text-secondary'}`}>
       <span className={item.active ? '' : 'opacity-45'}><EquipmentGlyph name={item.key} /></span>
-      <span aria-hidden="true" className={`absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-canvas text-[9px] font-bold leading-none ${item.active ? 'text-accent' : 'text-secondary'}`}>{item.badge || (item.active ? '✓' : '−')}</span>
+      <span aria-hidden="true" className={`absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-canvas text-[9px] font-bold leading-none ${item.active ? 'text-success' : 'text-secondary'}`}>{item.badge || (item.active ? '✓' : '−')}</span>
       <span aria-hidden="true" className="equipment-tooltip pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-max max-w-56 rounded bg-foreground px-2 py-1 text-xs font-normal text-canvas opacity-0">{item.label}</span>
     </span>)}
   </span>;

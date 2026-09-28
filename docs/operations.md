@@ -249,5 +249,5 @@ narrow layouts. Tests and browser writes use disposable databases only.
 Unified wagon editing requires no migration. Run decoder and wagon-variant HTTP
 suites (including atomic combined-save rollback), auth HTTP, integration and profile
 checks. Browser review should exercise combined Save/Cancel, multiple drafts,
-selection, failed-save retry, coupler ends independently, inline deletion No/Escape/
+selection, failed-save retry, the three-state coupler count and stable toggle widths, inline deletion No/Escape/
 Yes/error, decoder removal, and the compact desktop/narrow layout in both themes.

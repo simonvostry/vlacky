@@ -18,8 +18,8 @@ test('unified sound preserves legacy distinctions and never invents a decoder', 
     assert.equal(indicators.find(i => i.key === 'sound')?.active, hasSoundDecoder || hasSpeaker);
   }
   assert.deepEqual(equipmentIndicators({}).map(i=>i.active), [false,false,false,false,false]);
-  assert.equal(equipmentIndicators({magneticCouplerA:true})[0].badge, 'A');
-  assert.equal(equipmentIndicators({magneticCouplerB:true})[0].badge, 'B');
+  assert.equal(equipmentIndicators({magneticCouplerA:true})[0].badge, '1');
+  assert.equal(equipmentIndicators({magneticCouplerB:true})[0].badge, '1');
   assert.equal(equipmentIndicators({magneticCouplerA:true,magneticCouplerB:true})[0].badge, '2');
   assert.deepEqual(equipmentIndicators({isWeathered:true},false).map(i=>i.key), ['weather']);
 });

@@ -249,9 +249,9 @@ or empty length placeholder. The short owned-model description is always visible
 evidence and original research notes remain in the editors, not in this description.
 The header is followed by “Moje vozy”. Clicking a whole summary row selects that
 piece and updates browser history without navigation or losing open drafts; Back,
-Forward and direct URLs select the same piece. Notes, train appearances and a
-collapsed “Dekodér a funkce” section sit directly beneath the selected row.
-Each decoder editor remains bound to its own physical ID. Missing decoder details
+Forward and direct URLs select the same piece. Notes and train appearances sit
+directly beneath the selected row. DCC addresses and functions share the summary
+line; decoder fields live inside the unified instance editor, bound to its physical ID. Missing decoder details
 are described as unfilled information, never evidence that no hardware is installed.
 The piece address appears once in its row; decoder readouts show an address only
 when that decoder has a different explicit address. Individual piece rows
@@ -264,7 +264,7 @@ focus; touch/coarse-pointer devices keep them visible. General lighting uses Ano
 The pencil beside the main wagon image opens **Upravit variantu**, containing only
 shared model/artwork fields, epoch, dimensions and catalog links. The pencil on a
 piece row opens an inline form for running number, DCC, couplers, lights, sound,
-weathering, template status and notes. Equipment uses labeled icon toggles; Save
+weathering, template status, notes and decoder configuration. Equipment uses labeled icon toggles; Save
 updates the row from the saved response without route refresh, Cancel discards the draft. Errors retain the
 draft. Multiple rows may stay open; switching, adding and duplicating retain drafts.
 A plus button adds one wagon with blank individual configuration. Hover Duplicate
@@ -590,12 +590,15 @@ Passenger and freight rows have one pencil for all physical settings, including
 decoder/model selection, functions and advanced CV records. Shared vehicle artwork
 and catalog metadata remain in the separate header editor. One Save/Cancel applies
 to the whole instance draft. Compact running-number and DCC inputs share a wrapping
-row with equipment toggles; magnetic ends A and B use independent toggles with the
-same appearance as lighting, sound and weathering. The shorter address input still
+row with equipment toggles. A single magnetic-coupler control cycles through none
+(−), one (1) and both (2); stored end information is preserved until edited. State
+indicators reserve a fixed width to prevent shifting, and active checkmarks/counts
+use the semantic success green in both the editor and read-only equipment badges. The shorter address input still
 accepts the existing 1–10239 range. Notes/template metadata are collapsed.
 
-The selected row shows a small read-only decoder/function summary when it is not
-being edited; there is no secondary decoder edit button. Drafts survive selection
+Each row shows its address and comma-separated functions inline (e.g.
+“DCC 69 — F2 Světla”), wrapping only when needed. Explicit decoder address overrides
+remain distinguished. There is no separate decoder summary line or secondary edit button. Drafts survive selection
 and other instance saves. Save errors retain the full draft. Wagon deletion and
 removing an installed decoder use the shared inline Yes/No popover directly above
 the triggering button, with No initially focused, Escape cancellation and focus

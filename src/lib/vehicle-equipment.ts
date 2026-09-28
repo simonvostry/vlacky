@@ -24,7 +24,7 @@ export type EquipmentIndicator = { key: EquipmentSymbol; label: string; active: 
 export function equipmentIndicators(value: Partial<VehicleEquipment> & { hasLights?: boolean | null }, wagon = true): EquipmentIndicator[] {
   const a = Boolean(value.magneticCouplerA), b = Boolean(value.magneticCouplerB);
   const result: EquipmentIndicator[] = wagon ? [
-    { key: 'coupler', label: `Magnetická spřáhla: ${a && b ? 'oba konce' : a ? 'konec A' : b ? 'konec B' : 'Ne'}`, active: a || b, badge: a && b ? '2' : a ? 'A' : b ? 'B' : undefined },
+    { key: 'coupler', label: `Magnetická spřáhla: ${a && b ? 'oba konce' : a || b ? 'jeden konec' : 'Ne'}`, active: a || b, badge: a && b ? '2' : a || b ? '1' : undefined },
     { key: 'tail', label: `Červená koncová světla: ${value.hasTailLights ? 'Ano' : 'Ne'}`, active: Boolean(value.hasTailLights) },
     { key: 'sound', label: `Zvuk: ${hasVehicleSound(value) ? 'Ano' : 'Ne'}`, active: hasVehicleSound(value) },
   ] : [];

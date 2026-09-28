@@ -7,7 +7,7 @@ import { EditAction } from '@/components/ui-actions';
 import { EquipmentGlyph, EquipmentIcons } from '@/components/equipment-icons';
 import { InlineDelete } from '@/components/inline-delete';
 import { DecoderFields } from '@/components/decoder-editor';
-import type { DecoderConfig } from '@/lib/decoder-config';
+import { functionLabel, type DecoderConfig } from '@/lib/decoder-config';
 import { hasVehicleSound, soundEquipmentPatch, type VehicleEquipment } from '@/lib/vehicle-equipment';
 
 export type WagonPiece = VehicleEquipment & {
@@ -46,7 +46,7 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
           {ordinal && <span className="w-4 text-xs tabular-nums text-secondary">{ordinal}</span>}
           <EquipmentIcons value={piece} focusable={false} />
           {piece.runningNumber && <span className="text-xs text-secondary">{piece.runningNumber}</span>}
-          {piece.dccAddress != null && <span className="text-xs tabular-nums text-secondary">DCC {piece.dccAddress}</span>}
+          <PieceDccSummary address={piece.dccAddress} decoders={decoders} />
           {piece.isTemplate && <span className="text-xs text-warning">Předloha</span>}
           {saved && <span role="status" className="text-xs text-success">Uloženo.</span>}
         </span>
@@ -60,6 +60,24 @@ export function WagonPieceRow({ piece, selected, section, disabled, onEditingCha
   </div>;
 }
 
+function PieceDccSummary({ address, decoders }: { address: number | null; decoders: DecoderConfig[] }) {
+  const groups = new Map<number | null, string[]>();
+  if (address !== null) groups.set(address, []);
+  for (const decoder of decoders) {
+    const effectiveAddress = decoder.address ?? address;
+    const functions = groups.get(effectiveAddress) ?? [];
+    for (const fn of decoder.functions) {
+      const label = `F${fn.functionNumber} ${functionLabel(fn)}`;
+      if (!functions.includes(label)) functions.push(label);
+    }
+    groups.set(effectiveAddress, functions);
+  }
+  const text = [...groups].map(([dcc, functions]) => [
+    dcc !== null ? `DCC ${dcc}` : '', functions.join(', '),
+  ].filter(Boolean).join(' — ')).filter(Boolean).join('; ');
+  return text ? <span className="min-w-0 break-words text-xs font-normal tabular-nums text-secondary">{text}</span> : null;
+}
+
 function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled, decoders, templates }: { decoders:DecoderConfig[]; templates:{label:string;decoder:DecoderConfig}[]; piece: WagonPiece; onClose: (saved: boolean) => void; onSaved: (piece: WagonPiece, decoders: DecoderConfig[]) => void; label:string; onDelete:()=>Promise<void>; disabled:boolean }) {
   const notesId = useId();
   // Capture only this piece's editable values; later refreshes must not reset a draft.
@@ -71,6 +89,7 @@ function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled, decod
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const locked = busy || disabled || catalogBusy;
+  const couplerCount = Number(draft.magneticCouplerA) + Number(draft.magneticCouplerB);
   function patch(value: Partial<WagonPiece>) { setDraft(d => ({ ...d, ...value })); }
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -97,15 +116,22 @@ function PieceEditor({ piece, onClose, onSaved, label, onDelete, disabled, decod
           <input className={`${input} mt-1`} type="number" min={1} max={10239} step={1} value={draft.dccAddress ?? ''} onChange={e => patch({ dccAddress: e.target.value === '' ? null : Number(e.target.value) })} />
         </label>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Výbava vozu">
+        <button type="button" aria-label={`Magnetická spřáhla: ${couplerCount === 0 ? 'žádné' : couplerCount === 1 ? 'jeden konec' : 'oba konce'}. Změnit počet.`}
+          title="Magnetická spřáhla: žádné → jeden konec → oba konce" onClick={() => {
+            const next = (couplerCount + 1) % 3;
+            // Keep the originally recorded end when returning to one coupler.
+            patch({ magneticCouplerA: next === 2 || (next === 1 && !base.magneticCouplerB), magneticCouplerB: next === 2 || (next === 1 && base.magneticCouplerB) });
+          }} className={`ui-button !px-2 !text-xs ${couplerCount ? 'border-accent bg-accent-soft text-accent' : 'ui-button-secondary'}`}>
+          <EquipmentGlyph name="coupler" className="size-4" />Spřáhla
+          <span aria-hidden="true" className={`inline-flex w-4 shrink-0 justify-center tabular-nums ${couplerCount ? 'text-success' : 'text-secondary'}`}>{couplerCount || '−'}</span>
+        </button>
         {([
-          ['coupler', 'Spřáhlo A', 'Magnetické spřáhlo A', draft.magneticCouplerA, () => patch({ magneticCouplerA: !draft.magneticCouplerA })],
-          ['coupler', 'Spřáhlo B', 'Magnetické spřáhlo B', draft.magneticCouplerB, () => patch({ magneticCouplerB: !draft.magneticCouplerB })],
           ['tail', 'Koncová světla', 'Koncová světla', draft.hasTailLights, () => patch({ hasTailLights: !draft.hasTailLights })],
           ['lights', 'Osvětlení', 'Osvětlení', Boolean(draft.hasLights), () => patch({ hasLights: !draft.hasLights })],
           ['sound', 'Zvuk', 'Zvuk', hasVehicleSound(draft), () => patch(soundEquipmentPatch(!hasVehicleSound(draft), draft))],
           ['weather', 'Patinováno', 'Patinováno', draft.isWeathered, () => patch({ isWeathered: !draft.isWeathered })],
         ] as const).map(([icon, text, label, active, toggle]) => <button key={label} type="button" aria-label={label} title={label} aria-pressed={active} onClick={toggle} className={`ui-button !px-2 !text-xs ${active ? 'border-accent bg-accent-soft text-accent' : 'ui-button-secondary'}`}>
-          <EquipmentGlyph name={icon} className="size-4" />{text}<span aria-hidden="true">{active ? '✓' : '−'}</span>
+          <EquipmentGlyph name={icon} className="size-4" />{text}<span aria-hidden="true" className={`inline-flex w-4 shrink-0 justify-center ${active ? 'text-success' : 'text-secondary'}`}>{active ? '✓' : '−'}</span>
         </button>)}
         </div>
       </div>

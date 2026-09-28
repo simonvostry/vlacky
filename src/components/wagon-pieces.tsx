@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PlusIcon } from '@heroicons/react/20/solid';
-import { functionLabel, type DecoderConfig } from '@/lib/decoder-config';
+import type { DecoderConfig } from '@/lib/decoder-config';
 import { WagonPieceRow, type WagonPiece } from '@/components/wagon-piece-row';
 
 type Appearance = { vehicleId: number; trainId: number; trainNumber: string | null; trainName: string | null; trainCategory: string | null; position: number };
@@ -74,7 +74,7 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
             onSelect={() => { if (selectedId !== p.id) window.history.pushState(null, '', `/${section}/${p.id}`); }}
             onEditingChange={editing => setEditingIds(ids => editing ? [...ids, p.id] : ids.filter(id => id !== p.id))} />
         </div>
-        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId || editingIds.includes(p.id) || (!p.notes && !appearances.some(a=>a.vehicleId===p.id) && !decoders.some(d=>d.vehicleId===p.id))} className="border-t border-divider px-4 py-3">
+        <div id={`piece-details-${p.id}`} hidden={p.id!==selectedId || editingIds.includes(p.id) || (!p.notes && !appearances.some(a=>a.vehicleId===p.id))} className="border-t border-divider px-4 py-3">
           {p.notes && <p className="mb-3 whitespace-pre-wrap break-words text-sm text-secondary">{p.notes}</p>}
           {appearances.some(a => a.vehicleId === p.id) && <div className="mb-3">
             <h3 className="mb-1 text-xs font-medium text-secondary">Zařazení ve vlacích</h3>
@@ -84,11 +84,6 @@ export function WagonPieces({pieces: initialPieces,selectedId: initialSelectedId
               </Link>
             </li>)}</ul>
           </div>}
-          {decoders.filter(d=>d.vehicleId===p.id).map(d=><div key={d.id} className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-secondary">
-            <span>{[d.manufacturer,d.model].filter(Boolean).join(' · ')||'Dekodér'}</span>
-            {d.address!==null&&d.address!==p.dccAddress&&<span>DCC {d.address}</span>}
-            {d.functions.map(f=><span key={f.functionNumber} title={f.description}><strong className="font-mono">F{f.functionNumber}</strong> {functionLabel(f)}</span>)}
-          </div>)}
         </div>
       </li>)}
     </ul>
