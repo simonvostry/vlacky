@@ -1,3 +1,5 @@
+import { createClient } from '@libsql/client';
+import { wagonConfigurationSnapshot } from '../src/lib/wagon-configuration-snapshot';
 import { parse } from "node-html-parser";
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
@@ -309,6 +311,22 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     await save('/api/vlaky/1/vozidla',{vehicleId:targetIds[0]});
     const allState = () => Object.fromEntries(['vehicles','vehicle_decoders','decoder_functions','train_vehicles','vehicle_speed_profiles'].map(table=>[table,sqlite.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()]));
     const beforeApply = allState();
+    // A separate connection still sees old values while the write transaction
+    // contains the saved result. Response snapshots must use that transaction.
+    const snapshotClient=createClient({url});
+    const tx=await snapshotClient.transaction('write');
+    try {
+      await tx.execute({sql:'UPDATE vehicles SET dcc_address=88,has_lights=1 WHERE id=?',args:[targetIds[0]]});
+      await tx.execute({sql:'UPDATE vehicle_decoders SET cvs=? WHERE vehicle_id=?',args:[JSON.stringify([{number:3,value:24,cv31:null,cv32:null,note:'Transaction value'}]),targetIds[0]]});
+      await tx.execute({sql:'UPDATE decoder_functions SET label=? WHERE vehicle_id=?',args:['Transaction function',targetIds[0]]});
+      const snapshot=await wagonConfigurationSnapshot(tx,[targetIds[0]]);
+      assert.equal(snapshot.pieces[0].dccAddress,88);assert.equal(snapshot.pieces[0].hasLights,true);
+      assert.deepEqual(snapshot.pieces[0].epochs,[4]);assert.equal(snapshot.pieces[0].isTemplate,true);
+      assert.equal(snapshot.decoders[0].cvs[0].value,24);assert.equal(snapshot.decoders[0].functions[0].label,'Transaction function');
+      assert.equal((sqlite.prepare('SELECT dcc_address FROM vehicles WHERE id=?').get(targetIds[0]) as {dcc_address:number}).dcc_address,99);
+    } finally {await tx.rollback();tx.close();snapshotClient.close();}
+    assert.deepEqual(allState(),beforeApply);
+
     for (const invalid of [{}, {targetIds:[]}, {targetIds:[targetIds[0],targetIds[0]]}, {targetIds,extra:true}]) {
       assert.equal((await save(applyPath,invalid)).status,400);
     }
@@ -323,6 +341,8 @@ test("wagon variants preserve identities, equipment and safe quantity allocation
     sqlite.exec('DROP TRIGGER reject_settings_copy');
     const result = await save(applyPath,{targetIds});assert.equal(result.status,200);
     const applied = await result.json();assert.equal(applied.pieces.length,targetIds.length);
+    assert.equal(result.headers.get('cache-control'),'no-store');
+    for(const piece of applied.pieces){assert.equal(piece.dccAddress,70);assert.equal(piece.hasLights,true);assert.equal(piece.magneticCouplerB,true);assert.equal(piece.isWeathered,true);assert.deepEqual(piece.epochs,[4]);}
     assert.equal(new Set(applied.decoders.map((d:{id:string})=>d.id)).size,targetIds.length);
     const copiedKeys=['dcc_address','magnetic_couplers','magnetic_coupler_a','magnetic_coupler_b','has_tail_lights','has_lights','has_sound_decoder','has_speaker','is_weathered'];
     const afterApply = allState();

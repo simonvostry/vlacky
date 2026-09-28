@@ -1,3 +1,4 @@
+import { assembleDecoderRecords } from './decoder-records';
 import { resolveDecoderModel } from './decoder-catalog-storage';
 import { db, schema, withWriteTransaction } from "@/db";
 import { eq } from "drizzle-orm";
@@ -9,14 +10,7 @@ export async function getDecoders(vehicleId?: number): Promise<(DecoderConfig & 
     db.select().from(schema.vehicleDecoders).where(vehicleId === undefined ? undefined : eq(schema.vehicleDecoders.vehicleId, vehicleId)).orderBy(schema.vehicleDecoders.sortOrder).all(),
     db.select().from(schema.decoderFunctions).where(vehicleId === undefined ? undefined : eq(schema.decoderFunctions.vehicleId, vehicleId)).orderBy(schema.decoderFunctions.functionNumber).all(),
   ]);
-  return decoders.map(d => ({
-    ...d,
-    functions: functions.filter(f => f.decoderId === d.id).map(f => ({
-      functionNumber: f.functionNumber, label: f.label, description: f.description || "",
-      category: f.category === "sound" || f.category === "light" ? f.category : "other",
-      behavior: f.behavior === "momentary" ? "momentary" : "toggle",
-    })),
-  }));
+  return assembleDecoderRecords(decoders,functions);
 }
 
 // One atomic save: a failed insert rolls back the address and all function changes.

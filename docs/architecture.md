@@ -375,3 +375,11 @@ functions, CVs and preserved decoder metadata. Empty values also replace existin
 values. The source, running numbers, vehicle notes/provenance, template flags,
 catalog/artwork/group identities, train memberships and speed profiles are preserved.
 The decoder-cloning helper is shared with Duplicate. No schema migration is needed.
+
+Wagon copy-to-all and unified instance-save responses carry snapshots read inside
+the same write transaction, returned only after commit. Map driver rows through
+Drizzle's schema converters so booleans, camelCase properties and JSON/CV arrays
+match ordinary reads. Never re-query through the separate read client to construct
+these mutation responses: a replica may still contain the preceding values.
+The client applies returned equipment and decoder state in place, preserving row
+keys and avoiding a route refresh, page reload or image remount.

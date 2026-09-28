@@ -1,11 +1,11 @@
+import {wagonConfigurationSnapshot} from '@/lib/wagon-configuration-snapshot';
 import {NextResponse} from 'next/server';
-import {eq} from 'drizzle-orm';
-import {db,schema,withWriteTransaction} from '@/db';
+import {withWriteTransaction} from '@/db';
 import {authorizeApiRequest} from '@/lib/auth-guards';
 import {saveVehicle,CollectionError} from '@/lib/wagon-storage';
 import {vehiclePieceFields} from '@/lib/vehicle-edit-fields';
 import {parseDccConfig} from '@/lib/decoder-config';
-import {getDecoders,saveDecoderConfig} from '@/lib/decoder-storage';
+import {saveDecoderConfig} from '@/lib/decoder-storage';
 
 export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}){
  const denied=await authorizeApiRequest();if(denied)return denied;
@@ -19,15 +19,15 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
   if(body.decoders!==undefined)parseDccConfig({dccAddress:body.piece.dccAddress??null,decoders:body.decoders});
  }catch{return NextResponse.json({error:'Neplatné údaje vozu nebo dekodéru.'},{status:400});}
  try{
-  await withWriteTransaction(async tx=>{
+  const saved = await withWriteTransaction(async tx=>{
    await saveVehicle({...body.piece,editMode:'piece'},id,tx);
    if(body.decoders!==undefined){
     const vehicle=(await tx.execute({sql:'SELECT dcc_address FROM vehicles WHERE id=?',args:[id]})).rows[0];
     await saveDecoderConfig(id,parseDccConfig({dccAddress:vehicle.dcc_address,decoders:body.decoders}),tx);
    }
+   return wagonConfigurationSnapshot(tx,[id]);
   });
-  const vehicle=await db.select().from(schema.vehicles).where(eq(schema.vehicles.id,id)).get();
-  return NextResponse.json({vehicle,decoders:await getDecoders(id)});
+  return NextResponse.json({vehicle:saved.pieces[0],decoders:saved.decoders},{headers:{'Cache-Control':'no-store'}});
  }catch(error){
   return NextResponse.json({error:error instanceof CollectionError?error.message:'Uložení se nezdařilo. Žádné změny nebyly uloženy.'},{status:error instanceof CollectionError?error.status:409});
  }

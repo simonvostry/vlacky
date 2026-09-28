@@ -1,3 +1,4 @@
+import { wagonConfigurationSnapshot } from './wagon-configuration-snapshot';
 import { z } from 'zod';
 import { allowsVehicleEditField, type WagonEditMode, wagonModelFields, vehiclePieceFields } from './vehicle-edit-fields';
 import type { Transaction, InValue } from '@libsql/client';
@@ -238,6 +239,6 @@ export async function applyWagonSettings(sourceId: number, body: unknown) {
       await tx.execute({sql:'DELETE FROM vehicle_decoders WHERE vehicle_id=?',args:[id]});
       await copyWagonDecoders(tx,sourceId,id);
     }
-    return targetIds;
+    return wagonConfigurationSnapshot(tx,targetIds);
   });
 }

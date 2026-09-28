@@ -258,3 +258,9 @@ replacement by empty values and preservation of identities, memberships and prof
 Run auth HTTP checks for the new endpoint and browser-check confirmation No/Escape/Yes,
 open-draft locking, failure/retry, updated summaries and single-wagon visibility in
 both themes and narrow viewports, using a disposable collection only.
+
+Mutation-response freshness is checked by reading a configuration inside an open
+write transaction while another connection still sees old values, and by verifying
+the copy response contains the newly saved flags, addresses and decoder records.
+Browser checks should compare all affected icons and function summaries immediately
+after confirmation, including newly opened editors, without page navigation.
