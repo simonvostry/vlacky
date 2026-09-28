@@ -337,3 +337,9 @@ belonging to that physical ID. The older quantity API remains for compatibility.
 and passenger designation from the linked catalog after authorization. It does not
 copy these facts into physical records or affect measured profiles. Catalog artwork
 sharing is an explicit reviewed maintenance operation; see [design](design.md#catalog-facts-on-owned-details-and-shared-artwork).
+
+Decoder editor simplification does not migrate or delete stored metadata. Hidden
+name/purpose, sound-project, manual and note fields remain in full configuration
+payloads and integration exports. New decoders inherit the physical address;
+existing explicit overrides are retained. Shared addresses are valid, and physical
+vehicle/decoder IDs remain the identity boundary. See [decoder UI](design.md#simplified-decoder-editing).

@@ -21,7 +21,7 @@ export type DecoderConfig = {
 export type VehicleDccConfig = { dccAddress: number | null; decoders: DecoderConfig[] };
 export const categoryLabels = { sound: "Zvuk", light: "Světla", other: "Ostatní" };
 export function blankDecoder(): DecoderConfig {
-  return { id: crypto.randomUUID(), name: "", manufacturer: "", model: "", address: null, soundProject: "", manualUrl: "", notes: "", functions: [], cvs: [] };
+  return { id: crypto.randomUUID(), name: "Dekodér", manufacturer: "", model: "", address: null, soundProject: "", manualUrl: "", notes: "", functions: [], cvs: [] };
 }
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Neplatná konfigurace.");

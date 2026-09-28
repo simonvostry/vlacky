@@ -50,7 +50,7 @@ export default async function VehicleDetailPage({
     getDecoders(),
     db.select({ id: schema.vehicles.id, designation: schema.vehicles.designation }).from(schema.vehicles).all(),
   ]);
-  const templates = decoders.map(decoder => ({ decoder, label: `${allVehicles.find(v => v.id === decoder.vehicleId)?.designation || "Vozidlo"} · ${decoder.name}${decoder.model ? ` (${decoder.model})` : ""}` }));
+  const templates = decoders.map(decoder => ({ decoder, label: `${allVehicles.find(v => v.id === decoder.vehicleId)?.designation || "Vozidlo"} · ${[decoder.manufacturer, decoder.model].filter(Boolean).join(" · ") || "Dekodér"}` }));
 
   return <div className="mx-auto max-w-7xl">
     <Link href={`/${vehicleSection(vehicle)}`} className="mb-4 inline-block text-sm text-secondary hover:text-accent">&larr; Zpět na vozidla</Link>

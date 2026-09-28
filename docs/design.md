@@ -552,3 +552,19 @@ For Bap catalog #1530, the yellow-striped ČSD livery #5116 uses the approved
 image without the side stripes remains separate; it is not a duplicate.
 Its imported mixed-class flag is corrected to second class: lowercase `a` in Bap
 must not be interpreted as uppercase `A` by the catalog importer.
+
+## Simplified decoder editing
+
+Decoder forms show manufacturer, model, functions and the existing collapsed CV
+records. Name/purpose, sound project, manual URL and decoder notes are hidden in
+both editor and summary; existing values remain stored and round-trip unchanged.
+New configurations receive the internal name `Dekodér`, with no name input.
+Wagon inline decoder forms use the address from the physical wagon row and omit
+the duplicate address input. Locomotive forms retain their vehicle address input.
+New decoders inherit that address. An existing imported explicit decoder address
+is preserved and shown in a small disclosure only for that decoder; clearing it
+restores inheritance. The ordinary form does not offer a new override field.
+Multiple wagons may intentionally share an address and function key for lighting;
+the DCC overview presents these shared addresses neutrally, not as an error.
+Copying settings into a vehicle uses that vehicle's address; duplicating a whole
+owned model still copies its addresses and independent decoder configuration.

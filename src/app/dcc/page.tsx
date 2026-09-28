@@ -16,11 +16,11 @@ export default async function DccPage() {
     const addresses = new Set([v.dccAddress, ...installed.map(d => d.address ?? v.dccAddress)]);
     return [...addresses].filter((a): a is number => a !== null).map(address => ({
       ...v, dccAddress: address,
-      decoderNames: installed.filter(d => (d.address ?? v.dccAddress) === address).map(d => d.name).join(", "),
+      decoderNames: installed.filter(d => (d.address ?? v.dccAddress) === address).map(d => [d.manufacturer, d.model].filter(Boolean).join(" · ")).filter(Boolean).join(", "),
     }));
   }).sort((a, b) => a.dccAddress - b.dccAddress);
 
-  // Check for address conflicts
+  // Shared addresses are intentional for jointly controlled coach lighting.
   const addressMap = new Map<number, (typeof vehiclesWithDcc)>();
   for (const v of vehiclesWithDcc) {
     if (v.dccAddress === null) continue;
@@ -28,7 +28,7 @@ export default async function DccPage() {
     existing.push(v);
     addressMap.set(v.dccAddress, existing);
   }
-  const conflicts = [...addressMap.entries()].filter(
+  const sharedAddresses = [...addressMap.entries()].filter(
     ([, vehicles]) => vehicles.length > 1
   );
 
@@ -36,15 +36,15 @@ export default async function DccPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-2xl font-bold">DCC adresy</h1>
 
-      {/* Conflicts warning */}
-      {conflicts.length > 0 && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-danger-soft p-4">
-          <h2 className="font-semibold text-danger">
-            Sdílené adresy ({conflicts.length})
+      {/* Shared address overview */}
+      {sharedAddresses.length > 0 && (
+        <div className="mb-6 rounded-lg border border-divider bg-subtle p-4">
+          <h2 className="font-semibold text-secondary">
+            Sdílené adresy ({sharedAddresses.length})
           </h2>
-          <p className="mt-1 text-xs text-danger">Sdílená adresa může být záměrná, například u osvětlení vozů. Ověřte ji před jízdou.</p>
-          <ul className="mt-2 space-y-1 text-sm text-danger">
-            {conflicts.map(([address, vehicles]) => (
+          <p className="mt-1 text-xs text-secondary">Vozidla se stejnou adresou lze ovládat společně, například osvětlení osobních vozů.</p>
+          <ul className="mt-2 space-y-1 text-sm text-secondary">
+            {sharedAddresses.map(([address, vehicles]) => (
               <li key={address}>
                 Adresa <span className="font-mono font-bold">{address}</span>:{" "}
                 {vehicles

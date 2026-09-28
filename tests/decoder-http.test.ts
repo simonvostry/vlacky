@@ -8,9 +8,14 @@ import { setTimeout as delay } from "node:timers/promises";
 import Database from "better-sqlite3";
 import test from "node:test";
 import { encode } from "next-auth/jwt";
-import { parseDccConfig } from "../src/lib/decoder-config";
+import { blankDecoder, parseDccConfig } from "../src/lib/decoder-config";
 
 const decoder = (id = "decoder-one") => ({ id, name: "Zvuk", manufacturer: "Test", model: "Model", address: null, soundProject: "Project", manualUrl: "https://example.com/manual", notes: "", functions: [{ functionNumber: 0, label: "Světla", category: "light", behavior: "toggle", description: "Čelní světla" }, { functionNumber: 2, label: "Houkačka", category: "sound", behavior: "momentary", description: "" }], cvs: [{ number: 259, value: 0, cv31: 16, cv32: 0, note: "Hlasitost" }] });
+test("a new decoder saves without entering a name and inherits the vehicle address", () => {
+  const config = parseDccConfig({ dccAddress: 69, decoders: [blankDecoder()] });
+  assert.equal(config.decoders[0].name, 'Dekodér');
+  assert.equal(config.decoders[0].address, null);
+});
 test("validates decoder functions, indexed CVs, addresses and manual URLs", () => {
   assert.equal(parseDccConfig({ dccAddress: 3, decoders: [decoder()] }).decoders[0].cvs[0].value, 0);
   for (const address of [0, -1, 10240, 1.5, "3"]) assert.throws(() => parseDccConfig({ dccAddress: address, decoders: [] }));
@@ -74,6 +79,11 @@ test("migration and authenticated decoder CRUD preserve vehicle ownership and at
     const saved = await (await request('/api/vozidla/1/dekodery')).json();
     assert.equal(saved.decoders.length, 2); assert.equal(saved.decoders[1].address, 44);
     assert.equal(saved.decoders[0].cvs[0].value, 0); assert.equal(saved.decoders[0].functions[1].behavior, 'momentary');
+    assert.equal((await save(2, { dccAddress: 55, decoders: [{ ...decoder('wagon-light'), name: 'Interiér' }] })).status, 200);
+    // Shared addresses and lighting keys are valid; identity remains the physical vehicle ID.
+    assert.equal((await save(2, { dccAddress: 3, decoders: [{ ...decoder('wagon-light'), name: 'Interiér' }] })).status, 200);
+    assert.equal((await (await request('/api/vozidla/1/dekodery')).json()).dccAddress, 3);
+    assert.equal((await (await request('/api/vozidla/2/dekodery')).json()).dccAddress, 3);
     assert.equal((await save(2, { dccAddress: 55, decoders: [{ ...decoder('wagon-light'), name: 'Interiér' }] })).status, 200);
     // Another vehicle cannot take an existing decoder ID, and its original data survives the failed save.
     assert.equal((await save(2, { dccAddress: 99, decoders: [decoder()] })).status, 409);
