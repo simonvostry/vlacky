@@ -555,8 +555,10 @@ must not be interpreted as uppercase `A` by the catalog importer.
 
 ## Simplified decoder editing
 
-Decoder forms show manufacturer, model, functions and the existing collapsed CV
-records. Name/purpose, sound project, manual URL and decoder notes are hidden in
+Decoder forms show functions first. Manufacturer/model selection and CV records
+are inside the collapsed “Pokročilé nastavení” section. The CV heading/count and
+Add CV action share one row, with records directly below and no nested CV disclosure.
+CVs are optional reference records; saving them does not program hardware. Name/purpose, sound project, manual URL and decoder notes are hidden in
 both editor and summary; existing values remain stored and round-trip unchanged.
 New configurations receive the internal name `Dekodér`, with no name input.
 Wagon inline decoder forms use the address from the physical wagon row and omit

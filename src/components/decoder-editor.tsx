@@ -110,7 +110,6 @@ export function DecoderFields({config,onChange,templates,disabled=false,onBusyCh
         <p className="text-xs text-secondary">Dekodér používá DCC adresu vozidla. Více vozů může mít stejnou adresu i funkci osvětlení.</p>
         {config.decoders.map((d, index) => <article key={d.id} className="space-y-4 rounded-lg border border-divider p-3">
           <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Dekodér {index + 1}</h3><InlineDelete className="text-xs text-danger" disabled={busy} question={`Odebrat dekodér ${index + 1} a jeho funkce? Změna se projeví po uložení.`} onConfirm={() => setConfig(c => ({ ...c, decoders: c.decoders.filter(x => x.id !== d.id) }))}>Odebrat dekodér</InlineDelete></div>
-          {catalog ? <DecoderModelPicker decoder={d} catalog={catalog} disabled={busy} onBusy={setBusy} onCatalog={setCatalog} onChange={patch=>update(d.id,patch)} /> : <div className="text-sm text-secondary">{catalogError||'Načítání seznamu dekodérů…'}{catalogError&&<button type="button" className="ui-button ui-button-quiet" onClick={()=>setCatalogRetry(n=>n+1)}>Zkusit znovu</button>}</div>}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold">Funkce</h4>
             {d.functions.map((f, i) => <div key={i} className="rounded-md bg-subtle p-2">
@@ -127,19 +126,23 @@ export function DecoderFields({config,onChange,templates,disabled=false,onBusyCh
           </div>
           <details className="text-xs" data-decoder-advanced><summary className="cursor-pointer font-semibold">Pokročilé nastavení</summary>
             <div className="mt-3 space-y-3">
+          {catalog ? <DecoderModelPicker decoder={d} catalog={catalog} disabled={busy} onBusy={setBusy} onCatalog={setCatalog} onChange={patch=>update(d.id,patch)} /> : <div className="text-sm text-secondary">{catalogError||'Načítání seznamu dekodérů…'}{catalogError&&<button type="button" className="ui-button ui-button-quiet" onClick={()=>setCatalogRetry(n=>n+1)}>Zkusit znovu</button>}</div>}
           {d.address !== null && <details className="rounded-md bg-subtle p-3 text-xs">
             <summary className="cursor-pointer font-medium">Samostatná adresa dekodéru: {d.address}</summary>
             <p className="my-2 text-secondary">Tento uložený dekodér má vlastní adresu místo adresy vozidla. Vyprázdněním pole začne používat adresu vozidla.</p>
             <div className="max-w-xs"><NumberField label="Samostatná adresa dekodéru" value={d.address} min={1} max={10239} onChange={address => update(d.id, { address })} /></div>
           </details>}
-          <details><summary className="cursor-pointer font-semibold">CV záznamy ({d.cvs.length})</summary>
-            <p className="my-2 text-secondary">Zapište hodnoty podle manuálu. U indexovaných CV doplňte také CV31 a CV32.</p>
+          <section aria-label="CV záznamy">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="font-semibold">CV záznamy ({d.cvs.length})</h4>
+            <button type="button" className={`${button}`} disabled={d.cvs.length >= 1024} onClick={() => update(d.id, { cvs: [...d.cvs, { number: 1, value: 0, cv31: null, cv32: null, note: "" }] })}>+ Přidat CV</button>
+            </div>
+            <p className="my-2 text-secondary">Volitelné poznámky k hodnotám nastaveným v dekodéru. Uložení zde dekodér neprogramuje. Čísla a hodnoty ověřte v manuálu; u indexovaných CV doplňte také CV31 a CV32.</p>
             <div className="space-y-2">{d.cvs.map((c, i) => <div key={i} className="rounded-md bg-subtle p-2">
               <div className="grid grid-cols-2 gap-2 @sm:grid-cols-4">{([['number', 'CV číslo', 1, 1024], ['value', 'Hodnota', 0, 255], ['cv31', 'Index CV31', 0, 255], ['cv32', 'Index CV32', 0, 255]] as const).map(([key, label, min, max]) => <NumberField key={key} label={label} min={min} max={max} required={key === 'number' || key === 'value'} value={c[key]} onChange={n => update(d.id, { cvs: d.cvs.map((x, j) => j === i ? { ...x, [key]: n === null && (key === 'number' || key === 'value') ? NaN : n } : x) })} />)}</div>
               <div className="mt-2 flex items-end gap-2"><div className="flex-1"><Field label="Poznámka k CV"><input maxLength={1000} className={input} value={c.note} onChange={e => update(d.id, { cvs: d.cvs.map((x, j) => j === i ? { ...x, note: e.target.value } : x) })} /></Field></div><button type="button" className="p-2 text-danger" aria-label={`Odebrat CV${c.number}`} onClick={() => update(d.id, { cvs: d.cvs.filter((_, j) => j !== i) })}>×</button></div>
             </div>)}</div>
-            <button type="button" className={`${button} mt-2`} disabled={d.cvs.length >= 1024} onClick={() => update(d.id, { cvs: [...d.cvs, { number: 1, value: 0, cv31: null, cv32: null, note: "" }] })}>+ Přidat CV</button>
-          </details>
+          </section>
             </div>
           </details>
         </article>)}
