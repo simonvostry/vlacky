@@ -43,7 +43,7 @@ function inferClassType(designation: string): string | null {
   const d = designation.trim();
   if (/^WR/i.test(d)) return "restaurant";
   if (/^WL/i.test(d)) return "sleeping";
-  if (/^(AB|BA)/i.test(d)) return "12";
+  if (/^(AB|BA)/.test(d)) return "12";
   if (/^AR/i.test(d)) return "1";
   if (/^A/i.test(d)) return "1";
   if (/^(BD|Bt|Bp|B)/i.test(d)) return "2";

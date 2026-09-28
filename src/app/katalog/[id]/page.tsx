@@ -2,7 +2,7 @@ import { VehicleEpochs } from "@/components/vehicle-epochs";
 import { OperatorLogo } from "@/components/operator-logo";
 import { vehicleSection } from "@/lib/vehicle-kind";
 import { requireUser } from "@/lib/auth-guards";
-import Image from "@/components/vehicle-image";
+import { VehicleDetailImage } from "@/components/vehicle-detail-image";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -48,7 +48,7 @@ export default async function CatalogDetailPage({
   const fields: [string, string | null][] = [
     ["Označení", entry.fullDesignation],
     ["Operátor", entry.operator],
-    ["Rodina", entry.wagonFamily === "CD_Y" ? "UIC-Y (24,5 m)" : "UIC-Z"],
+    ["Rodina", entry.wagonFamily === "CD_Y" ? "UIC-Y (24,5 m)" : entry.wagonFamily === "CD_Z" ? "UIC-Z" : null],
     ["Třída", classLabel(entry.classType)],
     ["Číslo UIC", entry.uicNumber],
     ["Inventární čísla", entry.inventoryRange],
@@ -94,17 +94,10 @@ export default async function CatalogDetailPage({
                   key={img.id}
                   className="flex flex-wrap items-center gap-3 rounded-lg bg-subtle p-4"
                 >
-                  <Image unoptimized
-                    src={img.imagePath}
-                    alt={`${entry.fullDesignation} ${img.label || ""}`}
-                    width={img.imageWidth || 264}
-                    height={img.imageHeight || 41}
-                    className="block"
-                    style={{
-                      width: img.imageWidth || 264,
-                      height: img.imageHeight || 41,
-                    }}
-                  />
+                  <div className="min-w-0 w-full">
+                    <VehicleDetailImage src={img.imagePath} alt={`${entry.fullDesignation} ${img.label || ""}`}
+                      width={(img.imageWidth || 264) * 2} height={(img.imageHeight || 41) * 2} />
+                  </div>
                   {img.label && (
                     <span className="text-xs text-secondary">{img.label}</span>
                   )}
@@ -126,12 +119,12 @@ export default async function CatalogDetailPage({
 
         <VehicleEpochs epochs={entry.epochs} notes={entry.epochNotes} />
 
-        <div data-vehicle-label="type" className="mt-4 rounded-lg bg-subtle p-4">
+        {entry.type === "wagon" && entry.wagonKind === "passenger" && <div data-vehicle-label="type" className="mt-4 rounded-lg bg-subtle p-4">
           <h3 className="mb-2 text-xs font-semibold uppercase text-secondary">
             Význam označení
           </h3>
-          <DesignationDecoder designation={entry.designation} />
-        </div>
+          <DesignationDecoder designation={entry.designation} operator={entry.operator} />
+        </div>}
 
         <dl className="mt-6 divide-y divide-divider">
           {fields.map(

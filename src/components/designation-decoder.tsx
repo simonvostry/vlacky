@@ -48,7 +48,16 @@ interface DecodedLetter {
   isMain: boolean;
 }
 
-export function decodeDesignation(designation: string): DecodedLetter[] {
+export function decodeDesignation(designation: string, operator?: string | null): DecodedLetter[] {
+  // Bap used the pre-1983 ČSD code, not today's a/p meanings.
+  // https://www.vagonweb.cz/oznacovani/m_pismena_CD.php (1949–1983)
+  if (/^Bap(?:\s|$)/.test(designation.trim()) && /ČSD|ČD/.test(operator ?? '')) {
+    return [
+      { letter: 'B', meaning: 'vůz 2. třídy se sedadly', isMain: true },
+      { letter: 'a', meaning: 'čtyřnápravový vůz', isMain: false },
+      { letter: 'p', meaning: 'patrový vůz', isMain: false },
+    ];
+  }
   const result: DecodedLetter[] = [];
   let remaining = designation.trim();
 
@@ -117,10 +126,11 @@ export function decodeDesignation(designation: string): DecodedLetter[] {
 
 type Props = {
   designation: string;
+  operator?: string | null;
 };
 
-export function DesignationDecoder({ designation }: Props) {
-  const decoded = decodeDesignation(designation);
+export function DesignationDecoder({ designation, operator }: Props) {
+  const decoded = decodeDesignation(designation, operator);
 
   if (decoded.length === 0) return null;
 

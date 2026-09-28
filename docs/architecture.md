@@ -332,3 +332,8 @@ transaction. Running number, notes, reference notes, memberships and profiles ar
 copied. Neither path alters its source; both enforce the 1000-model group limit.
 The normal DELETE endpoint remains membership-guarded and cascades only configuration
 belonging to that physical ID. The older quantity API remains for compatibility.
+
+`OwnedCatalogDetails` reads prototype production years, maximum speed, manufacturer
+and passenger designation from the linked catalog after authorization. It does not
+copy these facts into physical records or affect measured profiles. Catalog artwork
+sharing is an explicit reviewed maintenance operation; see [design](design.md#catalog-facts-on-owned-details-and-shared-artwork).

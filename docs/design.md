@@ -524,3 +524,31 @@ Catalog detail views show their joined label with source notes collapsed by defa
 Owned detail headers use Roman-numeral badges; evidence remains in the editor.
 Use the shared Epocha dropdown in collection/catalog toolbars; do not add badges
 to every gallery image. Unknown is displayed as Nevyplněna. See [epochs](epochs.md).
+
+## Catalog facts on owned details and shared artwork
+
+The owned header reads production years, maximum prototype speed and prototype
+manufacturer directly from its linked catalog entry. These are read-only reference
+facts, separate from the physical model's manufacturer, dimensions and measured
+speed profile. Passenger wagons also show the letter legend; Bap uses the historical
+ČSD meaning (B = second class, a = four axles, p = double-deck, pre-1983), from
+[vagonWEB's historical table](https://www.vagonweb.cz/oznacovani/m_pismena_CD.php).
+Do not apply the passenger legend to freight wagons or locomotives.
+
+When enhancing a standard livery, update the matching `catalog_images` row to the
+same approved native asset and dimensions as the owned variant, and update the
+catalog cover when that is the intended representative livery. Check the actual
+paint and markings, not just the existing foreign key. Correct a mistaken owned
+livery link through `saveVehicle` so the whole wagon group stays consistent.
+Retain catalog/livery IDs and original source URLs, and keep other liveries distinct.
+Do not infer a global source-path mapping from an owned image: old source paths may
+be reused by different catalog records. No automatic promotion occurs on ordinary
+model edits, since custom paint/weathering belongs only to the owned model.
+Catalog detail artwork uses the same responsive image and native-resolution zoom
+as owned details. Existing original files remain available for provenance.
+
+For Bap catalog #1530, the yellow-striped ČSD livery #5116 uses the approved
+`doubledeck-108-v2` artwork. Owned variant #50 links to #5116. The later #5117
+image without the side stripes remains separate; it is not a duplicate.
+Its imported mixed-class flag is corrected to second class: lowercase `a` in Bap
+must not be interpreted as uppercase `A` by the catalog importer.

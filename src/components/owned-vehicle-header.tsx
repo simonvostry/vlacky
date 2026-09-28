@@ -1,3 +1,4 @@
+import { OwnedCatalogDetails } from '@/components/owned-catalog-details';
 import { EpochBadges } from '@/components/vehicle-epochs';
 import { formatVehicleLength } from '@/components/vehicle-length';
 import { OperatorLogo } from '@/components/operator-logo';
@@ -30,6 +31,7 @@ export function OwnedVehicleHeader({vehicle}: {vehicle: typeof schema.vehicles.$
         <span className="edit-reveal"><EditAction href={`/${vehicleSection(vehicle)}/${vehicle.id}/upravit`} label={vehicle.type === 'loco' ? 'Upravit lokomotivu' : 'Upravit společné údaje varianty'} /></span>
       </div>
       {vehicle.description && <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-secondary">{vehicle.description}</p>}
+      <OwnedCatalogDetails catalogId={vehicle.catalogId} />
     </section>
   );
 }
