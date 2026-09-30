@@ -20,6 +20,24 @@ into documentation, fixtures, output logs or a public repository. `output/` hold
 local generation/research/review artifacts; `data/backups/` holds private snapshots.
 Neither is required to build the app from Git.
 
+## Resuming work
+
+Read `AGENTS.md` and the relevant topic document, then inspect the branch, recent
+commits, tracked diffs and untracked paths before editing. Existing untracked artwork
+and import/preparation scripts may belong to earlier work: do not stage them with a
+blanket add, discard them or run them as setup. Local files survive an app restart,
+but untracked/ignored files are not backed up by a Git push.
+
+When a session is explicitly saved, an optional private restart note can be placed
+under ignored `output/session-notes/`, with `LATEST.md` pointing to the dated note.
+Use it for working-tree inventory, completed verification, deployed commits and
+outstanding user verification. Keep durable rules in these topic docs. Local notes
+must not contain credentials or supersede the current code and documentation.
+
+Read the review launcher before reusing a local browser harness; verify that its
+database is disposable. Prior `output/` fixtures are test data, not the live collection.
+Never run a local server assuming `.env.local` targets a disposable database.
+
 ## Validation
 
 ```sh

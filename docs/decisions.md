@@ -3,7 +3,7 @@
 [Documentation index](../README.md#documentation)
 
 This is a concise record of durable decisions and unresolved facts, last consolidated
-on 2026-09-20. Current implementation details belong in the linked topic docs.
+on 2026-09-30. Current implementation details belong in the linked topic docs.
 Historical observations below are not a live database inventory.
 
 ## Implemented decisions
@@ -23,6 +23,24 @@ Historical observations below are not a live database inventory.
   Earlier charcoal/azure/indigo studies and text-edit proposals are superseded.
 - Individual model paint edits receive unique assets, preserving shared catalog art.
   The application icon uses a transparent close crop of the Brejlovec cab glazing.
+
+## Collection editing decisions
+
+- Shared wagon identity/artwork belongs to the variation; equipment, DCC and decoder
+  configuration belong to physical models. One inline Save/Cancel edits the physical
+  model. See [the editor contract](design.md#unified-wagon-instance-editor).
+- Duplicate and apply-to-others intentionally copy addresses, functions and CVs;
+  each resulting decoder remains independent. Apply-to-others replaces equipment
+  and decoder settings, including empty values, but preserves individual running
+  numbers, notes, identities and train memberships. See [the copy contract](architecture.md#applying-settings-to-other-models).
+- Functions are the ordinary decoder controls; maker/model and optional CV reference
+  records belong in Advanced Settings. CV storage does not program hardware or iTrain.
+- Row actions follow mouse hover rather than selection. Keyboard focus and touch
+  access remain available. Equipment and DCC/function/train-set summaries stay on one
+  desktop line where possible; state indicators have fixed widths and active green marks.
+- Saved configuration must redraw in place from the committed transaction result.
+  Separate post-save reads can return older values; avoid route reloads as a workaround.
+  See [configuration save responses](architecture.md#configuration-save-responses).
 
 ## Collection context to preserve
 

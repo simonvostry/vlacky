@@ -16,6 +16,7 @@ Tailwind CSS, Drizzle and Turso/SQLite; use npm. UI copy stays Czech.
 Read the relevant topic before changing it. Current code and these focused docs
 supersede old session transcripts and design studies. Keep each rule in its owning
 document; do not append chronological handoffs or duplicate architecture here.
+For a restart, follow [resuming work](docs/operations.md#resuming-work).
 
 ## Rules that must survive every change
 
@@ -25,7 +26,8 @@ document; do not append chronological handoffs or duplicate architecture here.
 - Catalog types and liveries are reference data; `vehicles` are physical owned
   models. Preserve their IDs, catalog links and `isTemplate` when editing.
 - Await all database operations so both SQLite and Turso work. DCC configuration
-  belongs to the physical vehicle, not its train composition.
+  belongs to the physical vehicle, not its train composition. Return saved values
+  from the write transaction, following the [response contract](docs/architecture.md#configuration-save-responses).
 - Keep one current speed profile, no history. Preserve full stored/imported/exported
   precision; readouts use one decimal with a Czech comma. Retain both directions
   even when the display collapses them.

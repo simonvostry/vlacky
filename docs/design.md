@@ -560,7 +560,8 @@ must not be interpreted as uppercase `A` by the catalog importer.
 Decoder forms show functions first. Manufacturer/model selection and CV records
 are inside the collapsed “Pokročilé nastavení” section. The CV heading/count and
 Add CV action share one row, with records directly below and no nested CV disclosure.
-CVs are optional reference records; saving them does not program hardware. Name/purpose, sound project, manual URL and decoder notes are hidden in
+CVs are optional reference records; saving them does not program hardware.
+Name/purpose, sound project, manual URL and decoder notes are hidden in
 both editor and summary; existing values remain stored and round-trip unchanged.
 New configurations receive the internal name `Dekodér`, with no name input.
 Wagon inline decoder forms use the address from the physical wagon row and omit
@@ -570,8 +571,10 @@ is preserved and shown in a small disclosure only for that decoder; clearing it
 restores inheritance. The ordinary form does not offer a new override field.
 Multiple wagons may intentionally share an address and function key for lighting;
 the DCC overview presents these shared addresses neutrally, not as an error.
-Copying settings into a vehicle uses that vehicle's address; duplicating a whole
-owned model still copies its addresses and independent decoder configuration.
+The “Kopírovat z existujícího dekodéru” template picker keeps the target vehicle's
+address and creates an independently editable decoder. In contrast, Duplicate and
+“Použít pro ostatní vozy” intentionally copy the source vehicle address and any
+explicit decoder addresses as well as the decoder configuration.
 
 
 Decoder manufacturer/model controls now select from the shared decoder catalog.
@@ -597,13 +600,13 @@ to the whole instance draft. Compact running-number and DCC inputs share a wrapp
 row with equipment toggles. A single magnetic-coupler control cycles through none
 (−), one (1) and both (2); stored end information is preserved until edited. State
 indicators reserve a fixed width to prevent shifting, and active checkmarks/counts
-use the semantic success green in both the editor and read-only equipment badges. The shorter address input still
-accepts the existing 1–10239 range. Notes/template metadata are collapsed.
+use the semantic success green in both the editor and read-only equipment badges.
+The shorter address input still accepts the existing 1–10239 range. Notes/template metadata are collapsed.
 
 Each row shows its address and comma-separated functions inline (e.g.
 “DCC 69 — F2 Světla”), wrapping only when needed. Explicit decoder address overrides
-remain distinguished. There is no separate decoder summary line or secondary edit button. Drafts survive selection
-and other instance saves. Save errors retain the full draft. Wagon deletion and
+remain distinguished. There is no separate decoder summary line or secondary edit
+button. Drafts survive selection and other instance saves. Save errors retain the full draft. Wagon deletion and
 removing an installed decoder use the shared inline Yes/No popover directly above
 the triggering button, with No initially focused, Escape cancellation and focus
 restoration. No browser `confirm` is used by these controls. Decoder removal stays

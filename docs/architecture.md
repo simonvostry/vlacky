@@ -90,6 +90,10 @@ catalog entries labeled ČSD/ČD.
 | `/api/varianty-vozu/[id]` | PUT quantity with expected count and explicit IDs when reducing |
 | `/api/vlaky/[id]/vozidla` | POST/PUT/DELETE composition membership/order |
 | `/api/vozidla/[id]/dekodery` | GET/PUT validated atomic decoder configuration |
+| `/api/vozidla/[id]/konfigurace` | PUT unified wagon equipment/decoder save |
+| `/api/vozidla/[id]/kopie` | POST a blank or independently configured additional wagon |
+| `/api/vozidla/[id]/pouzit-nastaveni` | POST saved equipment/DCC settings to the confirmed sibling set |
+| `/api/dekodery/katalog` | GET/POST decoder manufacturers and models |
 | `/api/vozidla/[id]/rychlostni-profil` | GET/PUT current locomotive profile with `expectedUpdatedAt` |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
 | `/api/mcp` | GET/POST read-only MCP tools |
@@ -319,6 +323,8 @@ catalog base artwork and individual liveries each store independent epoch lists
 and provenance. Epoch filters use membership rather than scalar equality; catalog
 results show matching liveries. Epochs never come from automatic class/year guesses.
 
+## Owned descriptions and instance actions
+
 Owned `vehicles.description` is shared across a wagon variant, distinct from catalog
 reference data and epoch evidence. `reference_notes` preserves research/import text
 on its original physical record; `notes` is reserved for useful individual notes.
@@ -333,6 +339,8 @@ transaction. Running number, notes, reference notes, memberships and profiles ar
 copied. Neither path alters its source; both enforce the 1000-model group limit.
 The normal DELETE endpoint remains membership-guarded and cascades only configuration
 belonging to that physical ID. The older quantity API remains for compatibility.
+
+## Catalog facts and decoder configuration
 
 `OwnedCatalogDetails` reads prototype production years, maximum speed, manufacturer
 and passenger designation from the linked catalog after authorization. It does not
@@ -357,6 +365,8 @@ CVs and addresses; shared product selection never changes other installations.
 A blank function label is stored as blank; `functionLabel` provides the category
 fallback for summaries, train details and integration exports.
 
+## Unified wagon saves
+
 `PUT /api/vozidla/[id]/konfigurace` authorizes a user and atomically saves a wagon's
 physical-field patch plus an optional complete decoder list. Shared metadata is
 rejected. `saveVehicle` and `saveDecoderConfig` accept the same existing write
@@ -365,6 +375,8 @@ Omitted decoder data is preserved; the row editor sends it only when modified.
 Decoder saves resolve the physical address inside that transaction. Ungrouped
 physical edits do not create a variant. The existing separate APIs remain for
 compatibility and locomotive editing; DCC remains owned by physical vehicle IDs.
+
+## Applying settings to other models
 
 `POST /api/vozidla/[id]/pouzit-nastaveni` applies saved equipment and DCC settings
 from one wagon to every other physical model in the same variant. The request must
@@ -376,6 +388,8 @@ values. The source, running numbers, vehicle notes/provenance, template flags,
 catalog/artwork/group identities, train memberships and speed profiles are preserved.
 The decoder-cloning helper is shared with Duplicate. No schema migration is needed.
 
+## Configuration save responses
+
 Wagon copy-to-all and unified instance-save responses carry snapshots read inside
 the same write transaction, returned only after commit. Map driver rows through
 Drizzle's schema converters so booleans, camelCase properties and JSON/CV arrays
@@ -383,3 +397,9 @@ match ordinary reads. Never re-query through the separate read client to constru
 these mutation responses: a replica may still contain the preceding values.
 The client applies returned equipment and decoder state in place, preserving row
 keys and avoiding a route refresh, page reload or image remount.
+
+`wagon-configuration-snapshot.ts` owns the transactional read and schema conversion;
+`decoder-records.ts` shares function/decoder assembly with ordinary reads. This
+contract is implemented for the two wagon configuration endpoints above. Older CRUD,
+duplicate and standalone decoder routes retain their existing response paths; do not
+assume every write endpoint has been migrated to this contract.
