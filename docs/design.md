@@ -308,6 +308,13 @@ regenerate artwork, change stored vehicle dimensions, or alter MCP/iTrain images
 A source whose artwork is replaced must have its zoom derivative rebuilt or its zoom
 mapping removed too. Private masters, references and review captures stay in output/.
 
+`scripts/prepare-1216-image.mjs` exports the ČD 1216 blue/grey livery for catalog
+#1785 and livery #5896 from `output/catalog-1785/master.png`. Its prompt reuses the
+established base in `output/train-image-enhancements/prompts.json`, with source-specific
+livery and roof-equipment constraints. The transparent 784 × 232 preview and larger
+zoom share the original 196 × 58 geometry. The GIF, catalog/livery IDs, source URLs
+and stored dimensions remain intact; generated fine markings are illustrative.
+
 ### Additional operator SVGs
 
 Logos are registered in `operator-logo.tsx`, not separate database records. Existing
