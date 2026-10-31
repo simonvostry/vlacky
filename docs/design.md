@@ -166,6 +166,14 @@ than forcing the catalog GIF's height. This display scale does not establish the
 physical model length. The original photograph supplies the visible running number;
 generated fine markings remain illustrative. Catalog liveries stay unchanged.
 
+`scripts/prepare-749-red-blue-image.mjs` exports the photographed red/blue ČD 749
+260-6 as a separate livery of catalog #1705, with a dark roof, grey bogies and red
+handrails. Its private master and exact built-in imagegen prompt are in
+`output/loco-749-red-blue/`. It uses the existing 749 width of 164 native pixels,
+width-only reconstruction, a transparent 4× preview and full-resolution zoom.
+The original photograph establishes the visible number and paint scheme; fine
+generated lettering remains illustrative. Existing catalog liveries remain distinct.
+
 ## Verification
 
 Check both themes, a narrow viewport, long Desiros, form controls, edit/cancel,
