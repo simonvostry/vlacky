@@ -155,6 +155,15 @@ live in `src/app/`; `scripts/prepare-app-icon.mjs` rebuilds them from the local 
 It remains the browser/favicon asset. The top navigation starts with Soupravy and
 has no app logo or separate home link.
 
+`scripts/prepare-749-258-image.mjs` exports the individually photographed ČD 749
+258-0 in red/cream with a dark blue roof and frame to its own `img/owned/` asset,
+4× preview and full-resolution zoom. The private master and exact built-in imagegen
+prompt are in `output/loco-749-258-0/`. Width matches the existing 749 catalog's
+164 native pixels; width-only resizing retains the reconstructed silhouette rather
+than forcing the catalog GIF's height. This display scale does not establish the
+physical model length. The original photograph supplies the visible running number;
+generated fine markings remain illustrative. Catalog liveries stay unchanged.
+
 ## Verification
 
 Check both themes, a narrow viewport, long Desiros, form controls, edit/cancel,
