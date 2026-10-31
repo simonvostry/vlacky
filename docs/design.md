@@ -174,6 +174,14 @@ width-only reconstruction, a transparent 4× preview and full-resolution zoom.
 The original photograph establishes the visible number and paint scheme; fine
 generated lettering remains illustrative. Existing catalog liveries remain distinct.
 
+`scripts/prepare-749-121-image.mjs` exports the photographed blue/red ČD 749
+121-0 with pale-yellow cab-end panels as a separate catalog livery. The owned
+locomotive links to that livery. Its private master and exact generation prompt
+are in `output/loco-749-121-0/`. Width is 164 native pixels, matching class 749;
+height follows the reconstruction. The exporter supplies the native PNG, exact
+4× preview and detail zoom. Running number and colors come from the source photo;
+generated fine markings are illustrative and do not establish other model facts.
+
 ## Verification
 
 Check both themes, a narrow viewport, long Desiros, form controls, edit/cancel,
