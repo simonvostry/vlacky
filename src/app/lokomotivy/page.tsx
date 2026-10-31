@@ -75,11 +75,6 @@ export default async function LokomotivyPage({ searchParams }: { searchParams: P
                   <span data-vehicle-label="operator" className="inline-flex"><OperatorLogo operator={v.operator} height={12} /></span>
                   <span data-vehicle-label="type" className="text-[12px] font-bold">{v.designation}</span>
                 </div>
-                {v.dccAddress && (
-                  <div className="text-center text-[10px] text-secondary">
-                    DCC: {v.dccAddress}
-                  </div>
-                )}
               </Link>
             );
           })}

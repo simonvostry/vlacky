@@ -31,9 +31,11 @@ as the final action below a divider. The display toggles are Dopravce
 Lokomotivy, Vozy and Katalog, including read-only detail pages and train side panels.
 DCC and creation/edit forms offer only the theme choice in Settings; they retain
 all vehicle information.
-Page titles, form fields, image alt text, DCC addresses, model catalog numbers and
-freeform notes remain visible/accessible; filters affect only explicitly marked
-presentation labels. A field absent from a page has nothing to toggle there.
+Page titles, form fields, image alt text, model catalog numbers and freeform notes
+remain visible/accessible; filters affect only explicitly marked presentation labels.
+Locomotive overview tiles omit DCC addresses. Addresses remain available on locomotive
+details, in their editors and in the DCC overview, independently of these toggles.
+A field absent from a page has nothing to toggle there.
 
 All default on. Keep the existing `vlacky-train-labels-hidden` browser/origin storage
 key to preserve saved choices; restore before paint and synchronize across tabs,
